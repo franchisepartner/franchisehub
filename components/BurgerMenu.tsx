@@ -16,7 +16,7 @@ export default function BurgerMenu({ open, onClose }: Props) {
     })
   }, [])
 
-  const userName = session?.user?.email?.split('@')[0] || 'Calon Franchisee'
+  const userGreeting = session ? 'Franchisee' : 'Calon Franchisee'
 
   return (
     <div
@@ -24,11 +24,13 @@ export default function BurgerMenu({ open, onClose }: Props) {
         open ? 'translate-x-0' : 'translate-x-full'
       }`}
     >
+      {/* Header */}
       <div className="flex justify-between items-center p-4 border-b">
-        <h2 className="text-lg font-semibold">Halo, {userName}!</h2>
+        <h2 className="text-lg font-semibold">Menu</h2>
         <button onClick={onClose} className="text-xl font-bold">&times;</button>
       </div>
 
+      {/* Menu Items */}
       <ul className="flex flex-col space-y-4 p-4 text-sm">
         <li><Link href="/" onClick={onClose}>Home</Link></li>
         <li><Link href="/blog" onClick={onClose}>Blog Franchaisor</Link></li>
@@ -37,9 +39,13 @@ export default function BurgerMenu({ open, onClose }: Props) {
         <li><Link href="/help" onClick={onClose}>Pusat Bantuan</Link></li>
         <li><Link href="/terms" onClick={onClose}>Syarat & Ketentuan</Link></li>
         <li><Link href="/privacy" onClick={onClose}>Kebijakan Privasi</Link></li>
+
         {!session && (
           <li><Link href="/login" onClick={onClose} className="text-blue-600 font-medium">Login</Link></li>
         )}
+
+        {/* User Greeting */}
+        <li className="mt-2 text-sm italic text-gray-600">Halo, {userGreeting}!</li>
       </ul>
     </div>
   )
