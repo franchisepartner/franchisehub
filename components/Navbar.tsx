@@ -1,48 +1,52 @@
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
+import { useRouter } from 'next/router'
 import { supabase } from '../lib/supabaseClient'
-import BurgerMenu from './BurgerMenu'
 
 export default function Navbar() {
   const [session, setSession] = useState<any>(null)
-  const [deviceType, setDeviceType] = useState('')
+  const router = useRouter()
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session)
+
+      // Optional: redirect setelah login ke halaman sebelumnya
+      const redirectTo = localStorage.getItem('redirectAfterLogin')
+      if (data.session && redirectTo) {
+        router.replace(redirectTo)
+        localStorage.removeItem('redirectAfterLogin')
+      }
     })
-
-    const detectDevice = () => {
-      const width = window.innerWidth
-      if (width <= 768) setDeviceType('Mobile')
-      else if (width <= 1024) setDeviceType('Tablet')
-      else setDeviceType('Desktop')
-    }
-
-    detectDevice()
-    window.addEventListener('resize', detectDevice)
-    return () => window.removeEventListener('resize', detectDevice)
   }, [])
 
-  const userGreeting = session ? 'Franchisee' : 'Calon Franchisee'
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    setSession(null)
+    router.push('/') // kembali ke home setelah logout
+  }
 
   return (
-    <>
-      <nav className="w-full bg-white shadow-md px-4 py-3 flex flex-col md:flex-row md:justify-between md:items-center gap-2">
-        <div className="flex justify-between items-center w-full md:w-auto">
-          <Link href="/" className="text-xl font-bold text-blue-600">FranchiseHub</Link>
-          <button className="text-2xl md:hidden" onClick={() => document.getElementById('burger')?.click()}>☰</button>
-        </div>
+    <nav className="bg-white shadow px-4 py-3 flex justify-between items-center">
+      <h1 className="text-xl font-bold text-blue-600">FranchiseHub</h1>
 
-        <div className="flex flex-col md:flex-row md:items-center gap-2 w-full md:w-auto">
-          <input type="text" placeholder="Cari franchise..." className="px-3 py-1 border rounded w-full md:w-64" />
-          {!session && <Link href="/login" className="text-blue-600">Login</Link>}
-          {session && <button className="text-red-600" onClick={() => supabase.auth.signOut()}>Logout</button>}
-          <button id="burger" onClick={() => document.getElementById('burger-menu')?.classList.toggle('translate-x-full')} className="hidden md:inline text-2xl">☰</button>
-        </div>
-
-        <p className="text-sm text-gray-500 italic mt-2 md:mt-0 text-right md:text-left">Halo, {userGreeting} ({deviceType})</p>
-      </nav>
-    </>
+      <div className="flex items-center gap-4">
+        {session ? (
+          <button onClick={handleLogout} className="text-red-500">Logout</button>
+        ) : (
+          <button
+            onClick={() => {
+              localStorage.setItem('redirectAfterLogin', router.asPath)
+              router.push('/login')
+            }}
+            className="text-blue-600"
+          >
+            Login
+          </button>
+        )}
+        <p className="text-sm text-gray-600 italic">
+          Halo, {session ? 'Franchisee' : 'Calon Franchisee'}!
+        </p>
+      </div>
+    </nav>
   )
 }
