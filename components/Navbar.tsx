@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { supabase } from '../lib/supabaseClient'
 
@@ -9,41 +10,48 @@ export default function Navbar() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session)
-
-      // Optional: redirect setelah login ke halaman sebelumnya
-      const redirectTo = localStorage.getItem('redirectAfterLogin')
-      if (data.session && redirectTo) {
-        router.replace(redirectTo)
-        localStorage.removeItem('redirectAfterLogin')
-      }
     })
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+    })
+
+    return () => {
+      listener?.subscription.unsubscribe()
+    }
   }, [])
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
     setSession(null)
-    router.push('/') // kembali ke home setelah logout
+    router.push('/') // kembali ke halaman utama
+  }
+
+  const handleLogin = () => {
+    localStorage.setItem('redirectAfterLogin', router.asPath)
+    router.push('/login')
   }
 
   return (
-    <nav className="bg-white shadow px-4 py-3 flex justify-between items-center">
-      <h1 className="text-xl font-bold text-blue-600">FranchiseHub</h1>
+    <nav className="w-full bg-white shadow-md px-4 py-3 flex flex-col md:flex-row justify-between items-center gap-2">
+      {/* Kiri: Logo */}
+      <Link href="/" className="text-xl font-bold text-blue-600">FranchiseHub</Link>
 
-      <div className="flex items-center gap-4">
+      {/* Tengah: Search */}
+      <input
+        type="text"
+        placeholder="Cari franchise..."
+        className="px-3 py-1 border rounded w-full md:w-64"
+      />
+
+      {/* Kanan: Login / Logout */}
+      <div className="flex flex-col md:flex-row items-center gap-2">
         {session ? (
-          <button onClick={handleLogout} className="text-red-500">Logout</button>
+          <button onClick={handleLogout} className="text-red-500 font-medium">Logout</button>
         ) : (
-          <button
-            onClick={() => {
-              localStorage.setItem('redirectAfterLogin', router.asPath)
-              router.push('/login')
-            }}
-            className="text-blue-600"
-          >
-            Login
-          </button>
+          <button onClick={handleLogin} className="text-blue-600 font-medium">Login</button>
         )}
-        <p className="text-sm text-gray-600 italic">
+        <p className="text-sm text-gray-500 italic">
           Halo, {session ? 'Franchisee' : 'Calon Franchisee'}!
         </p>
       </div>
