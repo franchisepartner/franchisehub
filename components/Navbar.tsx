@@ -26,14 +26,18 @@ export default function Navbar() {
     router.push(`/?search=${search}`)
   }
 
+  const userName = session?.user?.email?.split('@')[0] || 'Calon Franchisee'
+
   return (
     <>
-      <nav className="w-full bg-white shadow-md px-4 py-3 flex flex-col md:flex-row items-center md:justify-between gap-3 md:gap-0">
+      <nav className="w-full bg-white shadow-md px-4 py-3 flex flex-col md:flex-row items-center md:justify-between gap-3 md:gap-0 relative">
+        {/* Kiri: Logo */}
         <div className="w-full md:w-auto flex justify-between items-center">
           <Link href="/" className="text-xl font-bold text-blue-600">FranchiseHub</Link>
           <button onClick={() => setOpenMenu(true)} className="md:hidden text-2xl text-gray-700">☰</button>
         </div>
 
+        {/* Tengah: Search Bar */}
         <form onSubmit={handleSearch} className="w-full md:w-1/3 flex">
           <input
             type="text"
@@ -45,16 +49,22 @@ export default function Navbar() {
           <button type="submit" className="bg-blue-600 text-white px-4 py-1 rounded-r">Cari</button>
         </form>
 
-        <div className="w-full md:w-auto flex justify-end items-center gap-4">
+        {/* Kanan: Login/Logout + Hamburger (desktop) */}
+        <div className="w-full md:w-auto flex flex-col md:flex-row justify-end items-end md:items-center gap-1">
           {!session ? (
             <Link href="/login" className="text-blue-600 font-medium hidden md:inline">Login</Link>
           ) : (
             <button onClick={handleLogout} className="text-red-500 font-medium hidden md:inline">Logout</button>
           )}
-          <button onClick={() => setOpenMenu(true)} className="hidden md:block text-2xl text-gray-700">☰</button>
+
+          <button onClick={() => setOpenMenu(true)} className="hidden md:inline text-2xl text-gray-700">☰</button>
+
+          {/* Sapaan pengguna */}
+          <p className="text-sm text-gray-600 mt-1 md:ml-4">Halo, {userName}!</p>
         </div>
       </nav>
 
+      {/* Menu Slide */}
       <BurgerMenu open={openMenu} onClose={() => setOpenMenu(false)} />
     </>
   )
