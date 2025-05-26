@@ -17,12 +17,14 @@ export default function Navbar() {
     return () => listener?.subscription.unsubscribe()
   }, [])
 
-  const userGreeting = session ? 'Franchisee' : 'Calon Franchisee'
+  const userGreeting = session
+    ? `${session.user?.user_metadata?.full_name || 'User'}_${session.user?.user_metadata?.role || 'Franchisee'}`
+    : 'Calon Franchisee'
 
   return (
     <>
       <nav className="w-full bg-white shadow-md px-4 py-3 flex flex-wrap items-center justify-between gap-2 relative z-50">
-        {/* Logo dan tombol burger */}
+        {/* Logo + burger */}
         <div className="flex justify-between items-center w-full">
           <Link href="/" className="text-xl font-bold text-blue-600">FranchiseHub</Link>
           <button
@@ -34,7 +36,7 @@ export default function Navbar() {
           </button>
         </div>
 
-        {/* Search Bar */}
+        {/* Search bar */}
         <div className="w-full">
           <input
             type="text"
