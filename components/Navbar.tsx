@@ -32,38 +32,40 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="w-full bg-white shadow-md px-4 py-3 flex flex-row justify-between items-center gap-4 relative z-50">
-        {/* Logo */}
-        <Link href="/" className="text-xl font-bold text-blue-600">FranchiseHub</Link>
+      <nav className="w-full bg-white shadow-md px-4 py-3 flex flex-wrap items-center justify-between gap-2 relative z-50">
+        {/* Baris Atas: Logo + Burger */}
+        <div className="flex justify-between items-center w-full">
+          <Link href="/" className="text-xl font-bold text-blue-600">FranchiseHub</Link>
+          <button
+            onClick={() => setMenuOpen(true)}
+            className="text-2xl"
+            aria-label="Open menu"
+          >
+            ☰
+          </button>
+        </div>
 
-        {/* Search bar (menyesuaikan lebar) */}
-        <input
-          type="text"
-          placeholder="Cari franchise..."
-          className="flex-1 px-3 py-1 border rounded max-w-[400px]"
-        />
+        {/* Search Bar */}
+        <div className="w-full">
+          <input
+            type="text"
+            placeholder="Cari franchise..."
+            className="w-full px-3 py-2 border rounded"
+          />
+        </div>
 
         {/* Login + Sapaan */}
-        <div className="flex flex-col text-right">
+        <div className="w-full flex justify-between items-center text-sm">
           {session ? (
             <button onClick={handleLogout} className="text-red-500 font-medium">Logout</button>
           ) : (
             <button onClick={handleLogin} className="text-blue-600 font-medium">Login</button>
           )}
-          <p className="text-sm text-gray-500 italic">Halo, {userGreeting}!</p>
+          <p className="italic text-gray-500">Halo, {userGreeting}!</p>
         </div>
-
-        {/* Burger Menu tombol – selalu tampil */}
-        <button
-          onClick={() => setMenuOpen(true)}
-          className="text-2xl"
-          aria-label="Open menu"
-        >
-          ☰
-        </button>
       </nav>
 
-      {/* Burger Menu muncul dari kanan */}
+      {/* Slide Menu */}
       <BurgerMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
     </>
   )
