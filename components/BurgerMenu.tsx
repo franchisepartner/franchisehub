@@ -1,70 +1,47 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/router'
 import { supabase } from '../lib/supabaseClient'
-import BurgerMenu from './BurgerMenu'
 
-export default function Navbar() {
+interface Props {
+  open: boolean
+  onClose: () => void
+}
+
+export default function BurgerMenu({ open, onClose }: Props) {
   const [session, setSession] = useState<any>(null)
-  const [menuOpen, setMenuOpen] = useState(false)
-  const router = useRouter()
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSession(data.session))
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session)
     })
-    return () => listener?.subscription.unsubscribe()
   }, [])
-
-  const handleLogin = () => {
-    localStorage.setItem('redirectAfterLogin', router.asPath)
-    router.push('/login')
-  }
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    setSession(null)
-    router.push('/')
-  }
 
   const userGreeting = session ? 'Franchisee' : 'Calon Franchisee'
 
   return (
-    <>
-      <nav className="w-full bg-white shadow-md px-4 py-3 flex flex-col md:flex-row justify-between items-center gap-2">
-        {/* Kiri: Logo + ☰ */}
-        <div className="flex justify-between items-center w-full md:w-auto">
-          <Link href="/" className="text-xl font-bold text-blue-600">FranchiseHub</Link>
-          <button
-            onClick={() => setMenuOpen(true)}
-            className="text-2xl md:hidden"
-            aria-label="Open menu"
-          >
-            ☰
-          </button>
-        </div>
+    <div
+      className={`fixed top-0 right-0 h-full w-72 bg-white shadow-lg transform transition-transform duration-300 z-50 ${
+        open ? 'translate-x-0' : 'translate-x-full'
+      }`}
+    >
+      <div className="flex justify-between items-center p-4 border-b">
+        <h2 className="text-lg font-semibold">Menu</h2>
+        <button onClick={onClose} className="text-xl font-bold">&times;</button>
+      </div>
 
-        {/* Tengah: Search */}
-        <input
-          type="text"
-          placeholder="Cari franchise..."
-          className="px-3 py-1 border rounded w-full md:w-64"
-        />
-
-        {/* Kanan: Login/Logout + Sapaan */}
-        <div className="flex flex-col md:flex-row items-center gap-2">
-          {session ? (
-            <button onClick={handleLogout} className="text-red-500 font-medium">Logout</button>
-          ) : (
-            <button onClick={handleLogin} className="text-blue-600 font-medium">Login</button>
-          )}
-          <p className="text-sm text-gray-500 italic">Halo, {userGreeting}!</p>
-        </div>
-      </nav>
-
-      {/* Slide-in Menu */}
-      <BurgerMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
-    </>
+      <ul className="flex flex-col space-y-4 p-4 text-sm">
+        <li><Link href="/" onClick={onClose}>Home</Link></li>
+        <li><Link href="/blog" onClick={onClose}>Blog Franchaisor</Link></li>
+        <li><Link href="/forum" onClick={onClose}>Forum Global</Link></li>
+        <li><Link href="/announcement" onClick={onClose}>Pengumuman Administrator</Link></li>
+        <li><Link href="/help" onClick={onClose}>Pusat Bantuan</Link></li>
+        <li><Link href="/terms" onClick={onClose}>Syarat & Ketentuan</Link></li>
+        <li><Link href="/privacy" onClick={onClose}>Kebijakan Privasi</Link></li>
+        {!session && (
+          <li><Link href="/login" onClick={onClose} className="text-blue-600 font-medium">Login</Link></li>
+        )}
+        <li className="mt-2 text-sm italic text-gray-600">Halo, {userGreeting}!</li>
+      </ul>
+    </div>
   )
 }
