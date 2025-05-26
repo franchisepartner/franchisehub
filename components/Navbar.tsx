@@ -32,28 +32,19 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="w-full bg-white shadow-md px-4 py-3 flex flex-col md:flex-row justify-between items-center gap-2 relative z-50">
-        {/* Kiri: Logo + ☰ */}
-        <div className="flex justify-between items-center w-full md:w-auto">
-          <Link href="/" className="text-xl font-bold text-blue-600">FranchiseHub</Link>
-          <button
-            onClick={() => setMenuOpen(true)}
-            className="text-2xl md:hidden"
-            aria-label="Open menu"
-          >
-            ☰
-          </button>
-        </div>
+      <nav className="w-full bg-white shadow-md px-4 py-3 flex flex-row justify-between items-center gap-4 relative z-50">
+        {/* Logo */}
+        <Link href="/" className="text-xl font-bold text-blue-600">FranchiseHub</Link>
 
-        {/* Tengah: Search */}
+        {/* Search bar (menyesuaikan lebar) */}
         <input
           type="text"
           placeholder="Cari franchise..."
-          className="px-3 py-1 border rounded w-full md:w-64"
+          className="flex-1 px-3 py-1 border rounded max-w-[400px]"
         />
 
-        {/* Kanan: Login/Logout + Sapaan */}
-        <div className="flex flex-col md:flex-row items-center gap-2">
+        {/* Login + Sapaan */}
+        <div className="flex flex-col text-right">
           {session ? (
             <button onClick={handleLogout} className="text-red-500 font-medium">Logout</button>
           ) : (
@@ -61,9 +52,18 @@ export default function Navbar() {
           )}
           <p className="text-sm text-gray-500 italic">Halo, {userGreeting}!</p>
         </div>
+
+        {/* Burger Menu tombol – selalu tampil */}
+        <button
+          onClick={() => setMenuOpen(true)}
+          className="text-2xl"
+          aria-label="Open menu"
+        >
+          ☰
+        </button>
       </nav>
 
-      {/* Burger Menu props */}
+      {/* Burger Menu muncul dari kanan */}
       <BurgerMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
     </>
   )
