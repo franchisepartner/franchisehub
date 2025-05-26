@@ -18,6 +18,12 @@ export default function BurgerMenu({ open, onClose }: Props) {
 
   const userGreeting = session ? 'Franchisee' : 'Calon Franchisee'
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    onClose()
+    location.href = '/'
+  }
+
   return (
     <div
       className={`fixed top-0 right-0 h-full w-72 bg-white shadow-lg transform transition-transform duration-300 z-50 ${
@@ -37,9 +43,17 @@ export default function BurgerMenu({ open, onClose }: Props) {
         <li><Link href="/help" onClick={onClose}>Pusat Bantuan</Link></li>
         <li><Link href="/terms" onClick={onClose}>Syarat & Ketentuan</Link></li>
         <li><Link href="/privacy" onClick={onClose}>Kebijakan Privasi</Link></li>
-        {!session && (
-          <li><Link href="/login" onClick={onClose} className="text-blue-600 font-medium">Login</Link></li>
+
+        {session ? (
+          <li>
+            <button onClick={handleLogout} className="text-red-500 font-medium">Logout</button>
+          </li>
+        ) : (
+          <li>
+            <Link href="/login" onClick={onClose} className="text-blue-600 font-medium">Login</Link>
+          </li>
         )}
+
         <li className="mt-2 text-sm italic text-gray-600">Halo, {userGreeting}!</li>
       </ul>
     </div>
