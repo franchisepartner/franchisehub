@@ -62,9 +62,9 @@ export default function BurgerMenu({ open, onClose }: Props) {
 
       {/* Menu Items */}
       <ul className="flex flex-col space-y-4 p-4 text-sm">
-        <li><Link href="/blog" onClick={onClose}>Blog Franchaisor</Link></li>
+        <li><Link href="/announcement" onClick={onClose}>📢 Pengumuman Administrator</Link></li>
         <li><Link href="/forum" onClick={onClose}>Forum Global</Link></li>
-        <li><Link href="/announcement" onClick={onClose}>Pengumuman Administrator</Link></li>
+        <li><Link href="/blog" onClick={onClose}>Blog Global</Link></li>
         <li><Link href="/help" onClick={onClose}>Pusat Bantuan</Link></li>
         <li><Link href="/terms" onClick={onClose}>Syarat & Ketentuan</Link></li>
         <li><Link href="/privacy" onClick={onClose}>Kebijakan Privasi</Link></li>
