@@ -78,16 +78,35 @@ export default function BurgerMenu({ open, onClose }: Props) {
         <li><Link href="/privacy" onClick={onClose}>Kebijakan Privasi</Link></li>
 
         {session && (
-          <li><Link href="/franchisor" onClick={onClose}>Jadi Franchisor</Link></li>
+          <li>
+            <Link
+              href="/franchisor"
+              onClick={onClose}
+              className="px-4 py-1 bg-green-700 text-white rounded-full text-sm font-medium hover:bg-green-800 transition"
+            >
+              Jadi Franchisor
+            </Link>
+          </li>
         )}
 
         {session ? (
           <li>
-            <button onClick={handleLogout} className="text-red-500 font-medium">Logout</button>
+            <button
+              onClick={handleLogout}
+              className="px-4 py-1 bg-red-600 text-white rounded-full text-sm font-medium hover:bg-green-700 transition"
+            >
+              Logout
+            </button>
           </li>
         ) : (
           <li>
-            <Link href="/login" onClick={onClose} className="text-blue-600 font-medium">Login</Link>
+            <Link
+              href="/login"
+              onClick={onClose}
+              className="px-4 py-1 bg-green-700 text-white rounded-full text-sm font-medium hover:bg-green-800 transition"
+            >
+              Login
+            </Link>
           </li>
         )}
 
