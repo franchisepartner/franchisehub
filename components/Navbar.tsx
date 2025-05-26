@@ -6,6 +6,7 @@ import BurgerMenu from './BurgerMenu'
 
 export default function Navbar() {
   const [session, setSession] = useState<any>(null)
+  const [menuOpen, setMenuOpen] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -27,6 +28,8 @@ export default function Navbar() {
     router.push('/')
   }
 
+  const userGreeting = session ? 'Franchisee' : 'Calon Franchisee'
+
   return (
     <>
       <nav className="w-full bg-white shadow-md px-4 py-3 flex flex-col md:flex-row justify-between items-center gap-2 relative z-50">
@@ -34,13 +37,9 @@ export default function Navbar() {
         <div className="flex justify-between items-center w-full md:w-auto">
           <Link href="/" className="text-xl font-bold text-blue-600">FranchiseHub</Link>
           <button
-            onClick={() => {
-              const menu = document.getElementById('burger-menu')
-              if (menu) {
-                menu.classList.toggle('translate-x-full')
-              }
-            }}
+            onClick={() => setMenuOpen(true)}
             className="text-2xl md:hidden"
+            aria-label="Open menu"
           >
             ☰
           </button>
@@ -53,21 +52,19 @@ export default function Navbar() {
           className="px-3 py-1 border rounded w-full md:w-64"
         />
 
-        {/* Kanan: Login / Logout + Sapaan */}
+        {/* Kanan: Login/Logout + Sapaan */}
         <div className="flex flex-col md:flex-row items-center gap-2">
           {session ? (
             <button onClick={handleLogout} className="text-red-500 font-medium">Logout</button>
           ) : (
             <button onClick={handleLogin} className="text-blue-600 font-medium">Login</button>
           )}
-          <p className="text-sm text-gray-500 italic">
-            Halo, {session ? 'Franchisee' : 'Calon Franchisee'}!
-          </p>
+          <p className="text-sm text-gray-500 italic">Halo, {userGreeting}!</p>
         </div>
       </nav>
 
-      {/* Burger Menu slide-in */}
-      <BurgerMenu />
+      {/* Burger Menu props */}
+      <BurgerMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
     </>
   )
 }
