@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
 import { useRouter } from 'next/router'
+import Link from 'next/link'
 import { supabase } from '../lib/supabaseClient'
 
 export default function Navbar() {
@@ -8,43 +8,29 @@ export default function Navbar() {
   const router = useRouter()
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session)
-    })
-
+    supabase.auth.getSession().then(({ data }) => setSession(data.session))
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
     })
-
-    return () => {
-      listener?.subscription.unsubscribe()
-    }
+    return () => listener?.subscription.unsubscribe()
   }, [])
+
+  const handleLogin = () => {
+    localStorage.setItem('redirectAfterLogin', '/')
+    router.push('/login')
+  }
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
-    setSession(null)
-    router.push('/') // kembali ke halaman utama
-  }
-
-  const handleLogin = () => {
-    localStorage.setItem('redirectAfterLogin', router.asPath)
-    router.push('/login')
+    router.push('/')
   }
 
   return (
     <nav className="w-full bg-white shadow-md px-4 py-3 flex flex-col md:flex-row justify-between items-center gap-2">
-      {/* Kiri: Logo */}
       <Link href="/" className="text-xl font-bold text-blue-600">FranchiseHub</Link>
 
-      {/* Tengah: Search */}
-      <input
-        type="text"
-        placeholder="Cari franchise..."
-        className="px-3 py-1 border rounded w-full md:w-64"
-      />
+      <input type="text" placeholder="Cari franchise..." className="px-3 py-1 border rounded w-full md:w-64" />
 
-      {/* Kanan: Login / Logout */}
       <div className="flex flex-col md:flex-row items-center gap-2">
         {session ? (
           <button onClick={handleLogout} className="text-red-500 font-medium">Logout</button>
