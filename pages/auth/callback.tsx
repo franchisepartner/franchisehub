@@ -7,15 +7,13 @@ export default function Callback() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) {
-        const back = localStorage.getItem('redirectAfterLogin') || '/'
-        router.replace(back)
-      }
+      const back = localStorage.getItem('redirectAfterLogin') || '/'
+      router.replace(back)
     })
   }, [])
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
+    <div className="flex justify-center items-center min-h-screen">
       <p>Memproses login...</p>
     </div>
   )
