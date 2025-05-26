@@ -11,7 +11,7 @@ export default function Home() {
       const { data } = await supabase
         .from('franchise_listings')
         .select('*')
-        .order('popularity', { ascending: false })
+        .order('popularity', { ascending: false }) // urut dari populer ke tidak
       setListings(data || [])
     }
     fetchListings()
@@ -21,11 +21,6 @@ export default function Home() {
     <div>
       <Navbar />
       <div className="p-4 max-w-3xl mx-auto">
-        <input
-          type="text"
-          placeholder="Cari franchise..."
-          className="w-full px-4 py-2 mb-4 border rounded"
-        />
         <div className="space-y-4">
           {listings.map((item) => (
             <Link key={item.id} href={`/listing/${item.id}`}>
