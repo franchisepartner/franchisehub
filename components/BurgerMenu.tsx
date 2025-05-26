@@ -16,7 +16,9 @@ export default function BurgerMenu({ open, onClose }: Props) {
     })
   }, [])
 
-  const userGreeting = session ? 'Franchisee' : 'Calon Franchisee'
+  const userGreeting = session
+    ? `${session.user?.user_metadata?.full_name || 'User'}_${session.user?.user_metadata?.role || 'Franchisee'}`
+    : 'Calon Franchisee'
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
