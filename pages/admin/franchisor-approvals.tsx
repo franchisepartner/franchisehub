@@ -1,5 +1,7 @@
+// pages/admin/franchisor-approvals.tsx
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabaseClient'
+import { useRouter } from 'next/router'
 
 interface Application {
   id: number
@@ -7,7 +9,7 @@ interface Application {
   brand_name: string
   description: string
   email: string
-  whatsapp_number: string
+  whatsapp: string
   website: string
   logo_url: string
   ktp_url: string
@@ -20,63 +22,50 @@ export default function FranchisorApprovals() {
   const [applications, setApplications] = useState<Application[]>([])
   const [imageUrls, setImageUrls] = useState<{ [key: string]: string }>({})
 
-  useEffect(() => {
-    fetchApplications()
-  }, [])
-
   const fetchApplications = async () => {
-    const { data, error } = await supabase.from('franchisor_applications').select('*')
+    const { data, error } = await supabase
+      .from('franchisor_applications')
+      .select('*')
     if (error) {
-      console.error('Error fetching applications:', error)
-      return
-    }
-
-    setApplications(data)
-
-    // Fetch signed URLs
-    const urls: { [key: string]: string } = {}
-    for (const app of data) {
-      if (app.logo_url) {
-        const { data: signed } = await supabase.storage
-          .from('franchisor-assets')
-          .createSignedUrl(app.logo_url, 60 * 10)
-        if (signed?.signedUrl) urls[`${app.id}_logo`] = signed.signedUrl
+      console.error(error)
+    } else if (data) {
+      setApplications(data)
+      const urls: { [key: string]: string } = {}
+      for (const app of data) {
+        const logo = await supabase.storage.from('franchisor-assets').createSignedUrl(app.logo_url, 60)
+        const ktp = await supabase.storage.from('franchisor-assets').createSignedUrl(app.ktp_url, 60)
+        if (logo.data?.signedUrl) urls[`logo-${app.id}`] = logo.data.signedUrl
+        if (ktp.data?.signedUrl) urls[`ktp-${app.id}`] = ktp.data.signedUrl
       }
-      if (app.ktp_url) {
-        const { data: signed } = await supabase.storage
-          .from('franchisor-assets')
-          .createSignedUrl(app.ktp_url, 60 * 10)
-        if (signed?.signedUrl) urls[`${app.id}_ktp`] = signed.signedUrl
-      }
+      setImageUrls(urls)
     }
-
-    setImageUrls(urls)
   }
 
   const updateStatus = async (id: number, user_id: string, status: string) => {
     if (status === 'approved') {
       await supabase.auth.admin.updateUserById(user_id, {
-        user_metadata: { role: 'Franchisor' }
+        user_metadata: { role: 'Franchisor' },
       })
       await supabase
         .from('franchisor_applications')
         .update({ status })
         .eq('id', id)
-    }
-
-    if (status === 'rejected') {
+    } else if (status === 'rejected') {
       await supabase.from('franchisor_applications').delete().eq('user_id', user_id)
     }
-
     fetchApplications()
   }
+
+  useEffect(() => {
+    fetchApplications()
+  }, [])
 
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Persetujuan Franchisor</h1>
       <table className="min-w-full table-auto border border-gray-300">
-        <thead>
-          <tr className="bg-gray-100">
+        <thead className="bg-gray-100">
+          <tr>
             <th className="border px-3 py-2">Brand</th>
             <th className="border px-3 py-2">Deskripsi</th>
             <th className="border px-3 py-2">Email</th>
@@ -94,22 +83,26 @@ export default function FranchisorApprovals() {
               <td className="border px-3 py-2">{app.brand_name}</td>
               <td className="border px-3 py-2">{app.description}</td>
               <td className="border px-3 py-2">{app.email}</td>
-              <td className="border px-3 py-2">{app.whatsapp_number}</td>
+              <td className="border px-3 py-2">{app.whatsapp}</td>
               <td className="border px-3 py-2">{app.category}</td>
               <td className="border px-3 py-2">{app.location}</td>
               <td className="border px-3 py-2">
-                {imageUrls[`${app.id}_logo`] ? (
-                  <a href={imageUrls[`${app.id}_logo`]} target="_blank" rel="noopener noreferrer">
-                    <img src={imageUrls[`${app.id}_logo`]} alt="Logo" className="w-12 h-12 object-cover" />
+                {imageUrls[`logo-${app.id}`] ? (
+                  <a href={imageUrls[`logo-${app.id}`]} target="_blank" rel="noreferrer">
+                    <img src={imageUrls[`logo-${app.id}`]} alt="Logo" className="h-12 object-contain" />
                   </a>
-                ) : 'Memuat...'}
+                ) : (
+                  <span>Memuat...</span>
+                )}
               </td>
               <td className="border px-3 py-2">
-                {imageUrls[`${app.id}_ktp`] ? (
-                  <a href={imageUrls[`${app.id}_ktp`]} target="_blank" rel="noopener noreferrer">
-                    <img src={imageUrls[`${app.id}_ktp`]} alt="KTP" className="w-12 h-12 object-cover" />
+                {imageUrls[`ktp-${app.id}`] ? (
+                  <a href={imageUrls[`ktp-${app.id}`]} target="_blank" rel="noreferrer">
+                    <img src={imageUrls[`ktp-${app.id}`]} alt="KTP" className="h-12 object-contain" />
                   </a>
-                ) : 'Memuat...'}
+                ) : (
+                  <span>Memuat...</span>
+                )}
               </td>
               <td className="border px-3 py-2 flex gap-2">
                 <button
