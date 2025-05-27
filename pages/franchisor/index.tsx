@@ -15,6 +15,8 @@ export default function FranchisorForm() {
     email: '',
     whatsapp_number: '',
     website: '',
+    category: '',
+    location: '',
     logo_url: '',
     ktp_url: '',
   })
@@ -40,7 +42,7 @@ export default function FranchisorForm() {
 
   const uploadFile = async (file: File, type: 'logo' | 'ktp') => {
     const ext = file.name.split('.').pop()
-    const path = `${type}/${Date.now()}.${ext}`
+    const path = `${type}s/${Date.now()}.${ext}`
 
     const { error } = await supabase.storage
       .from('franchisor-assets')
@@ -81,6 +83,8 @@ export default function FranchisorForm() {
       email,
       whatsapp_number,
       website,
+      category,
+      location,
       logo_url,
       ktp_url,
     } = formData
@@ -91,6 +95,8 @@ export default function FranchisorForm() {
       !email ||
       !whatsapp_number ||
       !website ||
+      !category ||
+      !location ||
       !logo_url ||
       !ktp_url
     ) {
@@ -105,6 +111,8 @@ export default function FranchisorForm() {
       email,
       whatsapp_number,
       website,
+      category,
+      location,
       logo_url,
       ktp_url,
       submitted_at: new Date(),
@@ -130,59 +138,26 @@ export default function FranchisorForm() {
         </p>
       ) : (
         <div className="grid grid-cols-2 gap-4">
-          <input
-            type="text"
-            name="brand_name"
-            placeholder="Nama Brand"
-            value={formData.brand_name}
-            onChange={handleChange}
-            className="border p-2"
-          />
-          <input
-            type="text"
-            name="description"
-            placeholder="Deskripsi Usaha"
-            value={formData.description}
-            onChange={handleChange}
-            className="border p-2"
-          />
-          <input
-            type="email"
-            name="email"
-            placeholder="Email Aktif"
-            value={formData.email}
-            onChange={handleChange}
-            className="border p-2"
-          />
-          <input
-            type="text"
-            name="whatsapp_number"
-            placeholder="Nomor WhatsApp"
-            value={formData.whatsapp_number}
-            onChange={handleChange}
-            className="border p-2"
-          />
-          <input
-            type="text"
-            name="website"
-            placeholder="Link Website/Sosial Media"
-            value={formData.website}
-            onChange={handleChange}
-            className="border p-2 col-span-2"
-          />
+          <input type="text" name="brand_name" placeholder="Nama Brand" value={formData.brand_name} onChange={handleChange} className="border p-2" />
+          <input type="text" name="description" placeholder="Deskripsi Usaha" value={formData.description} onChange={handleChange} className="border p-2" />
+          <input type="email" name="email" placeholder="Email Aktif" value={formData.email} onChange={handleChange} className="border p-2" />
+          <input type="text" name="whatsapp_number" placeholder="Nomor WhatsApp" value={formData.whatsapp_number} onChange={handleChange} className="border p-2" />
+          <input type="text" name="website" placeholder="Link Website/Sosial Media" value={formData.website} onChange={handleChange} className="border p-2" />
+          <input type="text" name="category" placeholder="Kategori Usaha" value={formData.category} onChange={handleChange} className="border p-2" />
+          <input type="text" name="location" placeholder="Lokasi Usaha" value={formData.location} onChange={handleChange} className="border p-2" />
+
           <div className="col-span-2">
-            <label className="block font-medium">Upload Logo Usaha</label>
-            <input type="file" onChange={e => handleFileChange(e, 'logo')} />
+            <label className="block mb-1">Upload Logo Usaha</label>
+            <input type="file" onChange={(e) => handleFileChange(e, 'logo')} />
           </div>
+
           <div className="col-span-2">
-            <label className="block font-medium">Upload Foto KTP</label>
-            <input type="file" onChange={e => handleFileChange(e, 'ktp')} />
+            <label className="block mb-1">Upload Foto KTP</label>
+            <input type="file" onChange={(e) => handleFileChange(e, 'ktp')} />
           </div>
+
           <div className="col-span-2">
-            <button
-              onClick={handleSubmit}
-              className="bg-blue-600 text-white px-4 py-2 rounded"
-            >
+            <button onClick={handleSubmit} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
               Kirim Pengajuan
             </button>
           </div>
