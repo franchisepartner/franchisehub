@@ -18,7 +18,7 @@ export default function BurgerMenu({ open, onClose }: Props) {
   }, [])
 
   const fullName = session?.user?.user_metadata?.full_name || 'User'
-  const role = session?.user?.user_metadata?.role || 'Franchisee'
+  const role = session?.user?.user_metadata?.role || ''
   const avatar = session?.user?.user_metadata?.avatar_url
 
   const handleLogout = async () => {
@@ -39,7 +39,7 @@ export default function BurgerMenu({ open, onClose }: Props) {
         <button onClick={onClose} className="text-xl font-bold">&times;</button>
       </div>
 
-      {/* Avatar + Role */}
+      {/* Avatar + Profil */}
       <div className="p-4 flex flex-col items-center border-b space-y-2">
         {avatar && (
           <Image
@@ -59,11 +59,7 @@ export default function BurgerMenu({ open, onClose }: Props) {
 
       {/* Menu Items */}
       <ul className="flex flex-col space-y-4 p-4 text-sm">
-        <li>
-          <Link href="/announcement" onClick={onClose}>
-            📣 Pengumuman Administrator
-          </Link>
-        </li>
+        <li><Link href="/announcement" onClick={onClose}>Pengumuman Administrator 📣</Link></li>
 
         {session && (
           <>
@@ -78,6 +74,18 @@ export default function BurgerMenu({ open, onClose }: Props) {
         <li><Link href="/terms" onClick={onClose}>Syarat & Ketentuan</Link></li>
         <li><Link href="/privacy" onClick={onClose}>Kebijakan Privasi</Link></li>
 
+        {role === 'Administrator' && (
+          <li>
+            <Link
+              href="/admin"
+              onClick={onClose}
+              className="text-purple-600 font-semibold hover:underline"
+            >
+              Dashboard Administrator
+            </Link>
+          </li>
+        )}
+
         {session && (
           <li>
             <Link
@@ -86,18 +94,6 @@ export default function BurgerMenu({ open, onClose }: Props) {
               className="px-4 py-1 bg-green-700 text-white rounded-full text-sm font-medium hover:bg-green-800 transition"
             >
               Jadi Franchisor
-            </Link>
-          </li>
-        )}
-
-        {role === 'Administrator' && (
-          <li>
-            <Link
-              href="/admin/dashboard"
-              onClick={onClose}
-              className="px-4 py-1 bg-blue-600 text-white rounded-full text-sm font-medium hover:bg-blue-700 transition"
-            >
-              Dashboard Administrator
             </Link>
           </li>
         )}
