@@ -17,11 +17,8 @@ export default function BurgerMenu({ open, onClose }: Props) {
     })
   }, [])
 
-  const userGreeting = session
-    ? `${session.user?.user_metadata?.full_name || 'User'}_${session.user?.user_metadata?.role || 'Franchisee'}`
-    : 'Calon Franchisee'
-
   const fullName = session?.user?.user_metadata?.full_name || 'User'
+  const role = session?.user?.user_metadata?.role || 'Franchisee'
   const avatar = session?.user?.user_metadata?.avatar_url
 
   const handleLogout = async () => {
@@ -54,15 +51,15 @@ export default function BurgerMenu({ open, onClose }: Props) {
           />
         )}
         {session && (
-          <button className="text-blue-600 font-medium text-sm">
-            Profil_{fullName}
-          </button>
+          <p className="text-blue-600 font-medium text-sm">
+            {`${fullName}_${role}`}
+          </p>
         )}
       </div>
 
       {/* Menu Items */}
       <ul className="flex flex-col space-y-4 p-4 text-sm">
-        <li><Link href="/announcement" onClick={onClose}>Pengumuman Administrator 📣</Link></li>
+        <li><Link href="/announcement" onClick={onClose}>📢 Pengumuman Administrator</Link></li>
 
         {session && (
           <>
@@ -93,7 +90,7 @@ export default function BurgerMenu({ open, onClose }: Props) {
           <li>
             <button
               onClick={handleLogout}
-              className="px-4 py-1 bg-red-600 text-white rounded-full text-sm font-medium hover:bg-green-700 transition"
+              className="px-4 py-1 bg-red-600 text-white rounded-full text-sm font-medium hover:bg-red-700 transition"
             >
               Logout
             </button>
@@ -109,8 +106,6 @@ export default function BurgerMenu({ open, onClose }: Props) {
             </Link>
           </li>
         )}
-
-        <li className="mt-2 text-sm italic text-gray-600">Halo, {userGreeting}!</li>
       </ul>
     </div>
   )
