@@ -1,5 +1,7 @@
+// pages/admin/franchisor-approvals.tsx
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabaseClient'
+import { useRouter } from 'next/router'
 
 interface Application {
   id: number
@@ -7,7 +9,7 @@ interface Application {
   brand_name: string
   description: string
   email: string
-  whatsapp: string
+  whatsapp_number: string
   website: string
   logo_url: string
   ktp_url: string
@@ -18,61 +20,64 @@ interface Application {
 
 export default function FranchisorApprovals() {
   const [applications, setApplications] = useState<Application[]>([])
-  const [signedUrls, setSignedUrls] = useState<Record<string, string>>({})
+  const [imageUrls, setImageUrls] = useState<Record<string, string>>({})
+  const router = useRouter()
 
   useEffect(() => {
     fetchApplications()
   }, [])
 
   const fetchApplications = async () => {
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (!user || user.user_metadata?.role !== 'Administrator') {
+      router.push('/')
+      return
+    }
+
     const { data, error } = await supabase
       .from('franchisor_applications')
       .select('*')
 
+    if (data) {
+      setApplications(data)
+      generateSignedUrls(data)
+    }
+    if (error) console.error(error)
+  }
+
+  const generateSignedUrls = async (apps: Application[]) => {
+    const filePaths = apps.flatMap(app => [
+      app.logo_url,
+      app.ktp_url
+    ].filter(Boolean))
+
+    const { data, error } = await supabase.storage
+      .from('franchisor-assets')
+      .createSignedUrls(filePaths, 60 * 60)
+
     if (error) {
-      console.error('Error fetching applications:', error)
+      console.error('Signed URL error:', error)
       return
     }
 
-    setApplications(data || [])
+    const urls: Record<string, string> = {}
+    data?.forEach(obj => {
+      urls[obj.path] = obj.signedUrl
+    })
 
-    // Fetch signed URLs
-    const urlMap: Record<string, string> = {}
-    for (const app of data || []) {
-      if (app.logo_url) {
-        const logoRes = await supabase.storage
-          .from('franchisor-assets')
-          .createSignedUrl(app.logo_url, 60 * 60)
-        if (logoRes.data?.signedUrl) {
-          urlMap[`${app.id}-logo`] = logoRes.data.signedUrl
-        }
-      }
-
-      if (app.ktp_url) {
-        const ktpRes = await supabase.storage
-          .from('franchisor-assets')
-          .createSignedUrl(app.ktp_url, 60 * 60)
-        if (ktpRes.data?.signedUrl) {
-          urlMap[`${app.id}-ktp`] = ktpRes.data.signedUrl
-        }
-      }
-    }
-
-    setSignedUrls(urlMap)
+    setImageUrls(urls)
   }
 
   const updateStatus = async (id: number, user_id: string, status: string) => {
     if (status === 'approved') {
       await supabase.auth.admin.updateUserById(user_id, {
-        user_metadata: { role: 'Franchisor' },
+        user_metadata: { role: 'Franchisor' }
       })
       await supabase
         .from('franchisor_applications')
         .update({ status })
         .eq('id', id)
-    }
-
-    if (status === 'rejected') {
+    } else if (status === 'rejected') {
       await supabase.from('franchisor_applications').delete().eq('user_id', user_id)
     }
 
@@ -82,57 +87,47 @@ export default function FranchisorApprovals() {
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Persetujuan Franchisor</h1>
-      <table className="min-w-full table-auto border border-gray-300 text-sm">
+      <table className="min-w-full table-auto border border-gray-300">
         <thead>
           <tr className="bg-gray-100">
-            <th className="border px-2 py-1">Brand</th>
-            <th className="border px-2 py-1">Deskripsi</th>
-            <th className="border px-2 py-1">Email</th>
-            <th className="border px-2 py-1">WhatsApp</th>
-            <th className="border px-2 py-1">Kategori</th>
-            <th className="border px-2 py-1">Lokasi</th>
-            <th className="border px-2 py-1">Logo</th>
-            <th className="border px-2 py-1">KTP</th>
-            <th className="border px-2 py-1">Aksi</th>
+            {['Brand', 'Deskripsi', 'Email', 'WhatsApp', 'Kategori', 'Lokasi', 'Logo', 'KTP', 'Aksi'].map(h => (
+              <th key={h} className="border px-3 py-2">{h}</th>
+            ))}
           </tr>
         </thead>
         <tbody>
-          {applications.map((app) => (
+          {applications.map(app => (
             <tr key={app.id}>
-              <td className="border px-2 py-1">{app.brand_name}</td>
-              <td className="border px-2 py-1">{app.description}</td>
-              <td className="border px-2 py-1">{app.email}</td>
-              <td className="border px-2 py-1">{app.whatsapp}</td>
-              <td className="border px-2 py-1">{app.category}</td>
-              <td className="border px-2 py-1">{app.location}</td>
-              <td className="border px-2 py-1">
-                {signedUrls[`${app.id}-logo`] ? (
-                  <a href={signedUrls[`${app.id}-logo`]} target="_blank" rel="noreferrer">
-                    <img src={signedUrls[`${app.id}-logo`]} alt="logo" className="h-12 w-auto" />
+              <td className="border px-3 py-2">{app.brand_name}</td>
+              <td className="border px-3 py-2">{app.description}</td>
+              <td className="border px-3 py-2">{app.email}</td>
+              <td className="border px-3 py-2">{app.whatsapp_number}</td>
+              <td className="border px-3 py-2">{app.category}</td>
+              <td className="border px-3 py-2">{app.location}</td>
+              <td className="border px-3 py-2">
+                {imageUrls[app.logo_url] ? (
+                  <a href={imageUrls[app.logo_url]} target="_blank" rel="noopener noreferrer">
+                    <img src={imageUrls[app.logo_url]} alt="logo" className="h-12" />
                   </a>
-                ) : (
-                  'Memuat...'
-                )}
+                ) : 'Memuat...'}
               </td>
-              <td className="border px-2 py-1">
-                {signedUrls[`${app.id}-ktp`] ? (
-                  <a href={signedUrls[`${app.id}-ktp`]} target="_blank" rel="noreferrer">
-                    <img src={signedUrls[`${app.id}-ktp`]} alt="ktp" className="h-12 w-auto" />
+              <td className="border px-3 py-2">
+                {imageUrls[app.ktp_url] ? (
+                  <a href={imageUrls[app.ktp_url]} target="_blank" rel="noopener noreferrer">
+                    <img src={imageUrls[app.ktp_url]} alt="ktp" className="h-12" />
                   </a>
-                ) : (
-                  'Memuat...'
-                )}
+                ) : 'Memuat...'}
               </td>
-              <td className="border px-2 py-1 space-y-1">
+              <td className="border px-3 py-2 flex gap-2">
                 <button
                   onClick={() => updateStatus(app.id, app.user_id, 'approved')}
-                  className="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded"
+                  className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm"
                 >
                   Approve
                 </button>
                 <button
                   onClick={() => updateStatus(app.id, app.user_id, 'rejected')}
-                  className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded"
+                  className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
                 >
                   Reject
                 </button>
