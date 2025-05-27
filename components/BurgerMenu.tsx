@@ -59,7 +59,7 @@ export default function BurgerMenu({ open, onClose }: Props) {
 
       {/* Menu Items */}
       <ul className="flex flex-col space-y-4 p-4 text-sm">
-        <li><Link href="/announcement" onClick={onClose}>Pengumuman Administrator 📣</Link></li>
+        <li><Link href="/announcement" onClick={onClose}>📣 Pengumuman Administrator</Link></li>
 
         {session && (
           <>
