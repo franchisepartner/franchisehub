@@ -1,4 +1,3 @@
-// pages/admin/franchisor-approvals.tsx
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabaseClient'
 
@@ -19,6 +18,7 @@ interface Application {
 
 export default function FranchisorApprovals() {
   const [applications, setApplications] = useState<Application[]>([])
+  const [imageUrls, setImageUrls] = useState<Record<string, string>>({})
 
   useEffect(() => {
     fetchApplications()
@@ -28,8 +28,29 @@ export default function FranchisorApprovals() {
     const { data, error } = await supabase
       .from('franchisor_applications')
       .select('*')
-    if (data) setApplications(data)
+    if (data) {
+      setApplications(data)
+      fetchSignedUrls(data)
+    }
     if (error) console.error(error)
+  }
+
+  const fetchSignedUrls = async (apps: Application[]) => {
+    const paths = apps.flatMap(app => [app.logo_url, app.ktp_url])
+    const validPaths = paths.filter(Boolean)
+
+    const { data, error } = await supabase.storage
+      .from('franchisor-assets')
+      .createSignedUrls(validPaths, 60 * 60)
+
+    const urls: Record<string, string> = {}
+    data?.forEach(obj => {
+      if (obj.path && obj.signedUrl) {
+        urls[obj.path] = obj.signedUrl
+      }
+    })
+
+    setImageUrls(urls)
   }
 
   const updateStatus = async (id: number, user_id: string, status: string) => {
@@ -70,7 +91,7 @@ export default function FranchisorApprovals() {
             </tr>
           </thead>
           <tbody>
-            {applications.map((app) => (
+            {applications.map(app => (
               <tr key={app.id}>
                 <td className="border px-3 py-2">{app.brand_name}</td>
                 <td className="border px-3 py-2">{app.description}</td>
@@ -79,16 +100,16 @@ export default function FranchisorApprovals() {
                 <td className="border px-3 py-2">{app.category}</td>
                 <td className="border px-3 py-2">{app.location}</td>
                 <td className="border px-3 py-2">
-                  {app.logo_url ? (
-                    <a href={app.logo_url} target="_blank" rel="noopener noreferrer">
-                      <img src={app.logo_url} alt="Logo" className="w-16 h-16 object-cover rounded" />
+                  {imageUrls[app.logo_url] ? (
+                    <a href={imageUrls[app.logo_url]} target="_blank" rel="noopener noreferrer">
+                      <img src={imageUrls[app.logo_url]} alt="Logo" className="w-16 h-16 object-cover rounded" />
                     </a>
                   ) : 'Memuat...'}
                 </td>
                 <td className="border px-3 py-2">
-                  {app.ktp_url ? (
-                    <a href={app.ktp_url} target="_blank" rel="noopener noreferrer">
-                      <img src={app.ktp_url} alt="KTP" className="w-16 h-16 object-cover rounded" />
+                  {imageUrls[app.ktp_url] ? (
+                    <a href={imageUrls[app.ktp_url]} target="_blank" rel="noopener noreferrer">
+                      <img src={imageUrls[app.ktp_url]} alt="KTP" className="w-16 h-16 object-cover rounded" />
                     </a>
                   ) : 'Memuat...'}
                 </td>
