@@ -12,13 +12,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: 'Metode tidak diizinkan' })
   }
 
-  const { email, full_name, role } = req.body
+  const { user_id, full_name, role } = req.body
 
-  if (!email || !role) {
-    return res.status(400).json({ error: 'Email dan role wajib diisi' })
+  if (!user_id || !role) {
+    return res.status(400).json({ error: 'user_id dan role wajib diisi' })
   }
 
-  const { data, error } = await supabaseAdmin.auth.admin.updateUserByEmail(email, {
+  const { data, error } = await supabaseAdmin.auth.admin.updateUserById(user_id, {
     user_metadata: {
       full_name,
       role
