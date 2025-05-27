@@ -22,7 +22,7 @@ export default function Home() {
 
   return (
     <div className="p-4 space-y-6">
-      <h1 className="text-2xl font-bold">Selamat datang di FranchiseHub!</h1>
+      <h1 className="text-2xl font-bold"></h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {listings.map((listing) => (
