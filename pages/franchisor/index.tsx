@@ -6,156 +6,128 @@ import { v4 as uuidv4 } from 'uuid'
 
 export default function FranchisorForm() {
   const router = useRouter()
-  const [formData, setFormData] = useState({
-    brand_name: '',
-    description: '',
-    email: '',
-    whatsapp: '',
-    website: '',
-    category: '',
-    location: '',
-    logo_url: '',
-    ktp_url: '',
-  })
-
-  const [status, setStatus] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [brandName, setBrandName] = useState('')
+  const [description, setDescription] = useState('')
+  const [email, setEmail] = useState('')
+  const [whatsapp, setWhatsapp] = useState('')
+  const [website, setWebsite] = useState('')
+  const [category, setCategory] = useState('')
+  const [location, setLocation] = useState('')
+  const [logoFile, setLogoFile] = useState<File | null>(null)
+  const [ktpFile, setKtpFile] = useState<File | null>(null)
+  const [alreadySubmitted, setAlreadySubmitted] = useState(false)
 
   useEffect(() => {
-    const checkStatus = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
+    const checkSubmission = async () => {
+      const { data: sessionData } = await supabase.auth.getUser()
+      const user = sessionData?.user
+      if (!user) return
       const { data } = await supabase
         .from('franchisor_applications')
         .select('status')
-        .eq('user_id', user?.id)
-        .single()
-      if (data?.status) setStatus(data.status)
+        .eq('user_id', user.id)
+        .maybeSingle()
+
+      if (data && data.status === 'pending') {
+        setAlreadySubmitted(true)
+      }
     }
 
-    checkStatus()
+    checkSubmission()
   }, [])
 
-  const handleUpload = async (e: any, field: 'logo_url' | 'ktp_url') => {
-    const file = e.target.files[0]
-    if (!file) return
-    const fileExt = file.name.split('.').pop()
-    const fileName = `${uuidv4()}.${fileExt}`
-    const filePath = `${field}/${fileName}`
-
-    const { error } = await supabase.storage
-      .from('franchisor-assets')
-      .upload(filePath, file)
-
-    if (!error) {
-      const path = filePath
-      setFormData(prev => ({ ...prev, [field]: path }))
-    } else {
-      alert('Gagal upload file')
-    }
-  }
-
-  const handleSubmit = async () => {
-    const {
-      brand_name,
-      description,
-      email,
-      whatsapp,
-      website,
-      category,
-      location,
-      logo_url,
-      ktp_url
-    } = formData
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
 
     if (
-      !brand_name || !description || !email || !whatsapp ||
-      !website || !category || !location || !logo_url || !ktp_url
+      !brandName || !description || !email || !whatsapp ||
+      !website || !category || !location || !logoFile || !ktpFile
     ) {
       alert('Harap isi semua kolom!')
       return
     }
 
-    setIsSubmitting(true)
-    const { data: { user } } = await supabase.auth.getUser()
-
-    const { error } = await supabase
-      .from('franchisor_applications')
-      .insert({
-        user_id: user?.id,
-        email,
-        brand_name,
-        description,
-        whatsapp,
-        website,
-        category,
-        location,
-        logo_url,
-        ktp_url,
-        status: 'pending'
-      })
-
-    if (!error) {
-      setStatus('pending')
-    } else {
-      alert('Gagal mengirim data.')
+    const { data: authData } = await supabase.auth.getUser()
+    const user = authData?.user
+    if (!user) {
+      alert('Anda harus login terlebih dahulu.')
+      return
     }
 
-    setIsSubmitting(false)
-  }
+    const logoPath = `logos/${uuidv4()}-${logoFile.name}`
+    const ktpPath = `ktps/${uuidv4()}-${ktpFile.name}`
 
-  if (status === 'pending') {
-    return (
-      <div className="p-6 text-center">
-        <h1 className="text-xl font-semibold text-gray-700">
-          Pengajuan kamu sedang diperiksa oleh Administrator.
-        </h1>
-      </div>
-    )
+    const { error: logoError } = await supabase.storage
+      .from('franchisor-assets')
+      .upload(logoPath, logoFile)
+
+    const { error: ktpError } = await supabase.storage
+      .from('franchisor-assets')
+      .upload(ktpPath, ktpFile)
+
+    if (logoError || ktpError) {
+      console.error('Upload error', logoError || ktpError)
+      alert('Gagal mengunggah gambar.')
+      return
+    }
+
+    // Hapus pengajuan sebelumnya jika status rejected
+    await supabase
+      .from('franchisor_applications')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('status', 'rejected')
+
+    const { error } = await supabase.from('franchisor_applications').insert({
+      user_id: user.id,
+      email,
+      brand_name: brandName,
+      description,
+      category,
+      location,
+      website,
+      whatsapp_number: whatsapp,
+      logo_url: logoPath,
+      ktp_url: ktpPath,
+      submitted_at: new Date().toISOString(),
+      status: 'pending',
+    })
+
+    if (error) {
+      console.error('Insert error', error)
+      alert('Gagal mengirim pengajuan.')
+    } else {
+      setAlreadySubmitted(true)
+    }
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-6 space-y-4">
+    <div className="max-w-xl mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Form Pengajuan Jadi Franchisor</h1>
-      
-      {Object.entries({
-        brand_name: 'Nama Brand',
-        description: 'Deskripsi Usaha',
-        email: 'Email Aktif',
-        whatsapp: 'Nomor WhatsApp',
-        website: 'Link Website/Sosial Media',
-        category: 'Kategori Usaha',
-        location: 'Lokasi Usaha',
-      }).map(([field, label]) => (
-        <div key={field}>
-          <label className="block mb-1 font-medium">{label}</label>
-          <input
-            type="text"
-            className="w-full border px-4 py-2 rounded"
-            value={(formData as any)[field]}
-            onChange={(e) =>
-              setFormData({ ...formData, [field]: e.target.value })
-            }
-          />
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <input type="text" placeholder="Nama Brand" value={brandName} onChange={(e) => setBrandName(e.target.value)} className="w-full p-2 border" />
+        <input type="text" placeholder="Deskripsi Usaha" value={description} onChange={(e) => setDescription(e.target.value)} className="w-full p-2 border" />
+        <input type="email" placeholder="Email Aktif" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full p-2 border" />
+        <input type="text" placeholder="Nomor WhatsApp" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} className="w-full p-2 border" />
+        <input type="text" placeholder="Link Website" value={website} onChange={(e) => setWebsite(e.target.value)} className="w-full p-2 border" />
+        <input type="text" placeholder="Kategori Usaha" value={category} onChange={(e) => setCategory(e.target.value)} className="w-full p-2 border" />
+        <input type="text" placeholder="Lokasi Usaha" value={location} onChange={(e) => setLocation(e.target.value)} className="w-full p-2 border" />
+        <div>
+          <label className="block mb-1">Upload Logo Usaha</label>
+          <input type="file" accept="image/*" onChange={(e) => setLogoFile(e.target.files?.[0] || null)} />
         </div>
-      ))}
-
-      <div>
-        <label className="block mb-1 font-medium">Upload Logo Usaha</label>
-        <input type="file" onChange={(e) => handleUpload(e, 'logo_url')} />
-      </div>
-
-      <div>
-        <label className="block mb-1 font-medium">Upload Foto KTP</label>
-        <input type="file" onChange={(e) => handleUpload(e, 'ktp_url')} />
-      </div>
-
-      <button
-        onClick={handleSubmit}
-        className="w-full py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
-        disabled={isSubmitting}
-      >
-        {isSubmitting ? 'Mengirim...' : 'Kirim Pengajuan'}
-      </button>
+        <div>
+          <label className="block mb-1">Upload Foto KTP</label>
+          <input type="file" accept="image/*" onChange={(e) => setKtpFile(e.target.files?.[0] || null)} />
+        </div>
+        <button
+          type="submit"
+          disabled={alreadySubmitted}
+          className={`w-full py-2 text-white rounded ${alreadySubmitted ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}
+        >
+          {alreadySubmitted ? 'Sedang Diperiksa Administrator' : 'Kirim Pengajuan'}
+        </button>
+      </form>
     </div>
   )
 }
