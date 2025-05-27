@@ -1,158 +1,142 @@
+// pages/admin/franchisor-approvals.tsx
+
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabaseClient'
+import { useRouter } from 'next/router'
 import Image from 'next/image'
 
 interface Application {
-  id: number
+  id: string
   user_id: string
+  email: string
   brand_name: string
   description: string
-  email: string
-  whatsapp: string
-  website: string
-  logo_url: string
-  ktp_url: string
   category: string
   location: string
-  status: string
+  whatsapp_number: string
+  logo_url: string
+  ktp_url: string
 }
 
 export default function FranchisorApprovals() {
   const [applications, setApplications] = useState<Application[]>([])
-  const [imageUrls, setImageUrls] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
+  const router = useRouter()
 
   useEffect(() => {
-    fetchApplications()
-  }, [])
+    const checkAdmin = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      const role = user?.user_metadata?.role
+      if (role !== 'admin') {
+        router.replace('/')
+        return
+      }
+    }
 
-  const fetchApplications = async () => {
-    setLoading(true)
-    const { data, error } = await supabase
+    const fetchData = async () => {
+      const { data, error } = await supabase
+        .from('franchisor_applications')
+        .select('*')
+        .eq('status', 'pending')
+
+      if (!error) {
+        setApplications(data)
+      }
+      setLoading(false)
+    }
+
+    checkAdmin()
+    fetchData()
+  }, [router])
+
+  const handleApprove = async (user_id: string, email: string) => {
+    const res = await fetch('/api/admin/approve-franchisor', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id, email })
+    })
+    const result = await res.json()
+
+    if (result.success) {
+      alert('Berhasil disetujui!')
+      setApplications(applications.filter(a => a.user_id !== user_id))
+    } else {
+      alert('Gagal approve.')
+    }
+  }
+
+  const handleReject = async (user_id: string) => {
+    const { error } = await supabase
       .from('franchisor_applications')
-      .select('*')
+      .delete()
+      .eq('user_id', user_id)
 
-    if (data) {
-      setApplications(data)
-
-      // Ambil URL gambar secara signed
-      const paths = data.flatMap((item) => [item.logo_url, item.ktp_url])
-      const { data: signedData } = await supabase.storage
-        .from('franchisor-assets')
-        .createSignedUrls(paths, 60 * 60)
-
-      const urls: Record<string, string> = {}
-      signedData?.forEach(obj => {
-        if (obj.path && obj.signedUrl) {
-          urls[obj.path] = obj.signedUrl
-        }
-      })
-
-      setImageUrls(urls)
-    }
-
-    if (error) console.error(error)
-    setLoading(false)
-  }
-
-  const updateStatus = async (id: number, user_id: string, status: string) => {
-    try {
-      if (status === 'approved') {
-        await fetch('/api/admin/approve-franchisor', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_id }),
-        })
-      }
-
-      if (status === 'rejected') {
-        await supabase.from('franchisor_applications').delete().eq('user_id', user_id)
-      } else {
-        await supabase.from('franchisor_applications')
-          .update({ status })
-          .eq('id', id)
-      }
-
-      fetchApplications()
-    } catch (err) {
-      console.error(err)
+    if (!error) {
+      alert('Pengajuan ditolak.')
+      setApplications(applications.filter(a => a.user_id !== user_id))
+    } else {
+      alert('Gagal menolak pengajuan.')
     }
   }
+
+  const renderImage = (path: string) => {
+    if (!path) return '❓'
+    const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/franchisor-assets/${path}`
+    return (
+      <a href={url} target="_blank" rel="noopener noreferrer">
+        <Image src={url} alt="preview" width={40} height={40} />
+      </a>
+    )
+  }
+
+  if (loading) return <p>Memuat data...</p>
 
   return (
-    <div className="p-6 overflow-x-auto">
-      <h1 className="text-2xl font-bold mb-4">Dashboard Administrator: Persetujuan Franchisor</h1>
-      {loading ? (
-        <p>Memuat data...</p>
-      ) : (
-        <table className="min-w-full table-auto border border-gray-300 text-sm">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="border px-2 py-1">Brand</th>
-              <th className="border px-2 py-1">Deskripsi</th>
-              <th className="border px-2 py-1">Email</th>
-              <th className="border px-2 py-1">WhatsApp</th>
-              <th className="border px-2 py-1">Kategori</th>
-              <th className="border px-2 py-1">Lokasi</th>
-              <th className="border px-2 py-1">Logo</th>
-              <th className="border px-2 py-1">KTP</th>
-              <th className="border px-2 py-1">Aksi</th>
+    <div className="p-6">
+      <h1 className="text-xl font-bold mb-4">Dashboard Administrator: Persetujuan Franchisor</h1>
+      <table className="w-full border-collapse border border-gray-300">
+        <thead className="bg-gray-100">
+          <tr>
+            <th className="border p-2">Brand</th>
+            <th className="border p-2">Deskripsi</th>
+            <th className="border p-2">Email</th>
+            <th className="border p-2">WhatsApp</th>
+            <th className="border p-2">Kategori</th>
+            <th className="border p-2">Lokasi</th>
+            <th className="border p-2">Logo</th>
+            <th className="border p-2">KTP</th>
+            <th className="border p-2">Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          {applications.map(app => (
+            <tr key={app.id}>
+              <td className="border p-2">{app.brand_name}</td>
+              <td className="border p-2">{app.description}</td>
+              <td className="border p-2">{app.email}</td>
+              <td className="border p-2">{app.whatsapp_number}</td>
+              <td className="border p-2">{app.category}</td>
+              <td className="border p-2">{app.location}</td>
+              <td className="border p-2 text-center">{renderImage(app.logo_url)}</td>
+              <td className="border p-2 text-center">{renderImage(app.ktp_url)}</td>
+              <td className="border p-2 flex gap-1 justify-center">
+                <button
+                  onClick={() => handleApprove(app.user_id, app.email)}
+                  className="bg-green-600 text-white px-2 py-1 rounded"
+                >
+                  Approve
+                </button>
+                <button
+                  onClick={() => handleReject(app.user_id)}
+                  className="bg-red-600 text-white px-2 py-1 rounded"
+                >
+                  Reject
+                </button>
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {applications.map((app) => (
-              <tr key={app.id}>
-                <td className="border px-2 py-1">{app.brand_name}</td>
-                <td className="border px-2 py-1">{app.description}</td>
-                <td className="border px-2 py-1">{app.email}</td>
-                <td className="border px-2 py-1">{app.whatsapp}</td>
-                <td className="border px-2 py-1">{app.category}</td>
-                <td className="border px-2 py-1">{app.location}</td>
-                <td className="border px-2 py-1">
-                  {imageUrls[app.logo_url] ? (
-                    <a href={imageUrls[app.logo_url]} target="_blank" rel="noopener noreferrer">
-                      <Image
-                        src={imageUrls[app.logo_url]}
-                        alt="Logo"
-                        width={40}
-                        height={40}
-                        className="rounded"
-                      />
-                    </a>
-                  ) : 'Memuat...'}
-                </td>
-                <td className="border px-2 py-1">
-                  {imageUrls[app.ktp_url] ? (
-                    <a href={imageUrls[app.ktp_url]} target="_blank" rel="noopener noreferrer">
-                      <Image
-                        src={imageUrls[app.ktp_url]}
-                        alt="KTP"
-                        width={40}
-                        height={40}
-                        className="rounded"
-                      />
-                    </a>
-                  ) : 'Memuat...'}
-                </td>
-                <td className="border px-2 py-1 space-y-1">
-                  <button
-                    onClick={() => updateStatus(app.id, app.user_id, 'approved')}
-                    className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs"
-                  >
-                    Approve
-                  </button>
-                  <button
-                    onClick={() => updateStatus(app.id, app.user_id, 'rejected')}
-                    className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs"
-                  >
-                    Reject
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+          ))}
+        </tbody>
+      </table>
     </div>
   )
 }
