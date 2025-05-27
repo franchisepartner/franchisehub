@@ -1,100 +1,101 @@
 // pages/admin/franchisor-approvals.tsx
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/router'
-import { supabase } from '../../lib/supabaseClient'
+
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
+import { supabase } from '../../lib/supabaseClient';
 
 interface Application {
-  id: string
-  user_id: string
-  email: string
-  brand_name: string
-  description: string
-  category: string
-  location: string
-  whatsapp_number: string
-  logo_url: string
-  ktp_url: string
+  id: string;
+  user_id: string;
+  email: string;
+  brand_name: string;
+  description: string;
+  category: string;
+  location: string;
+  whatsapp_number: string;
+  logo_url: string;
+  ktp_url: string;
 }
 
 export default function FranchisorApprovals() {
-  const router = useRouter()
-  const [applications, setApplications] = useState<Application[]>([])
-  const [imageUrls, setImageUrls] = useState<Record<string, string>>({})
-  const [loading, setLoading] = useState(true)
+  const router = useRouter();
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
-      const { data: userData, error: userError } = await supabase.auth.getUser()
-      const user = userData?.user
+      const { data: userData } = await supabase.auth.getUser();
+      const user = userData?.user;
 
       if (!user || user.user_metadata?.role !== 'administrator') {
-        router.push('/')
-        return
+        router.push('/');
+        return;
       }
 
       const { data, error } = await supabase
         .from('franchisor_applications')
         .select('*')
-        .eq('status', 'pending')
+        .eq('status', 'pending');
 
-      if (error || !data) return
+      if (error || !data) return;
 
-      setApplications(data)
+      setApplications(data);
 
-      const paths = data.flatMap(item => [item.logo_url, item.ktp_url])
-      const { data: signedData, error: signedError } = await supabase.storage
+      const paths = data.flatMap((item) => [item.logo_url, item.ktp_url]);
+      const { data: signedData } = await supabase.storage
         .from('franchisor-assets')
-        .createSignedUrls(paths, 60 * 60)
+        .createSignedUrls(paths, 60 * 60);
 
-      if (signedError) return
-
-      const urls: Record<string, string> = {}
-      signedData?.forEach(obj => {
+      const urls: Record<string, string> = {};
+      signedData?.forEach((obj) => {
         if (obj?.path && obj?.signedUrl) {
-          urls[obj.path] = obj.signedUrl
+          urls[obj.path] = obj.signedUrl;
         }
-      })
+      });
 
-      setImageUrls(urls)
-      setLoading(false)
-    }
+      setImageUrls(urls);
+      setLoading(false);
+    };
 
-    fetchData()
-  }, [])
+    fetchData();
+  }, []);
 
   const handleApprove = async (user_id: string, email: string) => {
     const res = await fetch('/api/admin/approve-franchisor', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ user_id, email }),
-    })
+    });
 
-    const json = await res.json()
+    const json = await res.json();
     if (json.success) {
-      alert('Berhasil approve.')
-      router.reload()
+      alert('Berhasil approve.');
+      router.reload();
     } else {
-      alert('Gagal approve.')
+      alert('Gagal approve.');
     }
-  }
+  };
 
   const handleReject = async (user_id: string) => {
     const { error } = await supabase
       .from('franchisor_applications')
       .delete()
-      .eq('user_id', user_id)
+      .eq('user_id', user_id);
 
     if (error) {
-      alert('Gagal reject.')
+      alert('Gagal reject.');
     } else {
-      alert('Berhasil reject.')
-      router.reload()
+      alert('Berhasil reject.');
+      router.reload();
     }
-  }
+  };
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Dashboard Administrator: Persetujuan Franchisor</h1>
+      <h1 className="text-2xl font-bold mb-4">
+        Dashboard Administrator: Persetujuan Franchisor
+      </h1>
       {loading ? (
         <p>Memuat...</p>
       ) : (
@@ -114,7 +115,7 @@ export default function FranchisorApprovals() {
               </tr>
             </thead>
             <tbody>
-              {applications.map(app => (
+              {applications.map((app) => (
                 <tr key={app.id} className="text-center">
                   <td className="p-2 border">{app.brand_name}</td>
                   <td className="p-2 border">{app.description}</td>
@@ -124,8 +125,16 @@ export default function FranchisorApprovals() {
                   <td className="p-2 border">{app.location}</td>
                   <td className="p-2 border">
                     {imageUrls[app.logo_url] ? (
-                      <a href={imageUrls[app.logo_url]} target="_blank" rel="noopener noreferrer">
-                        <img src={imageUrls[app.logo_url]} alt="Logo" className="w-10 h-10 object-cover mx-auto" />
+                      <a
+                        href={imageUrls[app.logo_url]}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <img
+                          src={imageUrls[app.logo_url]}
+                          alt="Logo"
+                          className="w-10 h-10 object-cover mx-auto"
+                        />
                       </a>
                     ) : (
                       'Memuat...'
@@ -133,8 +142,16 @@ export default function FranchisorApprovals() {
                   </td>
                   <td className="p-2 border">
                     {imageUrls[app.ktp_url] ? (
-                      <a href={imageUrls[app.ktp_url]} target="_blank" rel="noopener noreferrer">
-                        <img src={imageUrls[app.ktp_url]} alt="KTP" className="w-10 h-10 object-cover mx-auto" />
+                      <a
+                        href={imageUrls[app.ktp_url]}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <img
+                          src={imageUrls[app.ktp_url]}
+                          alt="KTP"
+                          className="w-10 h-10 object-cover mx-auto"
+                        />
                       </a>
                     ) : (
                       'Memuat...'
@@ -161,5 +178,5 @@ export default function FranchisorApprovals() {
         </div>
       )}
     </div>
-  )
+  );
 }
