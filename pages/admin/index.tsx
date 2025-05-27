@@ -1,36 +1,34 @@
-// pages/admin/index.tsx
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import { supabase } from '../../lib/supabaseClient'
 
 export default function AdminDashboard() {
+  const [role, setRole] = useState<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
-    const checkRole = async () => {
-      const { data } = await supabase.auth.getUser()
-      const role = data.user?.user_metadata?.role
-      if (role !== 'Administrator') {
+    supabase.auth.getUser().then(({ data }) => {
+      const currentRole = data?.user?.user_metadata?.role
+      if (currentRole !== 'Administrator') {
         router.push('/')
+      } else {
+        setRole(currentRole)
       }
-    }
-    checkRole()
-  }, [router])
+    })
+  }, [])
+
+  if (role !== 'Administrator') return null
 
   return (
     <div className="p-6">
-      <h1 className="text-3xl font-bold mb-6">Dashboard Administrator</h1>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <button
-          onClick={() => router.push('/admin/franchisor-approvals')}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded shadow text-left"
-        >
-          Lihat Pengajuan Jadi Franchisor
-        </button>
-
-        {/* Tambahkan fitur admin lainnya di sini */}
-      </div>
+      <h1 className="text-2xl font-bold mb-4">Dashboard Administrator</h1>
+      <ul className="space-y-4">
+        <li>
+          <a href="/admin/franchisor-approvals" className="text-blue-600 underline">
+            Persetujuan Pengajuan Jadi Franchisor
+          </a>
+        </li>
+      </ul>
     </div>
   )
 }
