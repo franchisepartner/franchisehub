@@ -13,24 +13,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const { user_id, email } = req.body
 
-  try {
-    // Update metadata user jadi Franchisor
-    const { error: roleError } = await supabase.auth.admin.updateUserById(user_id, {
-      user_metadata: { role: 'Franchisor' }
-    })
-    if (roleError) throw roleError
-
-    // Update status aplikasi
-    const { error: updateError } = await supabase
-      .from('franchisor_applications')
-      .update({ status: 'approved' })
-      .eq('user_id', user_id)
-
-    if (updateError) throw updateError
-
-    return res.status(200).json({ message: 'Approved' })
-  } catch (err) {
-    console.error('Approval failed:', err)
-    return res.status(500).json({ message: 'Approval failed' })
+  if (!user_id || !email) {
+    return res.status(400).json({ error: 'user_id and email are required' })
   }
+
+  // Update role ke "franchisor"
+  const { error: roleError } = await supabase.auth.admin.updateUserById(user_id, {
+    user_metadata: { role: 'franchisor' }
+  })
+
+  if (roleError) {
+    console.error('Role update error:', roleError.message)
+    return res.status(500).json({ error: 'Gagal mengubah role user' })
+  }
+
+  // Update status pengajuan
+  const { error: statusError } = await supabase
+    .from('franchisor_applications')
+    .update({ status: 'approved' })
+    .eq('user_id', user_id)
+
+  if (statusError) {
+    console.error('Status update error:', statusError.message)
+    return res.status(500).json({ error: 'Gagal mengubah status pengajuan' })
+  }
+
+  return res.status(200).json({ message: 'Berhasil approve' })
 }
