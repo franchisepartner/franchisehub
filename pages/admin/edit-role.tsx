@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
-import { supabase } from '@/lib/supabaseClient'
+import { supabase } from '../../lib/supabaseClient' // path relatif aman
 
 export default function EditRolePage() {
   const router = useRouter()
@@ -14,8 +14,7 @@ export default function EditRolePage() {
   const [role, setRole] = useState('Franchisee')
   const [message, setMessage] = useState('')
 
-  // Ganti ini dengan UID kamu
-  const allowedAdminUID = '2fc2790c-4cac-4a66-a7b7-d68d0e328449'
+  const allowedAdminUID = '2fc2790c-4cac-4a66-a7b7-d68d0e328449' // UID kamu
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -52,11 +51,11 @@ export default function EditRolePage() {
   }
 
   if (loading) return <p className="text-center mt-10">Memuat halaman admin...</p>
-  if (!authorized) return null // akan diarahkan ke /
+  if (!authorized) return null
 
   return (
     <div className="max-w-md mx-auto mt-12 p-6 border rounded shadow">
-      <h1 className="text-xl font-bold mb-4 text-center">Panel Admin (UID Tervalidasi)</h1>
+      <h1 className="text-xl font-bold mb-4 text-center">Panel Admin (Akses UID)</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
         <input
           type="text"
