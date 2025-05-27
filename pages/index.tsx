@@ -1,36 +1,45 @@
 import { useEffect, useState } from 'react'
-import { supabase } from '../lib/supabaseClient'
-import Navbar from '../components/Navbar'
 import Link from 'next/link'
+import { supabase } from '../lib/supabaseClient'
 
 export default function Home() {
   const [listings, setListings] = useState<any[]>([])
 
   useEffect(() => {
     const fetchListings = async () => {
-      const { data } = await supabase
-        .from('franchise_listings')
+      const { data, error } = await supabase
+        .from('listings')
         .select('*')
-        .order('popularity', { ascending: false }) // urut dari populer ke tidak
-      setListings(data || [])
+        .order('created_at', { ascending: false })
+
+      if (!error && data) {
+        setListings(data)
+      }
     }
+
     fetchListings()
   }, [])
 
   return (
-    <div>
-      <Navbar />
-      <div className="p-4 max-w-3xl mx-auto">
-        <div className="space-y-4">
-          {listings.map((item) => (
-            <Link key={item.id} href={`/listing/${item.id}`}>
-              <div className="p-4 bg-white rounded shadow hover:bg-gray-50">
-                <h2 className="text-xl font-semibold">{item.name}</h2>
-                <p>{item.description.slice(0, 100)}...</p>
-              </div>
-            </Link>
-          ))}
-        </div>
+    <div className="p-4 space-y-6">
+      <h1 className="text-2xl font-bold">Selamat datang di FranchiseHub!</h1>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {listings.map((listing) => (
+          <Link
+            key={listing.id}
+            href={`/listing/${listing.id}`}
+            className="border rounded-md p-4 shadow hover:shadow-md transition"
+          >
+            <img
+              src={listing.image_url}
+              alt={listing.brand_name}
+              className="w-full h-40 object-cover rounded mb-2"
+            />
+            <h2 className="text-lg font-semibold">{listing.brand_name}</h2>
+            <p className="text-sm text-gray-600 truncate">{listing.description}</p>
+          </Link>
+        ))}
       </div>
     </div>
   )
