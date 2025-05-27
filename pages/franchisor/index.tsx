@@ -12,144 +12,150 @@ export default function FranchisorForm() {
     email: '',
     whatsapp: '',
     website: '',
+    category: '',
+    location: '',
     logo_url: '',
     ktp_url: '',
-    category: '',
-    location: ''
   })
-  const [submitting, setSubmitting] = useState(false)
-  const [hasSubmitted, setHasSubmitted] = useState(false)
 
-  // Cek apakah user sudah mengirim pengajuan sebelumnya
+  const [status, setStatus] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
   useEffect(() => {
-    const checkSubmission = async () => {
+    const checkStatus = async () => {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('franchisor_applications')
         .select('status')
-        .eq('user_id', user.id)
+        .eq('user_id', user?.id)
         .single()
-
-      if (data?.status === 'pending') {
-        setHasSubmitted(true)
-      }
+      if (data?.status) setStatus(data.status)
     }
 
-    checkSubmission()
+    checkStatus()
   }, [])
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
-
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'ktp') => {
-    const file = e.target.files?.[0]
+  const handleUpload = async (e: any, field: 'logo_url' | 'ktp_url') => {
+    const file = e.target.files[0]
     if (!file) return
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${uuidv4()}.${fileExt}`
+    const filePath = `${field}/${fileName}`
 
-    const path = `${type}/${uuidv4()}-${file.name}`
-    const { error } = await supabase.storage.from('franchisor-assets').upload(path, file)
+    const { error } = await supabase.storage
+      .from('franchisor-assets')
+      .upload(filePath, file)
 
-    if (error) {
-      alert('Gagal upload file.')
-      return
-    }
-
-    const url = path
-    if (type === 'logo') {
-      setFormData((prev) => ({ ...prev, logo_url: url }))
+    if (!error) {
+      const path = filePath
+      setFormData(prev => ({ ...prev, [field]: path }))
     } else {
-      setFormData((prev) => ({ ...prev, ktp_url: url }))
+      alert('Gagal upload file')
     }
   }
 
   const handleSubmit = async () => {
+    const {
+      brand_name,
+      description,
+      email,
+      whatsapp,
+      website,
+      category,
+      location,
+      logo_url,
+      ktp_url
+    } = formData
+
     if (
-      !formData.brand_name ||
-      !formData.description ||
-      !formData.email ||
-      !formData.whatsapp ||
-      !formData.website ||
-      !formData.logo_url ||
-      !formData.ktp_url ||
-      !formData.category ||
-      !formData.location
+      !brand_name || !description || !email || !whatsapp ||
+      !website || !category || !location || !logo_url || !ktp_url
     ) {
-      alert('Semua kolom wajib diisi.')
+      alert('Harap isi semua kolom!')
       return
     }
 
-    setSubmitting(true)
-
+    setIsSubmitting(true)
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      alert('Anda belum login.')
-      setSubmitting(false)
-      return
-    }
 
-    const { error } = await supabase.from('franchisor_applications').insert({
-      user_id: user.id,
-      email: formData.email,
-      brand_name: formData.brand_name,
-      description: formData.description,
-      whatsapp: formData.whatsapp,
-      website: formData.website,
-      logo_url: formData.logo_url,
-      ktp_url: formData.ktp_url,
-      category: formData.category,
-      location: formData.location,
-      status: 'pending'
-    })
+    const { error } = await supabase
+      .from('franchisor_applications')
+      .insert({
+        user_id: user?.id,
+        email,
+        brand_name,
+        description,
+        whatsapp,
+        website,
+        category,
+        location,
+        logo_url,
+        ktp_url,
+        status: 'pending'
+      })
 
-    if (error) {
-      alert('Gagal mengirim pengajuan.')
-      setSubmitting(false)
+    if (!error) {
+      setStatus('pending')
     } else {
-      alert('Pengajuan berhasil dikirim.')
-      setHasSubmitted(true)
+      alert('Gagal mengirim data.')
     }
+
+    setIsSubmitting(false)
+  }
+
+  if (status === 'pending') {
+    return (
+      <div className="p-6 text-center">
+        <h1 className="text-xl font-semibold text-gray-700">
+          Pengajuan kamu sedang diperiksa oleh Administrator.
+        </h1>
+      </div>
+    )
   }
 
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-4">
       <h1 className="text-2xl font-bold mb-4">Form Pengajuan Jadi Franchisor</h1>
-
-      {hasSubmitted ? (
-        <div className="text-center p-4 bg-yellow-100 border border-yellow-400 rounded">
-          <p className="text-yellow-800 font-semibold">Sedang Diperiksa Administrator</p>
+      
+      {Object.entries({
+        brand_name: 'Nama Brand',
+        description: 'Deskripsi Usaha',
+        email: 'Email Aktif',
+        whatsapp: 'Nomor WhatsApp',
+        website: 'Link Website/Sosial Media',
+        category: 'Kategori Usaha',
+        location: 'Lokasi Usaha',
+      }).map(([field, label]) => (
+        <div key={field}>
+          <label className="block mb-1 font-medium">{label}</label>
+          <input
+            type="text"
+            className="w-full border px-4 py-2 rounded"
+            value={(formData as any)[field]}
+            onChange={(e) =>
+              setFormData({ ...formData, [field]: e.target.value })
+            }
+          />
         </div>
-      ) : (
-        <>
-          <input name="brand_name" value={formData.brand_name} onChange={handleChange} placeholder="Nama Brand" className="w-full border p-2" />
-          <textarea name="description" value={formData.description} onChange={handleChange} placeholder="Deskripsi" className="w-full border p-2" />
-          <input name="email" value={formData.email} onChange={handleChange} placeholder="Email Aktif" className="w-full border p-2" />
-          <input name="whatsapp" value={formData.whatsapp} onChange={handleChange} placeholder="Nomor WhatsApp" className="w-full border p-2" />
-          <input name="website" value={formData.website} onChange={handleChange} placeholder="Link Website/Sosial Media" className="w-full border p-2" />
-          <input name="category" value={formData.category} onChange={handleChange} placeholder="Kategori Usaha" className="w-full border p-2" />
-          <input name="location" value={formData.location} onChange={handleChange} placeholder="Lokasi Usaha" className="w-full border p-2" />
+      ))}
 
-          <div>
-            <label>Upload Logo Usaha:</label>
-            <input type="file" accept="image/*" onChange={(e) => handleUpload(e, 'logo')} />
-          </div>
+      <div>
+        <label className="block mb-1 font-medium">Upload Logo Usaha</label>
+        <input type="file" onChange={(e) => handleUpload(e, 'logo_url')} />
+      </div>
 
-          <div>
-            <label>Upload Foto KTP:</label>
-            <input type="file" accept="image/*" onChange={(e) => handleUpload(e, 'ktp')} />
-          </div>
+      <div>
+        <label className="block mb-1 font-medium">Upload Foto KTP</label>
+        <input type="file" onChange={(e) => handleUpload(e, 'ktp_url')} />
+      </div>
 
-          <button
-            onClick={handleSubmit}
-            disabled={submitting}
-            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50"
-          >
-            {submitting ? 'Sedang Dikirim...' : 'Kirim Pengajuan'}
-          </button>
-        </>
-      )}
+      <button
+        onClick={handleSubmit}
+        className="w-full py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? 'Mengirim...' : 'Kirim Pengajuan'}
+      </button>
     </div>
   )
 }
