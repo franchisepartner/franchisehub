@@ -25,24 +25,29 @@ export default function FranchisorApprovals() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      const user = userData?.user;
+      const { data, error } = await supabase.auth.getUser();
 
-      if (!user || user.user_metadata?.role !== 'administrator') {
+      if (error || !data?.user) {
         router.push('/');
         return;
       }
 
-      const { data, error } = await supabase
+      const role = data.user.user_metadata?.role;
+      if (role !== 'administrator') {
+        router.push('/');
+        return;
+      }
+
+      const { data: apps, error: appsError } = await supabase
         .from('franchisor_applications')
         .select('*')
         .eq('status', 'pending');
 
-      if (error || !data) return;
+      if (appsError || !apps) return;
 
-      setApplications(data);
+      setApplications(apps);
 
-      const paths = data.flatMap((item) => [item.logo_url, item.ktp_url]);
+      const paths = apps.flatMap((app) => [app.logo_url, app.ktp_url]);
       const { data: signedData } = await supabase.storage
         .from('franchisor-assets')
         .createSignedUrls(paths, 60 * 60);
@@ -73,7 +78,7 @@ export default function FranchisorApprovals() {
       alert('Berhasil approve.');
       router.reload();
     } else {
-      alert('Gagal approve.');
+      alert('Gagal approve: ' + json.message);
     }
   };
 
@@ -101,8 +106,8 @@ export default function FranchisorApprovals() {
       ) : (
         <div className="overflow-x-auto">
           <table className="min-w-full border border-gray-300">
-            <thead>
-              <tr className="bg-gray-100">
+            <thead className="bg-gray-100">
+              <tr>
                 <th className="p-2 border">Brand</th>
                 <th className="p-2 border">Deskripsi</th>
                 <th className="p-2 border">Email</th>
@@ -125,37 +130,17 @@ export default function FranchisorApprovals() {
                   <td className="p-2 border">{app.location}</td>
                   <td className="p-2 border">
                     {imageUrls[app.logo_url] ? (
-                      <a
-                        href={imageUrls[app.logo_url]}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <img
-                          src={imageUrls[app.logo_url]}
-                          alt="Logo"
-                          className="w-10 h-10 object-cover mx-auto"
-                        />
+                      <a href={imageUrls[app.logo_url]} target="_blank" rel="noopener noreferrer">
+                        <img src={imageUrls[app.logo_url]} alt="Logo" className="w-10 h-10 object-cover mx-auto" />
                       </a>
-                    ) : (
-                      'Memuat...'
-                    )}
+                    ) : ('Memuat...')}
                   </td>
                   <td className="p-2 border">
                     {imageUrls[app.ktp_url] ? (
-                      <a
-                        href={imageUrls[app.ktp_url]}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <img
-                          src={imageUrls[app.ktp_url]}
-                          alt="KTP"
-                          className="w-10 h-10 object-cover mx-auto"
-                        />
+                      <a href={imageUrls[app.ktp_url]} target="_blank" rel="noopener noreferrer">
+                        <img src={imageUrls[app.ktp_url]} alt="KTP" className="w-10 h-10 object-cover mx-auto" />
                       </a>
-                    ) : (
-                      'Memuat...'
-                    )}
+                    ) : ('Memuat...')}
                   </td>
                   <td className="p-2 border">
                     <button
