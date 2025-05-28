@@ -1,3 +1,4 @@
+// pages/admin/franchisor-approvals.tsx
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabaseClient';
@@ -25,28 +26,20 @@ export default function FranchisorApprovals() {
 
   useEffect(() => {
     const fetchData = async () => {
+      console.log('🔍 Memulai fetchData()...');
+
       try {
         const { data: { user }, error: userError } = await supabase.auth.getUser();
-
-        console.log('🔐 User fetched:', user);
+        console.log('👤 User fetched:', user);
         if (userError) {
-          console.error('❌ Error getting user:', userError.message);
+          console.error('❌ Error getUser:', userError);
           setErrorMessage('Gagal mengambil data pengguna.');
           setLoading(false);
           return;
         }
 
-        if (!user) {
-          console.warn('⚠️ Tidak ada user login');
-          router.push('/');
-          return;
-        }
-
-        const role = user.user_metadata?.role;
-        console.log('👤 Role user:', role);
-
-        if (role !== 'administrator') {
-          console.warn('❌ Role bukan administrator, redirect');
+        if (!user || user.user_metadata?.role !== 'administrator') {
+          console.warn('⛔ Tidak punya akses administrator:', user?.user_metadata);
           setIsAuthorized(false);
           setLoading(false);
           router.push('/');
@@ -60,27 +53,27 @@ export default function FranchisorApprovals() {
           .select('*')
           .eq('status', 'pending');
 
+        console.log('📥 Data aplikasi:', data);
+
         if (dataError) {
-          console.error('❌ Error fetch applications:', dataError.message);
-          setErrorMessage('Gagal memuat data: ' + dataError.message);
+          console.error('❌ Error load data:', dataError);
+          setErrorMessage('Gagal memuat data pengajuan.');
           setLoading(false);
           return;
         }
 
-        console.log('📦 Data pengajuan:', data);
-
         setApplications(data);
 
         const paths = data.flatMap((item) => [item.logo_url, item.ktp_url]);
-        const { data: signedData, error: signedUrlError } = await supabase.storage
+        console.log('📦 Paths untuk signed URLs:', paths);
+
+        const { data: signedData, error: signedError } = await supabase.storage
           .from('franchisor-assets')
           .createSignedUrls(paths, 3600);
 
-        if (signedUrlError) {
-          console.error('❌ Error signed URL:', signedUrlError.message);
+        if (signedError) {
+          console.error('❌ Error createSignedUrls:', signedError);
         }
-
-        console.log('🖼️ Signed URLs:', signedData);
 
         const urls: Record<string, string> = {};
         signedData?.forEach((obj) => {
@@ -89,10 +82,12 @@ export default function FranchisorApprovals() {
           }
         });
 
+        console.log('🖼️ Signed URLs:', urls);
+
         setImageUrls(urls);
         setLoading(false);
       } catch (e: any) {
-        console.error('❗ Unexpected error:', e);
+        console.error('🔥 Unexpected error:', e);
         setErrorMessage('Terjadi kesalahan tak terduga.');
         setLoading(false);
       }
@@ -135,9 +130,7 @@ export default function FranchisorApprovals() {
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">
-        Dashboard Administrator: Persetujuan Franchisor
-      </h1>
+      <h1 className="text-2xl font-bold mb-4">Dashboard Administrator: Persetujuan Franchisor</h1>
 
       {loading ? (
         <p>Memuat...</p>
