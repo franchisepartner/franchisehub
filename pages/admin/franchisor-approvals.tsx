@@ -1,4 +1,3 @@
-// pages/admin/franchisor-approvals.tsx
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabaseClient';
@@ -14,6 +13,7 @@ interface Application {
   whatsapp_number: string;
   logo_url: string;
   ktp_url: string;
+  status: string;
 }
 
 export default function FranchisorApprovals() {
@@ -22,95 +22,115 @@ export default function FranchisorApprovals() {
   const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData?.user) {
+      // Cek status login pengguna
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      const user = userData?.user;
+      if (userError || !user) {
+        setErrorMessage('Gagal mengambil data pengguna.');
+        setIsAuthorized(false);
+        setLoading(false);
         router.push('/');
         return;
       }
-
-      const { data: profile, error: profileError } = await supabase
+      // Validasi apakah user adalah admin (misal berdasarkan tabel profiles.is_admin)
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('is_admin')
-        .eq('id', userData.user.id)
+        .eq('id', user.id)
         .single();
-
-      if (profileError || !profile?.is_admin) {
+      if (profileError || !profileData?.is_admin) {
+        setIsAuthorized(false);
+        setLoading(false);
         router.push('/');
         return;
       }
+      setIsAuthorized(true);
 
-      const { data, error } = await supabase
+      // Ambil data semua pengajuan franchisor dengan status pending
+      const { data: appsData, error: appsError } = await supabase
         .from('franchisor_applications')
         .select('*')
         .eq('status', 'pending');
-
-      if (error) {
+      if (appsError || !appsData) {
         setErrorMessage('Gagal memuat data pengajuan.');
         setLoading(false);
         return;
       }
+      setApplications(appsData);
 
-      setApplications(data || []);
-
-      const paths = data.flatMap((item) => [item.logo_url, item.ktp_url]);
-      const { data: signedData } = await supabase.storage
+      // Buat Signed URL untuk setiap logo dan KTP (agar bisa ditampilkan sebagai thumbnail)
+      const paths = appsData.flatMap(item => [item.logo_url, item.ktp_url]);
+      const { data: signedData, error: signedError } = await supabase.storage
         .from('franchisor-assets')
-        .createSignedUrls(paths, 3600);
-
+        .createSignedUrls(paths, 60 * 60);  // URL berlaku 1 jam
+      if (signedError) {
+        console.error('Error createSignedUrls:', signedError);
+      }
       const urls: Record<string, string> = {};
-      signedData?.forEach((obj) => {
-        if (obj?.path && obj?.signedUrl) urls[obj.path] = obj.signedUrl;
+      signedData?.forEach(obj => {
+        if (obj.path && obj.signedUrl) {
+          urls[obj.path] = obj.signedUrl;
+        }
       });
-
       setImageUrls(urls);
       setLoading(false);
     };
-
     fetchData();
   }, [router]);
 
+  // Handler Approve: panggil API untuk approve franchisor
   const handleApprove = async (user_id: string, email: string) => {
-    const res = await fetch('/api/admin/approve-franchisor', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_id, email }),
-    });
-
-    const result = await res.json();
-    if (result.success) {
-      alert('Berhasil approve.');
-      router.reload();
-    } else {
-      alert('Gagal approve: ' + result.message);
+    try {
+      const res = await fetch('/api/admin/approve-franchisor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id, email }),
+      });
+      const result = await res.json();
+      if (result.success) {
+        alert('Berhasil approve.');
+        router.reload();
+      } else {
+        alert('Gagal approve: ' + result.message);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Terjadi kesalahan saat menghubungi server.');
     }
   };
 
+  // Handler Reject: langsung update status pengajuan menjadi 'rejected'
   const handleReject = async (user_id: string) => {
-    const { error } = await supabase
+    const { error: rejectError } = await supabase
       .from('franchisor_applications')
-      .delete()
+      .update({ status: 'rejected' })
       .eq('user_id', user_id);
-
-    if (error) {
+    if (rejectError) {
       alert('Gagal reject.');
     } else {
       alert('Berhasil reject.');
-      router.reload();
+      setApplications(applications.filter(app => app.user_id !== user_id));
     }
   };
+
+  if (loading) {
+    return <p>Memuat...</p>;
+  }
+  if (!isAuthorized) {
+    return <p className="text-red-500">Tidak memiliki akses.</p>;
+  }
+  if (errorMessage) {
+    return <p className="text-red-500">{errorMessage}</p>;
+  }
 
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Dashboard Administrator: Persetujuan Franchisor</h1>
-
-      {loading ? (
-        <p>Memuat...</p>
-      ) : errorMessage ? (
-        <p className="text-red-500">{errorMessage}</p>
-      ) : applications.length === 0 ? (
+      {applications.length === 0 ? (
         <p>Tidak ada pengajuan franchisor yang pending.</p>
       ) : (
         <div className="overflow-x-auto">
@@ -129,7 +149,7 @@ export default function FranchisorApprovals() {
               </tr>
             </thead>
             <tbody>
-              {applications.map((app) => (
+              {applications.map(app => (
                 <tr key={app.id} className="text-center">
                   <td className="p-2 border">{app.brand_name}</td>
                   <td className="p-2 border">{app.description}</td>
@@ -138,18 +158,44 @@ export default function FranchisorApprovals() {
                   <td className="p-2 border">{app.category}</td>
                   <td className="p-2 border">{app.location}</td>
                   <td className="p-2 border">
-                    <a href={imageUrls[app.logo_url]} target="_blank" rel="noopener noreferrer">
-                      <img src={imageUrls[app.logo_url]} className="w-10 h-10 mx-auto" alt="Logo" />
-                    </a>
+                    {imageUrls[app.logo_url] ? (
+                      <a href={imageUrls[app.logo_url]} target="_blank" rel="noopener noreferrer">
+                        <img 
+                          src={imageUrls[app.logo_url]} 
+                          alt="Logo" 
+                          className="w-10 h-10 object-cover mx-auto" 
+                        />
+                      </a>
+                    ) : (
+                      'Memuat...'
+                    )}
                   </td>
                   <td className="p-2 border">
-                    <a href={imageUrls[app.ktp_url]} target="_blank" rel="noopener noreferrer">
-                      <img src={imageUrls[app.ktp_url]} className="w-10 h-10 mx-auto" alt="KTP" />
-                    </a>
+                    {imageUrls[app.ktp_url] ? (
+                      <a href={imageUrls[app.ktp_url]} target="_blank" rel="noopener noreferrer">
+                        <img 
+                          src={imageUrls[app.ktp_url]} 
+                          alt="KTP" 
+                          className="w-10 h-10 object-cover mx-auto" 
+                        />
+                      </a>
+                    ) : (
+                      'Memuat...'
+                    )}
                   </td>
                   <td className="p-2 border">
-                    <button className="bg-green-600 text-white px-2 py-1 rounded mr-2" onClick={() => handleApprove(app.user_id, app.email)}>Approve</button>
-                    <button className="bg-red-600 text-white px-2 py-1 rounded" onClick={() => handleReject(app.user_id)}>Reject</button>
+                    <button 
+                      onClick={() => handleApprove(app.user_id, app.email)} 
+                      className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded mr-2"
+                    >
+                      Approve
+                    </button>
+                    <button 
+                      onClick={() => handleReject(app.user_id)} 
+                      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
+                    >
+                      Reject
+                    </button>
                   </td>
                 </tr>
               ))}
