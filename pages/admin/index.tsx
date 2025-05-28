@@ -1,23 +1,41 @@
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/router'
-import { supabase } from '../../lib/supabaseClient'
+// pages/admin/index.tsx
+
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
+import { supabase } from '../../lib/supabaseClient';
 
 export default function AdminDashboard() {
-  const [role, setRole] = useState<string | null>(null)
-  const router = useRouter()
+  const [role, setRole] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      const currentRole = data?.user?.user_metadata?.role
-      if (currentRole !== 'Administrator') {
-        router.push('/')
-      } else {
-        setRole(currentRole)
-      }
-    })
-  }, [])
+    const checkUserRole = async () => {
+      const { data, error } = await supabase.auth.getUser();
 
-  if (role !== 'Administrator') return null
+      if (error || !data?.user) {
+        router.push('/');
+        return;
+      }
+
+      const currentRole = data.user.user_metadata?.role;
+      console.log('Current Role:', currentRole); // Debugging (boleh hapus)
+
+      if (currentRole?.toLowerCase() !== 'administrator') {
+        router.push('/');
+      } else {
+        setRole(currentRole);
+      }
+
+      setLoading(false);
+    };
+
+    checkUserRole();
+  }, [router]);
+
+  if (loading || role?.toLowerCase() !== 'administrator') {
+    return null; // atau bisa return <p>Memuat...</p> jika ingin feedback visual
+  }
 
   return (
     <div className="p-6">
@@ -30,5 +48,5 @@ export default function AdminDashboard() {
         </li>
       </ul>
     </div>
-  )
+  );
 }
