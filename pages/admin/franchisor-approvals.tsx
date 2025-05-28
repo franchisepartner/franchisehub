@@ -1,4 +1,3 @@
-// pages/admin/franchisor-approvals.tsx
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabaseClient';
@@ -27,77 +26,70 @@ export default function FranchisorApprovals() {
   useEffect(() => {
     const fetchData = async () => {
       console.log('📡 Memulai proses fetch data...');
-      try {
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-        console.log('🔍 Data user:', user);
 
-        if (userError) {
-          console.error('❌ Gagal mengambil user:', userError);
-          setErrorMessage('Gagal mengambil data pengguna.');
-          setLoading(false);
-          return;
-        }
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      const user = userData?.user;
 
-        if (!user || user.user_metadata?.role !== 'administrator') {
-          console.warn('⛔ Akses ditolak, bukan administrator:', user?.user_metadata);
-          setIsAuthorized(false);
-          setLoading(false);
-          router.push('/');
-          return;
-        }
-
-        setIsAuthorized(true);
-
-        const { data, error: dataError } = await supabase
-          .from('franchisor_applications')
-          .select('*')
-          .eq('status', 'pending');
-
-        console.log('📄 Data pengajuan franchisor:', data);
-
-        if (dataError) {
-          console.error('❌ Gagal memuat data pengajuan:', dataError);
-          setErrorMessage('Gagal memuat data pengajuan.');
-          setLoading(false);
-          return;
-        }
-
-        if (!data || data.length === 0) {
-          console.log('ℹ️ Tidak ada data pengajuan ditemukan.');
-          setApplications([]);
-          setLoading(false);
-          return;
-        }
-
-        setApplications(data);
-
-        const paths = data.flatMap((item) => [item.logo_url, item.ktp_url]);
-        console.log('📦 Path untuk signed URLs:', paths);
-
-        const { data: signedData, error: signedError } = await supabase.storage
-          .from('franchisor-assets')
-          .createSignedUrls(paths, 3600);
-
-        if (signedError) {
-          console.error('❌ Gagal mendapatkan signed URLs:', signedError);
-        }
-
-        const urls: Record<string, string> = {};
-        signedData?.forEach((obj) => {
-          if (obj?.path && obj?.signedUrl) {
-            urls[obj.path] = obj.signedUrl;
-          }
-        });
-
-        console.log('🖼️ Signed URLs:', urls);
-
-        setImageUrls(urls);
+      if (userError || !user) {
+        console.warn('❌ Tidak ada user login:', userError);
+        setErrorMessage('Gagal mengambil data pengguna.');
+        setIsAuthorized(false);
         setLoading(false);
-      } catch (e: any) {
-        console.error('🔥 Kesalahan tidak terduga:', e);
-        setErrorMessage('Terjadi kesalahan tak terduga.');
-        setLoading(false);
+        router.push('/');
+        return;
       }
+
+      const { data: adminCheck, error: adminError } = await supabase
+        .from('profiles')
+        .select('is_admin')
+        .eq('id', user.id)
+        .single();
+
+      console.log('🛡️ Admin check:', adminCheck);
+
+      if (adminError || !adminCheck?.is_admin) {
+        console.warn('⛔ User bukan admin:', adminCheck);
+        setIsAuthorized(false);
+        setLoading(false);
+        router.push('/');
+        return;
+      }
+
+      setIsAuthorized(true);
+
+      const { data, error: dataError } = await supabase
+        .from('franchisor_applications')
+        .select('*')
+        .eq('status', 'pending');
+
+      console.log('📄 Data pengajuan franchisor:', data);
+
+      if (dataError || !data) {
+        setErrorMessage('Gagal memuat data pengajuan.');
+        setLoading(false);
+        return;
+      }
+
+      setApplications(data);
+
+      const paths = data.flatMap((item) => [item.logo_url, item.ktp_url]);
+      const { data: signedData, error: signedError } = await supabase.storage
+        .from('franchisor-assets')
+        .createSignedUrls(paths, 3600);
+
+      if (signedError) {
+        console.error('❌ Error createSignedUrls:', signedError);
+      }
+
+      const urls: Record<string, string> = {};
+      signedData?.forEach((obj) => {
+        if (obj?.path && obj?.signedUrl) {
+          urls[obj.path] = obj.signedUrl;
+        }
+      });
+
+      setImageUrls(urls);
+      setLoading(false);
     };
 
     fetchData();
@@ -137,9 +129,7 @@ export default function FranchisorApprovals() {
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">
-        Dashboard Administrator: Persetujuan Franchisor
-      </h1>
+      <h1 className="text-2xl font-bold mb-4">Dashboard Administrator: Persetujuan Franchisor</h1>
 
       {loading ? (
         <p>Memuat...</p>
