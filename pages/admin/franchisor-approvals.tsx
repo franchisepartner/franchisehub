@@ -22,38 +22,35 @@ export default function FranchisorApprovals() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
+  const [isAuthorized, setIsAuthorized] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
-      const { data, error } = await supabase.auth.getUser();
+      const { data: { user }, error } = await supabase.auth.getUser();
 
-      if (error || !data?.user) {
+      if (error || !user || user.user_metadata?.role !== 'administrator') {
         router.push('/');
         return;
       }
 
-      const role = data.user.user_metadata?.role;
-      if (role !== 'administrator') {
-        router.push('/');
-        return;
-      }
+      setIsAuthorized(true);
 
-      const { data: apps, error: appsError } = await supabase
+      const { data, error: dataError } = await supabase
         .from('franchisor_applications')
         .select('*')
         .eq('status', 'pending');
 
-      if (appsError || !apps) return;
+      if (dataError || !data) return;
 
-      setApplications(apps);
+      setApplications(data);
 
-      const paths = apps.flatMap((app) => [app.logo_url, app.ktp_url]);
+      const paths = data.flatMap((item) => [item.logo_url, item.ktp_url]);
       const { data: signedData } = await supabase.storage
         .from('franchisor-assets')
-        .createSignedUrls(paths, 60 * 60);
+        .createSignedUrls(paths, 3600);
 
       const urls: Record<string, string> = {};
-      signedData?.forEach((obj) => {
+      signedData?.forEach(obj => {
         if (obj?.path && obj?.signedUrl) {
           urls[obj.path] = obj.signedUrl;
         }
@@ -73,12 +70,12 @@ export default function FranchisorApprovals() {
       body: JSON.stringify({ user_id, email }),
     });
 
-    const json = await res.json();
-    if (json.success) {
+    const result = await res.json();
+    if (result.success) {
       alert('Berhasil approve.');
       router.reload();
     } else {
-      alert('Gagal approve: ' + json.message);
+      alert('Gagal approve.');
     }
   };
 
@@ -96,18 +93,18 @@ export default function FranchisorApprovals() {
     }
   };
 
+  if (!isAuthorized) return null;
+
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">
-        Dashboard Administrator: Persetujuan Franchisor
-      </h1>
+      <h1 className="text-2xl font-bold mb-4">Dashboard Administrator: Persetujuan Franchisor</h1>
       {loading ? (
         <p>Memuat...</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="min-w-full border border-gray-300">
-            <thead className="bg-gray-100">
-              <tr>
+            <thead>
+              <tr className="bg-gray-100">
                 <th className="p-2 border">Brand</th>
                 <th className="p-2 border">Deskripsi</th>
                 <th className="p-2 border">Email</th>
@@ -120,7 +117,7 @@ export default function FranchisorApprovals() {
               </tr>
             </thead>
             <tbody>
-              {applications.map((app) => (
+              {applications.map(app => (
                 <tr key={app.id} className="text-center">
                   <td className="p-2 border">{app.brand_name}</td>
                   <td className="p-2 border">{app.description}</td>
@@ -133,14 +130,14 @@ export default function FranchisorApprovals() {
                       <a href={imageUrls[app.logo_url]} target="_blank" rel="noopener noreferrer">
                         <img src={imageUrls[app.logo_url]} alt="Logo" className="w-10 h-10 object-cover mx-auto" />
                       </a>
-                    ) : ('Memuat...')}
+                    ) : 'Memuat...'}
                   </td>
                   <td className="p-2 border">
                     {imageUrls[app.ktp_url] ? (
                       <a href={imageUrls[app.ktp_url]} target="_blank" rel="noopener noreferrer">
                         <img src={imageUrls[app.ktp_url]} alt="KTP" className="w-10 h-10 object-cover mx-auto" />
                       </a>
-                    ) : ('Memuat...')}
+                    ) : 'Memuat...'}
                   </td>
                   <td className="p-2 border">
                     <button
