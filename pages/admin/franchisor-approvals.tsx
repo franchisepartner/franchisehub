@@ -1,5 +1,3 @@
-// pages/admin/franchisor-approvals.tsx
-
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabaseClient';
@@ -30,14 +28,25 @@ export default function FranchisorApprovals() {
       try {
         const { data: { user }, error: userError } = await supabase.auth.getUser();
 
+        console.log('🔐 User fetched:', user);
         if (userError) {
-          console.error('Auth error:', userError);
+          console.error('❌ Error getting user:', userError.message);
           setErrorMessage('Gagal mengambil data pengguna.');
           setLoading(false);
           return;
         }
 
-        if (!user || user.user_metadata?.role !== 'administrator') {
+        if (!user) {
+          console.warn('⚠️ Tidak ada user login');
+          router.push('/');
+          return;
+        }
+
+        const role = user.user_metadata?.role;
+        console.log('👤 Role user:', role);
+
+        if (role !== 'administrator') {
+          console.warn('❌ Role bukan administrator, redirect');
           setIsAuthorized(false);
           setLoading(false);
           router.push('/');
@@ -52,13 +61,14 @@ export default function FranchisorApprovals() {
           .eq('status', 'pending');
 
         if (dataError) {
-          console.error('Data error:', dataError);
-          setErrorMessage('Gagal memuat data pengajuan.');
+          console.error('❌ Error fetch applications:', dataError.message);
+          setErrorMessage('Gagal memuat data: ' + dataError.message);
           setLoading(false);
           return;
         }
 
-        console.log('Fetched Applications:', data);
+        console.log('📦 Data pengajuan:', data);
+
         setApplications(data);
 
         const paths = data.flatMap((item) => [item.logo_url, item.ktp_url]);
@@ -67,8 +77,10 @@ export default function FranchisorApprovals() {
           .createSignedUrls(paths, 3600);
 
         if (signedUrlError) {
-          console.error('Signed URL error:', signedUrlError);
+          console.error('❌ Error signed URL:', signedUrlError.message);
         }
+
+        console.log('🖼️ Signed URLs:', signedData);
 
         const urls: Record<string, string> = {};
         signedData?.forEach((obj) => {
@@ -80,7 +92,7 @@ export default function FranchisorApprovals() {
         setImageUrls(urls);
         setLoading(false);
       } catch (e: any) {
-        console.error('Unexpected error:', e);
+        console.error('❗ Unexpected error:', e);
         setErrorMessage('Terjadi kesalahan tak terduga.');
         setLoading(false);
       }
@@ -132,7 +144,7 @@ export default function FranchisorApprovals() {
       ) : errorMessage ? (
         <p className="text-red-500">{errorMessage}</p>
       ) : applications.length === 0 ? (
-        <p className="text-gray-500">Tidak ada pengajuan franchisor yang pending.</p>
+        <p>Tidak ada pengajuan franchisor yang pending.</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="min-w-full border border-gray-300">
