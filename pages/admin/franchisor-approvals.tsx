@@ -25,9 +25,8 @@ export default function FranchisorApprovals() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: userData } = await supabase.auth.getUser();
+      const user = userData?.user;
 
       if (!user || user.user_metadata?.role !== 'administrator') {
         router.push('/');
