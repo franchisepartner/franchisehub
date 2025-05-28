@@ -31,6 +31,7 @@ export default function FranchisorApprovals() {
         const { data: { user }, error: userError } = await supabase.auth.getUser();
 
         if (userError) {
+          console.error('Auth error:', userError);
           setErrorMessage('Gagal mengambil data pengguna.');
           setLoading(false);
           return;
@@ -51,17 +52,23 @@ export default function FranchisorApprovals() {
           .eq('status', 'pending');
 
         if (dataError) {
+          console.error('Data error:', dataError);
           setErrorMessage('Gagal memuat data pengajuan.');
           setLoading(false);
           return;
         }
 
+        console.log('Fetched Applications:', data);
         setApplications(data);
 
         const paths = data.flatMap((item) => [item.logo_url, item.ktp_url]);
-        const { data: signedData } = await supabase.storage
+        const { data: signedData, error: signedUrlError } = await supabase.storage
           .from('franchisor-assets')
           .createSignedUrls(paths, 3600);
+
+        if (signedUrlError) {
+          console.error('Signed URL error:', signedUrlError);
+        }
 
         const urls: Record<string, string> = {};
         signedData?.forEach((obj) => {
@@ -73,6 +80,7 @@ export default function FranchisorApprovals() {
         setImageUrls(urls);
         setLoading(false);
       } catch (e: any) {
+        console.error('Unexpected error:', e);
         setErrorMessage('Terjadi kesalahan tak terduga.');
         setLoading(false);
       }
@@ -124,7 +132,7 @@ export default function FranchisorApprovals() {
       ) : errorMessage ? (
         <p className="text-red-500">{errorMessage}</p>
       ) : applications.length === 0 ? (
-        <p>Tidak ada pengajuan franchisor yang pending.</p>
+        <p className="text-gray-500">Tidak ada pengajuan franchisor yang pending.</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="min-w-full border border-gray-300">
