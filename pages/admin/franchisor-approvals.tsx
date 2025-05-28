@@ -28,18 +28,17 @@ export default function FranchisorApprovals() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const {
-          data: { user },
-          error: userError
-        } = await supabase.auth.getUser();
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
 
         if (userError) {
           setErrorMessage('Gagal mengambil data pengguna.');
+          setLoading(false);
           return;
         }
 
         if (!user || user.user_metadata?.role !== 'administrator') {
           setIsAuthorized(false);
+          setLoading(false);
           router.push('/');
           return;
         }
@@ -51,8 +50,9 @@ export default function FranchisorApprovals() {
           .select('*')
           .eq('status', 'pending');
 
-        if (dataError || !data) {
+        if (dataError) {
           setErrorMessage('Gagal memuat data pengajuan.');
+          setLoading(false);
           return;
         }
 
@@ -74,6 +74,7 @@ export default function FranchisorApprovals() {
         setLoading(false);
       } catch (e: any) {
         setErrorMessage('Terjadi kesalahan tak terduga.');
+        setLoading(false);
       }
     };
 
@@ -117,10 +118,13 @@ export default function FranchisorApprovals() {
       <h1 className="text-2xl font-bold mb-4">
         Dashboard Administrator: Persetujuan Franchisor
       </h1>
+
       {loading ? (
         <p>Memuat...</p>
       ) : errorMessage ? (
         <p className="text-red-500">{errorMessage}</p>
+      ) : applications.length === 0 ? (
+        <p>Tidak ada pengajuan franchisor yang pending.</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="min-w-full border border-gray-300">
@@ -148,37 +152,17 @@ export default function FranchisorApprovals() {
                   <td className="p-2 border">{app.location}</td>
                   <td className="p-2 border">
                     {imageUrls[app.logo_url] ? (
-                      <a
-                        href={imageUrls[app.logo_url]}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <img
-                          src={imageUrls[app.logo_url]}
-                          alt="Logo"
-                          className="w-10 h-10 object-cover mx-auto"
-                        />
+                      <a href={imageUrls[app.logo_url]} target="_blank" rel="noopener noreferrer">
+                        <img src={imageUrls[app.logo_url]} alt="Logo" className="w-10 h-10 object-cover mx-auto" />
                       </a>
-                    ) : (
-                      'Memuat...'
-                    )}
+                    ) : 'Memuat...'}
                   </td>
                   <td className="p-2 border">
                     {imageUrls[app.ktp_url] ? (
-                      <a
-                        href={imageUrls[app.ktp_url]}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <img
-                          src={imageUrls[app.ktp_url]}
-                          alt="KTP"
-                          className="w-10 h-10 object-cover mx-auto"
-                        />
+                      <a href={imageUrls[app.ktp_url]} target="_blank" rel="noopener noreferrer">
+                        <img src={imageUrls[app.ktp_url]} alt="KTP" className="w-10 h-10 object-cover mx-auto" />
                       </a>
-                    ) : (
-                      'Memuat...'
-                    )}
+                    ) : 'Memuat...'}
                   </td>
                   <td className="p-2 border">
                     <button
