@@ -39,6 +39,7 @@ export default function FranchisorApprovals() {
         }
 
         if (!user || user.user_metadata?.role !== 'administrator') {
+          setIsAuthorized(false);
           router.push('/');
           return;
         }
