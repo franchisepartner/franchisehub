@@ -9,39 +9,36 @@ const supabase = createClient(
 );
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Pastikan hanya metode GET yang diizinkan
   if (req.method !== 'GET') {
     return res.status(405).json({
       success: false,
-      message: 'Method not allowed. Gunakan metode GET.',
+      message: 'Method not allowed, gunakan GET'
     });
   }
 
   try {
-    // Query untuk mengambil data pengajuan franchisor dengan status 'pending'
     const { data, error } = await supabase
       .from('franchisor_applications')
-      .select('id, user_id, name, email, document, status')
+      .select('id, user_id, name, email, document, status, created_at')
       .eq('status', 'pending')
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('[FETCH APPLICATIONS ERROR]', error);
+      console.error('Error fetching franchisor applications:', error);
       return res.status(500).json({
         success: false,
-        message: 'Gagal mengambil data pengajuan franchisor.',
-        error: error.message,
+        message: 'Gagal mengambil data pengajuan franchisor',
+        error: error.message
       });
     }
 
-    // Kirim data pengajuan sebagai JSON
     return res.status(200).json(data);
   } catch (error: any) {
-    console.error('[SERVER ERROR]', error);
+    console.error('Server error:', error);
     return res.status(500).json({
       success: false,
-      message: 'Terjadi kesalahan server.',
-      error: error.message,
+      message: 'Terjadi kesalahan server',
+      error: error.message
     });
   }
 }
