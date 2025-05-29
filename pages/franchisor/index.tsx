@@ -1,4 +1,3 @@
-// pages/franchisor/index.tsx
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabaseClient'
 import { v4 as uuidv4 } from 'uuid'
@@ -15,6 +14,7 @@ export default function FranchisorForm() {
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [ktpFile, setKtpFile] = useState<File | null>(null)
   const [submitted, setSubmitted] = useState(false)
+  const [approved, setApproved] = useState(false)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
@@ -26,7 +26,20 @@ export default function FranchisorForm() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    const { data, error } = await supabase
+    // Cek apakah sudah is_admin
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('is_admin')
+      .eq('id', user.id)
+      .single()
+
+    if (profile?.is_admin) {
+      setApproved(true)
+      return
+    }
+
+    // Cek apakah status pengajuan masih pending
+    const { data } = await supabase
       .from('franchisor_applications')
       .select('status')
       .eq('user_id', user.id)
@@ -103,7 +116,14 @@ export default function FranchisorForm() {
     <div className="max-w-xl mx-auto p-6">
       <h1 className="text-2xl font-semibold mb-4">Form Pengajuan Jadi Franchisor</h1>
 
-      {submitted ? (
+      {approved ? (
+        <div className="bg-green-100 border border-green-300 p-4 rounded mb-4">
+          <p className="text-green-700 font-medium mb-2">✅ Anda telah disetujui Administrator FranchiseHub.</p>
+          <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow">
+            Lanjutkan ke Pembayaran
+          </button>
+        </div>
+      ) : submitted ? (
         <button className="bg-gray-400 text-white w-full py-2 rounded cursor-not-allowed" disabled>
           Sedang Diperiksa Administrator
         </button>
