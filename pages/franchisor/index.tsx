@@ -26,14 +26,14 @@ export default function FranchisorForm() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    // Cek apakah sudah is_admin
+    // Cek role user di tabel profiles
     const { data: profile } = await supabase
       .from('profiles')
-      .select('is_admin')
+      .select('role')
       .eq('id', user.id)
       .single()
 
-    if (profile?.is_admin) {
+    if (profile?.role === 'franchisor') {
       setApproved(true)
       return
     }
@@ -118,8 +118,13 @@ export default function FranchisorForm() {
 
       {approved ? (
         <div className="bg-green-100 border border-green-300 p-4 rounded mb-4">
-          <p className="text-green-700 font-medium mb-2">✅ Anda telah disetujui Administrator FranchiseHub.</p>
-          <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow">
+          <p className="text-green-700 font-medium mb-2">
+            ✅ Anda telah disetujui Administrator FranchiseHub.
+          </p>
+          <button
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow"
+            onClick={() => router.push('/pembayaran')}
+          >
             Lanjutkan ke Pembayaran
           </button>
         </div>
