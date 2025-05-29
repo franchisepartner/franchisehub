@@ -25,9 +25,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
+    // ✅ Ganti role user menjadi 'franchisor'
     const { error: profileError } = await supabase
       .from('profiles')
-      .update({ is_admin: true })
+      .update({ role: 'franchisor' })  // <-- Ganti ini
       .eq('id', user_id);
 
     if (profileError) {
@@ -39,6 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
+    // ✅ Set status pengajuan menjadi 'approved'
     const { error: updateError } = await supabase
       .from('franchisor_applications')
       .update({ status: 'approved' })
