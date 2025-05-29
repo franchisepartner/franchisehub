@@ -1,5 +1,4 @@
 // pages/franchisor/index.tsx
-
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabaseClient'
 import { v4 as uuidv4 } from 'uuid'
@@ -28,7 +27,6 @@ export default function FranchisorForm() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    // Cek apakah role di tabel profiles adalah franchisor
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')
@@ -40,7 +38,6 @@ export default function FranchisorForm() {
       return
     }
 
-    // Cek status pengajuan
     const { data } = await supabase
       .from('franchisor_applications')
       .select('status')
@@ -118,6 +115,7 @@ export default function FranchisorForm() {
     <div className="max-w-xl mx-auto p-6">
       <h1 className="text-2xl font-semibold mb-4">Form Pengajuan Jadi Franchisor</h1>
 
+      {/* ✅ Jika sudah disetujui, tampilkan tombol dan sembunyikan form */}
       {approved ? (
         <div className="bg-green-100 border border-green-300 p-4 rounded mb-4">
           <p className="text-green-700 font-medium mb-2">
@@ -143,17 +141,14 @@ export default function FranchisorForm() {
           <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Link Website" value={website} onChange={(e) => setWebsite(e.target.value)} />
           <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Kategori Usaha" value={category} onChange={(e) => setCategory(e.target.value)} />
           <input className="w-full border rounded px-3 py-2 mb-4" placeholder="Lokasi Usaha" value={location} onChange={(e) => setLocation(e.target.value)} />
-
           <div className="mb-4">
             <label className="block mb-1">Upload Logo Usaha</label>
             <input type="file" onChange={(e) => setLogoFile(e.target.files?.[0] || null)} />
           </div>
-
           <div className="mb-6">
             <label className="block mb-1">Upload Foto KTP</label>
             <input type="file" onChange={(e) => setKtpFile(e.target.files?.[0] || null)} />
           </div>
-
           <button
             onClick={handleSubmit}
             className={`w-full py-2 text-white rounded ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-700 hover:bg-green-800'}`}
