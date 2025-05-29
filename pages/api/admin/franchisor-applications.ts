@@ -2,7 +2,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 
-// Inisialisasi Supabase client dengan Service Role Key untuk akses penuh
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -10,10 +9,7 @@ const supabase = createClient(
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
-    return res.status(405).json({
-      success: false,
-      message: 'Method not allowed, gunakan GET'
-    });
+    return res.status(405).json({ success: false, message: 'Method not allowed, gunakan GET' });
   }
 
   try {
@@ -25,20 +21,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (error) {
       console.error('Error fetching franchisor applications:', error);
-      return res.status(500).json({
-        success: false,
-        message: 'Gagal mengambil data pengajuan franchisor',
-        error: error.message
-      });
+      return res.status(500).json({ success: false, message: 'Gagal mengambil data pengajuan franchisor', error: error.message });
     }
 
     return res.status(200).json(data);
   } catch (error: any) {
     console.error('Server error:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Terjadi kesalahan server',
-      error: error.message
-    });
+    return res.status(500).json({ success: false, message: 'Terjadi kesalahan server', error: error.message });
   }
 }
