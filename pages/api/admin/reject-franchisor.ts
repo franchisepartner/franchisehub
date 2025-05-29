@@ -2,35 +2,33 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Pastikan hanya POST yang diterima
   if (req.method !== 'POST') {
-    res.setHeader('Allow', 'POST');
-    return res.status(405).json({ error: 'Method Not Allowed' });
+    return res.status(405).json({ success: false, message: 'Method not allowed' });
   }
 
-  const { id } = req.body;
-  if (!id) {
-    return res.status(400).json({ error: 'ID pengajuan tidak ditemukan.' });
+  const { user_id } = req.body;
+  if (!user_id) {
+    return res.status(400).json({ success: false, message: 'Missing user_id' });
   }
-
-  const supabase = createClient(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
 
   try {
-    // Update status menjadi 'rejected'
-    const { data, error } = await supabase
-      .from('franchisors')        // sesuaikan nama tabel Anda
+    const { error } = await supabase
+      .from('franchisor_applications')
       .update({ status: 'rejected' })
-      .eq('id', id)
-      .single();
-    if (error) throw error;
+      .eq('user_id', user_id);
 
-    res.status(200).json({ message: 'Pengajuan franchisor telah ditolak.' });
-  } catch (error: any) {
-    console.error('Error rejecting application:', error);
-    res.status(500).json({ error: 'Gagal menolak pengajuan franchisor.' });
+    if (error) {
+      return res.status(500).json({ success: false, message: 'Gagal reject', error: error.message });
+    }
+
+    return res.status(200).json({ success: true, message: 'Berhasil reject' });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, message: 'Server error', error: err.message });
   }
 }
