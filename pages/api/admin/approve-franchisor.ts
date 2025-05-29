@@ -1,15 +1,15 @@
-// pages/api/admin/approve-franchisor.ts
-
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 
-// FIXED: gunakan SUPABASE_URL, bukan NEXT_PUBLIC
+// Pakai variabel environment SESUAI permintaanmu
 const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,       // tetap gunakan ini sesuai permintaan
+  process.env.SUPABASE_SERVICE_ROLE_KEY!       // HARUS tetap pakai service key untuk update
 );
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  console.log('[API] Approve Franchisor Hit');
+
   if (req.method !== 'POST') {
     return res.status(405).json({
       success: false,
@@ -18,6 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const { user_id, email } = req.body;
+
   if (!user_id || !email) {
     return res.status(400).json({
       success: false,
@@ -26,13 +27,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
+    // Update role user di tabel profiles
     const { error: profileError } = await supabase
       .from('profiles')
       .update({ is_admin: true })
       .eq('id', user_id);
 
     if (profileError) {
-      console.error('[PROFILE UPDATE ERROR]', profileError);
+      console.error('[PROFILE ERROR]', profileError);
       return res.status(500).json({
         success: false,
         message: 'Gagal update role user ke franchisor.',
@@ -40,17 +42,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    const { error: updateError } = await supabase
+    // Update status pengajuan
+    const { error: statusError } = await supabase
       .from('franchisor_applications')
       .update({ status: 'approved' })
       .eq('user_id', user_id);
 
-    if (updateError) {
-      console.error('[APPLICATION STATUS UPDATE ERROR]', updateError);
+    if (statusError) {
+      console.error('[STATUS ERROR]', statusError);
       return res.status(500).json({
         success: false,
         message: 'Gagal update status pengajuan.',
-        error: updateError.message,
+        error: statusError.message,
       });
     }
 
@@ -58,7 +61,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       success: true,
       message: 'Berhasil menyetujui franchisor dan mengubah role user.',
     });
-
   } catch (error: any) {
     console.error('[SERVER ERROR]', error);
     return res.status(500).json({
