@@ -1,3 +1,5 @@
+// pages/franchisor/index.tsx
+
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabaseClient'
 import { v4 as uuidv4 } from 'uuid'
@@ -26,7 +28,7 @@ export default function FranchisorForm() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    // Cek role user di tabel profiles
+    // Cek apakah role di tabel profiles adalah franchisor
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')
@@ -38,7 +40,7 @@ export default function FranchisorForm() {
       return
     }
 
-    // Cek apakah status pengajuan masih pending
+    // Cek status pengajuan
     const { data } = await supabase
       .from('franchisor_applications')
       .select('status')
@@ -134,48 +136,13 @@ export default function FranchisorForm() {
         </button>
       ) : (
         <>
-          <input
-            className="w-full border rounded px-3 py-2 mb-2"
-            placeholder="Nama Brand"
-            value={brand_name}
-            onChange={(e) => setBrandName(e.target.value)}
-          />
-          <input
-            className="w-full border rounded px-3 py-2 mb-2"
-            placeholder="Deskripsi Usaha"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-          <input
-            className="w-full border rounded px-3 py-2 mb-2"
-            placeholder="Email Aktif"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <input
-            className="w-full border rounded px-3 py-2 mb-2"
-            placeholder="Nomor WhatsApp"
-            value={whatsapp}
-            onChange={(e) => setWhatsapp(e.target.value)}
-          />
-          <input
-            className="w-full border rounded px-3 py-2 mb-2"
-            placeholder="Link Website"
-            value={website}
-            onChange={(e) => setWebsite(e.target.value)}
-          />
-          <input
-            className="w-full border rounded px-3 py-2 mb-2"
-            placeholder="Kategori Usaha"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-          />
-          <input
-            className="w-full border rounded px-3 py-2 mb-4"
-            placeholder="Lokasi Usaha"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-          />
+          <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Nama Brand" value={brand_name} onChange={(e) => setBrandName(e.target.value)} />
+          <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Deskripsi Usaha" value={description} onChange={(e) => setDescription(e.target.value)} />
+          <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Email Aktif" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Nomor WhatsApp" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} />
+          <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Link Website" value={website} onChange={(e) => setWebsite(e.target.value)} />
+          <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Kategori Usaha" value={category} onChange={(e) => setCategory(e.target.value)} />
+          <input className="w-full border rounded px-3 py-2 mb-4" placeholder="Lokasi Usaha" value={location} onChange={(e) => setLocation(e.target.value)} />
 
           <div className="mb-4">
             <label className="block mb-1">Upload Logo Usaha</label>
