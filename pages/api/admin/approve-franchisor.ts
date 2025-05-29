@@ -1,36 +1,71 @@
 // pages/api/admin/approve-franchisor.ts
+
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Pastikan hanya POST yang diterima
   if (req.method !== 'POST') {
-    res.setHeader('Allow', 'POST');
-    return res.status(405).json({ error: 'Method Not Allowed' });
+    return res.status(405).json({
+      success: false,
+      message: 'Method not allowed',
+    });
   }
 
-  const { id } = req.body;
-  if (!id) {
-    return res.status(400).json({ error: 'ID pengajuan tidak ditemukan.' });
-  }
+  const { user_id, email } = req.body;
 
-  const supabase = createClient(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
+  if (!user_id || !email) {
+    return res.status(400).json({
+      success: false,
+      message: 'Missing user_id or email',
+    });
+  }
 
   try {
-    // Update status menjadi 'approved'
-    const { data, error } = await supabase
-      .from('franchisors')        // sesuaikan nama tabel Anda
-      .update({ status: 'approved' })
-      .eq('id', id)
-      .single();
-    if (error) throw error;
+    // Update role user menjadi franchisor
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .update({ is_admin: true })
+      .eq('id', user_id);
 
-    res.status(200).json({ message: 'Pengajuan franchisor berhasil disetujui.' });
+    if (profileError) {
+      console.error('[PROFILE ERROR]', profileError);
+      return res.status(500).json({
+        success: false,
+        message: 'Gagal mengubah role user ke franchisor.',
+        error: profileError.message,
+      });
+    }
+
+    // Update status pengajuan jadi approved
+    const { error: appError } = await supabase
+      .from('franchisor_applications')
+      .update({ status: 'approved' })
+      .eq('user_id', user_id);
+
+    if (appError) {
+      console.error('[APPLICATION ERROR]', appError);
+      return res.status(500).json({
+        success: false,
+        message: 'Gagal update status pengajuan.',
+        error: appError.message,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Berhasil approve pengajuan franchisor.',
+    });
   } catch (error: any) {
-    console.error('Error approving application:', error);
-    res.status(500).json({ error: 'Gagal menyetujui pengajuan franchisor.' });
+    console.error('[SERVER ERROR]', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Terjadi kesalahan server.',
+      error: error.message,
+    });
   }
 }
