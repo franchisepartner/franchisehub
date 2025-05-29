@@ -8,15 +8,17 @@ const supabase = createClient(
 );
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') return res.status(405).json({ success: false, message: 'Method not allowed' });
+  if (req.method !== 'POST') {
+    return res.status(405).json({ success: false, message: 'Method not allowed' });
+  }
 
-  const { user_id, email }: { user_id?: string; email?: string } = req.body;
-
+  const { user_id, email } = req.body;
   if (!user_id || !email) {
     return res.status(400).json({ success: false, message: 'Missing user_id or email' });
   }
 
   try {
+    // Cek pengajuan ada dan belum approved
     const { data: existingApplication, error: fetchError } = await supabase
       .from('franchisor_applications')
       .select('id, status')
@@ -26,29 +28,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (fetchError) {
       return res.status(500).json({ success: false, message: 'Gagal mengambil data pengajuan.', error: fetchError.message });
     }
-
     if (!existingApplication) {
       return res.status(404).json({ success: false, message: 'Pengajuan franchisor tidak ditemukan.' });
     }
-
     if (existingApplication.status === 'approved') {
       return res.status(400).json({ success: false, message: 'Pengajuan franchisor sudah disetujui sebelumnya.' });
     }
 
+    // Update role user jadi franchisor (contoh is_admin = true)
     const { error: profileError } = await supabase
       .from('profiles')
       .update({ is_admin: true })
       .eq('id', user_id);
-
     if (profileError) {
       return res.status(500).json({ success: false, message: 'Gagal update role user ke franchisor.', error: profileError.message });
     }
 
+    // Update status pengajuan jadi approved
     const { error: updateError } = await supabase
       .from('franchisor_applications')
       .update({ status: 'approved' })
       .eq('user_id', user_id);
-
     if (updateError) {
       return res.status(500).json({ success: false, message: 'Gagal update status pengajuan.', error: updateError.message });
     }
