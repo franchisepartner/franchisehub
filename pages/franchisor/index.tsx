@@ -1,63 +1,76 @@
-import { useEffect, FormEvent } from 'react';
-import { useSupabaseClient, useUser } from '@supabase/auth-helpers-react';
+// pages/franchisor/index.tsx
+import { useEffect, useState, FormEvent } from 'react'
+import { useRouter } from 'next/router'
+import { supabase } from '../../lib/supabaseClient'
 
 export default function FranchisorPage() {
-  const supabase = useSupabaseClient();
-  const user = useUser();
+  const [user, setUser] = useState<any>(null)
+  const router = useRouter()
 
   useEffect(() => {
-    if (!user) return;
+    const checkUserAndProfile = async () => {
+      const { data: authData, error: authError } = await supabase.auth.getUser()
+      if (authError || !authData.user) return
 
-    const checkStatus = async () => {
-      // Periksa apakah profil user sudah ada di tabel 'profiles'
-      const { data: profiles, error } = await supabase
+      setUser(authData.user)
+
+      // Cek apakah profil sudah ada
+      const { data: profiles, error: profileError } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', user.id);
+        .eq('id', authData.user.id)
 
-      if (error) {
-        console.error('Terjadi kesalahan saat memeriksa profil:', error);
-        return;
+      if (profileError) {
+        console.error('Gagal memeriksa profil:', profileError)
+        return
       }
 
       if (!profiles || profiles.length === 0) {
-        // Jika profil belum ada, buat profil baru dengan role 'franchisee' default
+        // Buat profil baru default dengan role franchisee
         const { error: insertError } = await supabase
           .from('profiles')
-          .insert({ id: user.id, role: 'franchisee' });
+          .insert({ id: authData.user.id, role: 'franchisee' })
 
         if (insertError) {
-          console.error('Terjadi kesalahan saat membuat profil default:', insertError);
+          console.error('Gagal membuat profil default:', insertError)
         }
       }
-    };
+    }
 
-    checkStatus();
-  }, [supabase, user]);
+    checkUserAndProfile()
+  }, [])
 
   const handlePaymentComplete = async (e: FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
+    if (!user) return
 
-    // Update peran user menjadi 'franchisor' setelah pembayaran sukses
     const { error } = await supabase
       .from('profiles')
       .update({ role: 'franchisor' })
-      .eq('id', user.id);
+      .eq('id', user.id)
 
     if (error) {
-      console.error('Terjadi kesalahan saat memperbarui peran pengguna:', error);
+      console.error('Gagal mengubah role:', error)
     } else {
-      alert('Pembayaran berhasil, peran pengguna diperbarui menjadi franchisor.');
+      alert('Berhasil upgrade ke Franchisor.')
+      router.push('/')
     }
-  };
+  }
 
   return (
-    <div>
-      <h1>Jadi Franchisor</h1>
+    <div className="max-w-xl mx-auto p-6">
+      <h1 className="text-2xl font-bold mb-4">Selesaikan Pembayaran</h1>
+      <p className="mb-4 text-gray-700">
+        Klik tombol di bawah ini untuk menyelesaikan proses menjadi Franchisor.
+      </p>
       <form onSubmit={handlePaymentComplete}>
-        {/* ... form fields untuk pembayaran ... */}
-        <button type="submit">Selesaikan Pembayaran</button>
+        <button
+          type="submit"
+          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
+        >
+          Login sebagai Franchisor
+        </button>
       </form>
     </div>
-  );
+  )
 }
