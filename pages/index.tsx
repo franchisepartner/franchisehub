@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 
 interface ProfilePayload {
-  new: {
-    id: string;
-    role: string;
-  };
+  id: string;
+  role: string;
 }
 
 export default function HomePage() {
@@ -34,11 +33,13 @@ export default function HomePage() {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'profiles' },
-        async (payload) => {
-          const typedPayload = payload as ProfilePayload;
-          const { data: { user } } = await supabase.auth.getUser();
-          if (user && typedPayload.new.id === user.id) {
-            setRole(typedPayload.new.role);
+        async (payload: RealtimePostgresChangesPayload<any>) => {
+          if (payload.eventType !== 'DELETE' && payload.new) {
+            const typedPayload = payload.new as ProfilePayload;
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user && typedPayload.id === user.id) {
+              setRole(typedPayload.role);
+            }
           }
         }
       )
