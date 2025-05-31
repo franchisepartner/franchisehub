@@ -1,144 +1,135 @@
-import React, { useState, useEffect } from 'react';
-import { supabase } from '../../../lib/supabaseClient';
-import { useRouter } from 'next/router';
+// pages/franchisor/manage-listings/new.tsx
+import { useState, useEffect } from 'react'
+import { supabase } from '../../../lib/supabaseClient'
+import { v4 as uuidv4 } from 'uuid'
+import { useRouter } from 'next/router'
 
 export default function NewListing() {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<any>({
     franchise_name: '',
     description: '',
-    investasi_minimum: '',
-    mode_operasi: 'Autopilot',
-    lokasi: '',
-    kategori: '',
+    min_investment: '',
+    operation_mode: 'Autopilot',
+    location: '',
+    category: 'F&B',
     whatsapp: '',
     email: '',
     website: '',
-    logoFile: null as File | null,
-    coverFile: null as File | null,
-    sudah_punya_dokumen: false,
-    dokumen_hukum: [] as string[],
-    catatan: '',
-  });
+    has_legal_docs: false,
+    legal_docs: [],
+    additional_notes: '',
+    logo: null,
+    cover: null,
+  })
 
-  const router = useRouter();
+  const router = useRouter()
 
-  useEffect(() => {
-    setFormData(prev => ({
-      ...prev,
-      slug: formData.franchise_name.toLowerCase().replace(/\s+/g, '-'),
-    }));
-  }, [formData.franchise_name]);
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value, type } = e.target
+    const checked = type === 'checkbox' ? (e.target as HTMLInputElement).checked : undefined
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
+    setFormData((prev: any) => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
-    }));
-  };
+    }))
+  }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-    setFormData(prev => ({
+    const file = e.target.files ? e.target.files[0] : null
+    setFormData((prev: any) => ({
       ...prev,
       [e.target.name]: file,
-    }));
-  };
-
-  const handleDokumenHukumChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { value, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      dokumen_hukum: checked
-        ? [...prev.dokumen_hukum, value]
-        : prev.dokumen_hukum.filter(doc => doc !== value),
-    }));
-  };
+    }))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    e.preventDefault()
 
-    const logoPath = formData.logoFile ? `listing-assets/logos/${Date.now()}_${formData.logoFile.name}` : '';
-    const coverPath = formData.coverFile ? `listing-assets/covers/${Date.now()}_${formData.coverFile.name}` : '';
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
 
-    if (formData.logoFile) {
-      await supabase.storage.from('franchise-listing-assets').upload(logoPath, formData.logoFile);
+    const logoPath = formData.logo ? `franchise-logos/${uuidv4()}_${formData.logo.name}` : ''
+    const coverPath = formData.cover ? `franchise-covers/${uuidv4()}_${formData.cover.name}` : ''
+
+    if (formData.logo) {
+      await supabase.storage.from('franchise-assets').upload(logoPath, formData.logo)
     }
 
-    if (formData.coverFile) {
-      await supabase.storage.from('franchise-listing-assets').upload(coverPath, formData.coverFile);
+    if (formData.cover) {
+      await supabase.storage.from('franchise-assets').upload(coverPath, formData.cover)
     }
 
     const { error } = await supabase.from('listings').insert({
-      ...formData,
-      logo: logoPath,
-      cover: coverPath,
-      user_id: user.id,
-    });
+      franchise_name: formData.franchise_name,
+      description: formData.description,
+      min_investment: formData.min_investment,
+      operation_mode: formData.operation_mode,
+      location: formData.location,
+      category: formData.category,
+      whatsapp: formData.whatsapp,
+      email: formData.email,
+      website: formData.website,
+      has_legal_docs: formData.has_legal_docs,
+      legal_docs: formData.legal_docs,
+      additional_notes: formData.additional_notes,
+      logo_url: logoPath,
+      cover_url: coverPath,
+      created_by: user.id,
+    })
 
     if (error) {
-      alert('Gagal menambahkan listing!');
+      alert('Gagal menambah listing!')
+      console.error(error)
     } else {
-      router.push('/franchisor/manage-listings');
+      router.push('/franchisor/manage-listings')
     }
-  };
+  }
 
   return (
-    <form onSubmit={handleSubmit} className="p-6">
+    <div className="p-6">
       <h1 className="text-xl font-semibold mb-4">Tambah Listing Franchise Baru</h1>
 
-      <input name="franchise_name" placeholder="Nama Franchise" className="border p-2 w-full mb-2" onChange={handleChange} required />
+      <form onSubmit={handleSubmit}>
+        <input name="franchise_name" placeholder="Nama Franchise" required className="border p-2 w-full mb-2" onChange={handleChange} />
 
-      <textarea name="description" placeholder="Deskripsi Franchise" className="border p-2 w-full mb-2" onChange={handleChange} required />
+        <textarea name="description" placeholder="Deskripsi Franchise" required className="border p-2 w-full mb-2" onChange={handleChange} />
 
-      <input name="investasi_minimum" placeholder="Investasi Minimum (Rp)" className="border p-2 w-full mb-2" onChange={handleChange} required />
+        <input name="min_investment" type="number" placeholder="Investasi Minimum" required className="border p-2 w-full mb-2" onChange={handleChange} />
 
-      <select name="mode_operasi" className="border p-2 w-full mb-2" onChange={handleChange}>
-        <option value="Autopilot">Autopilot</option>
-        <option value="Semi Autopilot">Semi Autopilot</option>
-      </select>
+        <select name="operation_mode" className="border p-2 w-full mb-2" onChange={handleChange}>
+          <option value="Autopilot">Autopilot</option>
+          <option value="Semi Autopilot">Semi Autopilot</option>
+        </select>
 
-      <input name="lokasi" placeholder="Lokasi Franchise" className="border p-2 w-full mb-2" onChange={handleChange} required />
+        <input name="location" placeholder="Lokasi Franchise" required className="border p-2 w-full mb-2" onChange={handleChange} />
 
-      <input name="kategori" placeholder="Kategori Franchise" className="border p-2 w-full mb-2" onChange={handleChange} required />
+        <select name="category" className="border p-2 w-full mb-2" onChange={handleChange}>
+          <option value="F&B">F&B</option>
+          <option value="Retail">Retail</option>
+          <option value="Lainnya">Lainnya</option>
+        </select>
 
-      <input name="whatsapp" placeholder="Kontak WhatsApp Franchise" className="border p-2 w-full mb-2" onChange={handleChange} required />
+        <input name="whatsapp" placeholder="Kontak WhatsApp Franchise" required className="border p-2 w-full mb-2" onChange={handleChange} />
 
-      <input name="email" placeholder="Kontak Email Franchise" className="border p-2 w-full mb-2" onChange={handleChange} required />
+        <input name="email" type="email" placeholder="Kontak Email Franchise" required className="border p-2 w-full mb-2" onChange={handleChange} />
 
-      <input name="website" placeholder="Website Franchise (opsional)" className="border p-2 w-full mb-2" onChange={handleChange} />
+        <input name="website" placeholder="Website Franchise (opsional)" className="border p-2 w-full mb-2" onChange={handleChange} />
 
-      <input type="file" name="logoFile" className="border p-2 w-full mb-2" onChange={handleFileChange} required />
+        <label>
+          <input type="checkbox" name="has_legal_docs" onChange={handleChange} /> Sudah Punya Dokumen Hukum
+        </label>
 
-      <input type="file" name="coverFile" className="border p-2 w-full mb-2" onChange={handleFileChange} required />
+        <input name="logo" type="file" required className="border p-2 w-full mb-2" onChange={handleFileChange} />
+        <input name="cover" type="file" required className="border p-2 w-full mb-2" onChange={handleFileChange} />
 
-      <label>
-        <input type="checkbox" name="sudah_punya_dokumen" onChange={handleChange} />
-        Sudah Punya Dokumen Hukum
-      </label>
+        <textarea name="additional_notes" placeholder="Catatan Tambahan (opsional)" className="border p-2 w-full mb-2" onChange={handleChange} />
 
-      {formData.sudah_punya_dokumen && (
-        <div>
-          {['STPW', 'Perjanjian Waralaba', 'SIUP', 'SITU', 'Akta Pendirian Usaha'].map(doc => (
-            <label key={doc}>
-              <input type="checkbox" value={doc} onChange={handleDokumenHukumChange} />
-              {doc}
-            </label>
-          ))}
-        </div>
-      )}
-
-      {!formData.sudah_punya_dokumen && (
-        <p>Sedang dalam proses pengurusan</p>
-      )}
-
-      <textarea name="catatan" placeholder="Catatan Tambahan (opsional)" className="border p-2 w-full mb-2" onChange={handleChange} />
-
-      <button className="bg-blue-500 text-white p-2 rounded" type="submit">
-        Tambah Listing
-      </button>
-    </form>
-  );
+        <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow">
+          Tambah Listing
+        </button>
+      </form>
+    </div>
+  )
 }
