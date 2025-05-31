@@ -1,30 +1,46 @@
-import { useEffect, useState } from 'react'
-import Link from 'next/link'
-import { useRouter } from 'next/router'
-import { supabase } from '../lib/supabaseClient'
-import BurgerMenu from './BurgerMenu'
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { supabase } from '../lib/supabaseClient';
+import BurgerMenu from './BurgerMenu';
 
 export default function Navbar() {
-  const [session, setSession] = useState<any>(null)
-  const [menuOpen, setMenuOpen] = useState(false)
-  const router = useRouter()
+  const [session, setSession] = useState<any>(null);
+  const [role, setRole] = useState<string>('Franchisee');
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSession(data.session))
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+      if (data.session) fetchUserRole(data.session.user.id);
+    });
+
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
-    })
-    return () => listener?.subscription.unsubscribe()
-  }, [])
+      setSession(session);
+      if (session) fetchUserRole(session.user.id);
+    });
+
+    return () => listener?.subscription.unsubscribe();
+  }, []);
+
+  const fetchUserRole = async (userId: string) => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .single();
+
+    if (data && data.role) {
+      setRole(data.role);
+    }
+  };
 
   const userGreeting = session
-    ? `${session.user?.user_metadata?.full_name || 'User'}_${session.user?.user_metadata?.role || 'Franchisee'}`
-    : 'Calon Franchisee'
+    ? `${session.user?.user_metadata?.full_name || 'User'}_${role}`
+    : 'Calon Franchisee';
 
   return (
     <>
       <nav className="w-full bg-white shadow-md px-4 py-3 flex flex-wrap items-center justify-between gap-2 relative z-50">
-        {/* Logo + burger */}
         <div className="flex justify-between items-center w-full">
           <Link href="/" className="text-xl font-bold text-blue-600">FranchiseHub</Link>
           <button
@@ -36,7 +52,6 @@ export default function Navbar() {
           </button>
         </div>
 
-        {/* Search bar */}
         <div className="w-full">
           <input
             type="text"
@@ -45,7 +60,6 @@ export default function Navbar() {
           />
         </div>
 
-        {/* Sapaan */}
         <div className="w-full flex justify-end items-center text-sm">
           <p className="italic text-gray-500">Halo, {userGreeting}!</p>
         </div>
@@ -53,5 +67,5 @@ export default function Navbar() {
 
       <BurgerMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
     </>
-  )
+  );
 }
