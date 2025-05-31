@@ -10,15 +10,48 @@ interface Props {
 
 export default function BurgerMenu({ open, onClose }: Props) {
   const [session, setSession] = useState<any>(null)
+  const [role, setRole] = useState('')
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session)
+    const fetchSessionAndRole = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      setSession(session)
+
+      if (session?.user) {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .single()
+
+        if (!error && data) {
+          setRole(data.role)
+        }
+      }
+    }
+
+    fetchSessionAndRole()
+
+    const { data: listener } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      setSession(session)
+
+      if (session?.user) {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .single()
+
+        if (!error && data) {
+          setRole(data.role)
+        }
+      }
     })
+
+    return () => listener.subscription.unsubscribe()
   }, [])
 
   const fullName = session?.user?.user_metadata?.full_name || 'User'
-  const role = session?.user?.user_metadata?.role || ''
   const avatar = session?.user?.user_metadata?.avatar_url
 
   const handleLogout = async () => {
