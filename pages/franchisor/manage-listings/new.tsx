@@ -3,104 +3,143 @@ import { supabase } from '../../../lib/supabaseClient';
 import { v4 as uuidv4 } from 'uuid';
 import { useRouter } from 'next/router';
 
-export default function NewFranchiseListing() {
-  const [formData, setFormData] = useState({
+interface FranchiseFormData {
+  name: string;
+  description: string;
+  email: string;
+  revenue: string;
+  logo: FileList | null;
+  legalDocs: FileList | null;
+  agreement: boolean;
+}
+
+const NewFranchiseForm: React.FC = () => {
+  const [formData, setFormData] = useState<FranchiseFormData>({
     name: '',
     description: '',
-    investment: '',
-    operation_mode: 'Autopilot',
-    location: '',
-    category: 'F&B',
-    whatsapp: '',
     email: '',
-    website: '',
-    slug: '',
+    revenue: '',
     logo: null,
-    cover: null,
-    legalDocs: false,
-    notes: ''
+    legalDocs: null,
+    agreement: false,
   });
 
-  const router = useRouter();
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
-    const { name, value, type, checked, files } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : type === 'file' ? files?.[0] : value
-    }));
-  };
-
-  const uploadFile = async (file: File, folder: string) => {
-    const filename = `${folder}/${uuidv4()}-${file.name}`;
-    const { data, error } = await supabase.storage
-      .from('franchisor-assets')
-      .upload(filename, file);
-
-    if (error) throw error;
-    return data.path;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    try {
-      const logoPath = await uploadFile(formData.logo, 'logos');
-      const coverPath = await uploadFile(formData.cover, 'covers');
-
-      const { error } = await supabase.from('franchise_listings').insert({
-        ...formData,
-        logo: logoPath,
-        cover: coverPath
-      });
-
-      if (error) throw error;
-
-      alert('Listing berhasil ditambahkan!');
-      router.push('/franchisor/manage-listings');
-    } catch (err) {
-      console.error(err);
-      alert('Terjadi kesalahan saat upload: ' + err.message);
+  // Handler event untuk perubahan input (mendukung text, email, number, checkbox, file, textarea)
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const target = e.target;
+    const { name } = target;
+    let value: string | boolean | FileList | null;
+    
+    if (target instanceof HTMLInputElement) {
+      if (target.type === 'checkbox') {
+        value = target.checked;
+      } else if (target.type === 'file') {
+        value = target.files;
+      } else {
+        value = target.value;
+      }
+    } else {
+      // target berupa HTMLTextAreaElement
+      value = target.value;
     }
+
+    setFormData(prevData => ({
+      ...prevData,
+      [name]: value,
+    } as FranchiseFormData));
+  };
+
+  // Handler event untuk submit form
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    // Lakukan submit atau proses data form sesuai kebutuhan
+    console.log('Form submitted:', formData);
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-5">Tambah Listing Franchise Baru</h1>
-      <form className="space-y-5" onSubmit={handleSubmit}>
-        <input name="name" placeholder="Nama Franchise" className="w-full border p-2 rounded" onChange={handleChange} />
-        <textarea name="description" placeholder="Deskripsi Franchise" className="w-full border p-2 rounded" onChange={handleChange} />
-        <input name="investment" type="number" placeholder="Investasi Minimum (Rp)" className="w-full border p-2 rounded" onChange={handleChange} />
-        <select name="operation_mode" className="w-full border p-2 rounded" onChange={handleChange}>
-          <option>Autopilot</option>
-          <option>Semi Autopilot</option>
-        </select>
-        <input name="location" placeholder="Lokasi Franchise" className="w-full border p-2 rounded" onChange={handleChange} />
-        <select name="category" className="w-full border p-2 rounded" onChange={handleChange}>
-          <option>F&B</option>
-          <option>Retail</option>
-          <option>Jasa</option>
-          <option>Kesehatan & Kecantikan</option>
-        </select>
-        <input name="whatsapp" placeholder="Kontak WhatsApp Franchise" className="w-full border p-2 rounded" onChange={handleChange} />
-        <input name="email" type="email" placeholder="Kontak Email Franchise" className="w-full border p-2 rounded" onChange={handleChange} />
-        <input name="website" placeholder="Website Franchise (opsional)" className="w-full border p-2 rounded" onChange={handleChange} />
-        <input name="slug" placeholder="Slug URL (otomatis)" className="w-full border p-2 rounded bg-gray-100" disabled />
-        <input name="logo" type="file" className="block mt-2" onChange={handleChange} />
-        <input name="cover" type="file" className="block mt-2" onChange={handleChange} />
-
-        <label className="block font-semibold">
-          <input type="checkbox" name="legalDocs" onChange={handleChange} /> Sudah Punya Dokumen Hukum
+    <form onSubmit={handleSubmit}>
+      <div>
+        <label>
+          Nama:
+          <input 
+            type="text" 
+            name="name" 
+            value={formData.name} 
+            onChange={handleChange} 
+            required 
+          />
         </label>
-
-        <textarea name="notes" placeholder="Catatan Tambahan (opsional)" className="w-full border p-2 rounded" rows={2} onChange={handleChange} />
-
-        <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded">
-          Tambah Listing
-        </button>
-      </form>
-    </div>
+      </div>
+      <div>
+        <label>
+          Deskripsi:
+          <textarea 
+            name="description" 
+            value={formData.description} 
+            onChange={handleChange} 
+            required 
+          />
+        </label>
+      </div>
+      <div>
+        <label>
+          Email:
+          <input 
+            type="email" 
+            name="email" 
+            value={formData.email} 
+            onChange={handleChange} 
+            required 
+          />
+        </label>
+      </div>
+      <div>
+        <label>
+          Perkiraan Pendapatan:
+          <input 
+            type="number" 
+            name="revenue" 
+            value={formData.revenue} 
+            onChange={handleChange} 
+          />
+        </label>
+      </div>
+      <div>
+        <label>
+          Logo:
+          <input 
+            type="file" 
+            name="logo" 
+            onChange={handleChange} 
+            accept="image/*" 
+          />
+        </label>
+      </div>
+      <div>
+        <label>
+          Dokumen Legal:
+          <input 
+            type="file" 
+            name="legalDocs" 
+            onChange={handleChange} 
+            multiple 
+          />
+        </label>
+      </div>
+      <div>
+        <label>
+          <input 
+            type="checkbox" 
+            name="agreement" 
+            checked={formData.agreement} 
+            onChange={handleChange} 
+          />
+          Saya menyetujui syarat dan ketentuan
+        </label>
+      </div>
+      <button type="submit">Submit</button>
+    </form>
   );
-}
+};
+
+export default NewFranchiseForm;
