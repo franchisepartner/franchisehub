@@ -10,46 +10,35 @@ interface Props {
 
 export default function BurgerMenu({ open, onClose }: Props) {
   const [session, setSession] = useState<any>(null)
-  const [role, setRole] = useState('')
+  const [role, setRole] = useState<string>('')
 
   useEffect(() => {
-    const fetchSessionAndRole = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      setSession(session)
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session)
+    })
 
-      if (session?.user) {
-        const { data, error } = await supabase
+    supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+    })
+  }, [])
+
+  useEffect(() => {
+    async function fetchRole() {
+      if (session) {
+        const { data: profile, error } = await supabase
           .from('profiles')
           .select('role')
           .eq('id', session.user.id)
           .single()
 
-        if (!error && data) {
-          setRole(data.role)
+        if (profile && !error) {
+          setRole(profile.role)
         }
       }
     }
 
-    fetchSessionAndRole()
-
-    const { data: listener } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setSession(session)
-
-      if (session?.user) {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', session.user.id)
-          .single()
-
-        if (!error && data) {
-          setRole(data.role)
-        }
-      }
-    })
-
-    return () => listener.subscription.unsubscribe()
-  }, [])
+    fetchRole()
+  }, [session])
 
   const fullName = session?.user?.user_metadata?.full_name || 'User'
   const avatar = session?.user?.user_metadata?.avatar_url
@@ -66,22 +55,16 @@ export default function BurgerMenu({ open, onClose }: Props) {
         open ? 'translate-x-0' : 'translate-x-full'
       }`}
     >
-      {/* Header */}
       <div className="flex justify-between items-center p-4 border-b">
         <h2 className="text-lg font-semibold">Menu</h2>
-        <button onClick={onClose} className="text-xl font-bold">&times;</button>
+        <button onClick={onClose} className="text-xl font-bold">
+          &times;
+        </button>
       </div>
 
-      {/* Avatar + Profil */}
       <div className="p-4 flex flex-col items-center border-b space-y-2">
         {avatar && (
-          <Image
-            src={avatar}
-            alt="User Avatar"
-            width={64}
-            height={64}
-            className="rounded-full"
-          />
+          <Image src={avatar} alt="User Avatar" width={64} height={64} className="rounded-full" />
         )}
         {session && (
           <p className="text-blue-600 font-medium text-sm">
@@ -90,22 +73,53 @@ export default function BurgerMenu({ open, onClose }: Props) {
         )}
       </div>
 
-      {/* Menu Items */}
       <ul className="flex flex-col space-y-4 p-4 text-sm">
-        <li><Link href="/announcement" onClick={onClose}>Pengumuman Administrator 📣</Link></li>
+        <li>
+          <Link href="/announcement" onClick={onClose}>
+            Pengumuman Administrator 📣
+          </Link>
+        </li>
 
         {session && (
           <>
-            <li><Link href="/notifikasi" onClick={onClose}>Notifikasiku</Link></li>
-            <li><Link href="/favorit" onClick={onClose}>Favoritku</Link></li>
+            <li>
+              <Link href="/notifikasi" onClick={onClose}>
+                Notifikasiku
+              </Link>
+            </li>
+            <li>
+              <Link href="/favorit" onClick={onClose}>
+                Favoritku
+              </Link>
+            </li>
           </>
         )}
 
-        <li><Link href="/forum" onClick={onClose}>Forum Global</Link></li>
-        <li><Link href="/blog" onClick={onClose}>Blog Global</Link></li>
-        <li><Link href="/help" onClick={onClose}>Pusat Bantuan</Link></li>
-        <li><Link href="/terms" onClick={onClose}>Syarat & Ketentuan</Link></li>
-        <li><Link href="/privacy" onClick={onClose}>Kebijakan Privasi</Link></li>
+        <li>
+          <Link href="/forum" onClick={onClose}>
+            Forum Global
+          </Link>
+        </li>
+        <li>
+          <Link href="/blog" onClick={onClose}>
+            Blog Global
+          </Link>
+        </li>
+        <li>
+          <Link href="/help" onClick={onClose}>
+            Pusat Bantuan
+          </Link>
+        </li>
+        <li>
+          <Link href="/terms" onClick={onClose}>
+            Syarat & Ketentuan
+          </Link>
+        </li>
+        <li>
+          <Link href="/privacy" onClick={onClose}>
+            Kebijakan Privasi
+          </Link>
+        </li>
 
         {role === 'Administrator' && (
           <li>
@@ -115,6 +129,18 @@ export default function BurgerMenu({ open, onClose }: Props) {
               className="text-purple-600 font-semibold hover:underline"
             >
               Dashboard Administrator
+            </Link>
+          </li>
+        )}
+
+        {role === 'franchisor' && (
+          <li>
+            <Link
+              href="/franchisor/dashboard"
+              onClick={onClose}
+              className="text-green-700 font-semibold hover:underline"
+            >
+              Dashboard Franchisor
             </Link>
           </li>
         )}
