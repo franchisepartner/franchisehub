@@ -1,46 +1,61 @@
-import { useEffect, useState } from 'react'
-import Link from 'next/link'
-import { supabase } from '../lib/supabaseClient'
+// pages/index.tsx
+import { useEffect, useState } from 'react';
+import { supabase } from '../lib/supabaseClient';
 
 export default function Home() {
-  const [listings, setListings] = useState<any[]>([])
+  const [role, setRole] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchListings = async () => {
-      const { data, error } = await supabase
-        .from('listings')
-        .select('*')
-        .order('created_at', { ascending: false })
+    async function fetchProfile() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-      if (!error && data) {
-        setListings(data)
+      if (user) {
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+
+        if (profile && !error) {
+          setRole(profile.role);
+        }
       }
+
+      setLoading(false);
     }
 
-    fetchListings()
-  }, [])
+    fetchProfile();
+
+    // Realtime subscription
+    const subscription = supabase
+      .channel('public:profiles')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'profiles' },
+        (payload) => {
+          if (payload.new.id === supabase.auth.getUser().id) {
+            setRole(payload.new.role);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
-    <div className="p-4 space-y-6">
-      <h1 className="text-2xl font-bold"></h1>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {listings.map((listing) => (
-          <Link
-            key={listing.id}
-            href={`/listing/${listing.id}`}
-            className="border rounded-md p-4 shadow hover:shadow-md transition"
-          >
-            <img
-              src={listing.image_url}
-              alt={listing.brand_name}
-              className="w-full h-40 object-cover rounded mb-2"
-            />
-            <h2 className="text-lg font-semibold">{listing.brand_name}</h2>
-            <p className="text-sm text-gray-600 truncate">{listing.description}</p>
-          </Link>
-        ))}
-      </div>
+    <div>
+      <h1>FranchiseHub</h1>
+      <p>Anda login sebagai: {role}</p>
     </div>
-  )
+  );
 }
