@@ -1,42 +1,35 @@
-// pages/index.tsx
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
-export default function Home() {
-  const [role, setRole] = useState('');
-  const [loading, setLoading] = useState(true);
+export default function HomePage() {
+  const [role, setRole] = useState<string | null>(null);
 
   useEffect(() => {
-    async function fetchProfile() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
+    const fetchUserRole = async () => {
+      const { data: { user }, error } = await supabase.auth.getUser();
       if (user) {
-        const { data: profile, error } = await supabase
+        const { data: profile } = await supabase
           .from('profiles')
           .select('role')
           .eq('id', user.id)
           .single();
 
-        if (profile && !error) {
+        if (profile) {
           setRole(profile.role);
         }
       }
+    };
 
-      setLoading(false);
-    }
+    fetchUserRole();
 
-    fetchProfile();
-
-    // Realtime subscription
     const subscription = supabase
-      .channel('public:profiles')
+      .channel('profiles_changes')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'profiles' },
-        (payload) => {
-          if (payload.new.id === supabase.auth.getUser().id) {
+        async (payload) => {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user && payload.new.id === user.id) {
             setRole(payload.new.role);
           }
         }
@@ -44,18 +37,14 @@ export default function Home() {
       .subscribe();
 
     return () => {
-      subscription.unsubscribe();
+      supabase.removeChannel(subscription);
     };
   }, []);
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
   return (
     <div>
-      <h1>FranchiseHub</h1>
-      <p>Anda login sebagai: {role}</p>
+      <h1>Selamat datang di FranchiseHub!</h1>
+      <p>Status kamu: {role ?? 'Memuat...'}</p>
     </div>
   );
 }
