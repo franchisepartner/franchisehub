@@ -1,12 +1,19 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
+interface ProfilePayload {
+  new: {
+    id: string;
+    role: string;
+  };
+}
+
 export default function HomePage() {
   const [role, setRole] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchUserRole = async () => {
-      const { data: { user }, error } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         const { data: profile } = await supabase
           .from('profiles')
@@ -28,9 +35,10 @@ export default function HomePage() {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'profiles' },
         async (payload) => {
+          const typedPayload = payload as ProfilePayload;
           const { data: { user } } = await supabase.auth.getUser();
-          if (user && payload.new.id === user.id) {
-            setRole(payload.new.role);
+          if (user && typedPayload.new.id === user.id) {
+            setRole(typedPayload.new.role);
           }
         }
       )
