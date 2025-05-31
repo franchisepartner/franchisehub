@@ -1,88 +1,106 @@
-// pages/franchisor/manage-listings/new.tsx
 import { useState } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
 import { useRouter } from 'next/router';
+import { v4 as uuidv4 } from 'uuid';
 
 export default function NewListing() {
+  const router = useRouter();
+
   const [formData, setFormData] = useState({
     franchise_name: '',
     description: '',
-    investment_min: 0,
-    operation_mode: 'Autopilot',
-    location: '',
     category: '',
-    dokumen_hukum_sudah_punya: false,
-    logo_url: '',
+    location: '',
+    investment: '',
+    operation_mode: 'autopilot',
+    logo: null as File | null,
+    cover_image: null as File | null,
+    legal_documents: {
+      surat_izin_usaha: false,
+      sertifikat_halal: false,
+      izin_lingkungan: false,
+      bpom: false,
+      npwp: false,
+    },
   });
 
-  const [logoFile, setLogoFile] = useState<File | null>(null);
-  const router = useRouter();
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value, type, checked } = e.target as HTMLInputElement;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, checked } = e.target;
+    setFormData({
+      ...formData,
+      legal_documents: {
+        ...formData.legal_documents,
+        [name]: checked,
+      },
+    });
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setLogoFile(e.target.files ? e.target.files[0] : null);
+    const { name, files } = e.target;
+    setFormData({ ...formData, [name]: files?.[0] || null });
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    let logo_url = '';
-    if (logoFile) {
-      const fileName = `${Date.now()}_${logoFile.name}`;
-      const { data, error } = await supabase.storage.from('franchise-logos').upload(fileName, logoFile);
-      if (error) {
-        alert('Gagal mengunggah logo');
-        return;
-      }
-      logo_url = data.path;
-    }
+    const logoPath = `logos/${uuidv4()}_${formData.logo?.name}`;
+    const coverPath = `covers/${uuidv4()}_${formData.cover_image?.name}`;
 
-    const { error: insertError } = await supabase.from('franchise_listings').insert({
-      ...formData,
-      logo_url,
-      user_id: (await supabase.auth.getUser()).data.user?.id,
+    await supabase.storage.from('franchise-assets').upload(logoPath, formData.logo!);
+    await supabase.storage.from('franchise-assets').upload(coverPath, formData.cover_image!);
+
+    const { error } = await supabase.from('franchises').insert({
+      franchise_name: formData.franchise_name,
+      description: formData.description,
+      category: formData.category,
+      location: formData.location,
+      investment: formData.investment,
+      operation_mode: formData.operation_mode,
+      logo_url: logoPath,
+      cover_image_url: coverPath,
+      legal_documents: formData.legal_documents,
     });
 
-    if (insertError) {
-      alert('Gagal menambahkan listing');
-      return;
-    }
-
-    router.push('/franchisor/manage-listings');
+    if (!error) router.push('/franchisor/manage-listings');
   };
 
   return (
     <div className="p-6">
       <h1 className="text-xl font-semibold mb-4">Tambah Listing Franchise Baru</h1>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input name="franchise_name" placeholder="Nama Franchise" required className="border p-2 w-full" onChange={handleChange} />
-        <textarea name="description" placeholder="Deskripsi Franchise" required className="border p-2 w-full" onChange={handleChange}></textarea>
-        <input name="investment_min" type="number" placeholder="Investasi Minimum" required className="border p-2 w-full" onChange={handleChange} />
+      <form onSubmit={handleSubmit}>
+        <input name="franchise_name" placeholder="Nama Franchise" required className="border p-2 w-full mb-2" onChange={handleChange} />
+        <textarea name="description" placeholder="Deskripsi" required className="border p-2 w-full mb-2" onChange={handleChange} />
+        <input name="category" placeholder="Kategori" required className="border p-2 w-full mb-2" onChange={handleChange} />
+        <input name="location" placeholder="Lokasi" required className="border p-2 w-full mb-2" onChange={handleChange} />
+        <input name="investment" placeholder="Investasi Minimal" required className="border p-2 w-full mb-2" onChange={handleChange} />
 
-        <select name="operation_mode" className="border p-2 w-full" onChange={handleChange}>
-          <option value="Autopilot">Autopilot</option>
-          <option value="Semi Autopilot">Semi Autopilot</option>
+        <select name="operation_mode" required className="border p-2 w-full mb-4" onChange={handleChange}>
+          <option value="autopilot">Autopilot</option>
+          <option value="semi-autopilot">Semi Autopilot</option>
         </select>
 
-        <input name="location" placeholder="Lokasi Franchise" required className="border p-2 w-full" onChange={handleChange} />
-        <input name="category" placeholder="Kategori Franchise" required className="border p-2 w-full" onChange={handleChange} />
+        <input type="file" name="logo" required className="mb-4" onChange={handleFileChange} />
+        <input type="file" name="cover_image" required className="mb-4" onChange={handleFileChange} />
 
-        <label className="flex items-center space-x-2">
-          <input type="checkbox" name="dokumen_hukum_sudah_punya" onChange={handleChange} />
-          <span>Sudah Punya Dokumen Hukum</span>
-        </label>
+        <h2 className="font-semibold">Dokumen Hukum (centang jika sudah ada atau sedang diurus):</h2>
+        {Object.keys(formData.legal_documents).map(doc => (
+          <div key={doc} className="mb-2">
+            <label>
+              <input type="checkbox" name={doc} checked={formData.legal_documents[doc as keyof typeof formData.legal_documents]} onChange={handleCheckboxChange} />
+              {doc.replace(/_/g, ' ').toUpperCase()}
+            </label>
+          </div>
+        ))}
 
-        <input type="file" accept="image/*" onChange={handleFileChange} className="border p-2 w-full" required />
-
-        <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded">Tambah Listing</button>
+        <button type="submit" className="bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700 transition">
+          Tambah Listing
+        </button>
       </form>
     </div>
   );
