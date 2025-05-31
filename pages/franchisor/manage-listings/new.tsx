@@ -1,109 +1,111 @@
 // pages/franchisor/manage-listings/new.tsx
-import { useState, useEffect } from 'react'
-import { supabase } from '../../../lib/supabaseClient'
-import { v4 as uuidv4 } from 'uuid'
-import { useRouter } from 'next/router'
+import { useState } from 'react';
+import { supabase } from '../../../lib/supabaseClient';
+import { useRouter } from 'next/router';
 
 export default function NewFranchiseListing() {
+  const router = useRouter();
+  const [formData, setFormData] = useState({
+    franchise_name: '',
+    description: '',
+    investment_min: '',
+    operation_mode: 'Autopilot',
+    location: '',
+    category: 'F&B',
+    whatsapp_contact: '',
+    email_contact: '',
+    website_url: '',
+    slug: '',
+    has_legal_docs: false,
+    legal_docs: [],
+    notes: '',
+    logo: null as File | null,
+    cover: null as File | null,
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value,
+    }));
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setFormData(prev => ({ ...prev, [e.target.name]: e.target.files![0] }));
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const user = (await supabase.auth.getUser()).data.user;
+
+    const uploadFile = async (file: File, folder: string) => {
+      const filePath = `${user!.id}/${folder}/${Date.now()}-${file.name}`;
+      const { data, error } = await supabase.storage
+        .from('franchise-listing-assets')
+        .upload(filePath, file);
+
+      if (error) throw error;
+      return supabase.storage.from('franchise-listing-assets').getPublicUrl(data.path).data.publicUrl;
+    };
+
+    try {
+      const logo_url = formData.logo ? await uploadFile(formData.logo, 'logos') : null;
+      const cover_url = formData.cover ? await uploadFile(formData.cover, 'covers') : null;
+
+      const { error } = await supabase.from('franchise_listings').insert({
+        franchise_name: formData.franchise_name,
+        description: formData.description,
+        investment_min: parseInt(formData.investment_min),
+        operation_mode: formData.operation_mode,
+        location: formData.location,
+        category: formData.category,
+        whatsapp_contact: formData.whatsapp_contact,
+        email_contact: formData.email_contact,
+        website_url: formData.website_url,
+        slug: formData.franchise_name.toLowerCase().replace(/\s+/g, '-'),
+        has_legal_docs: formData.has_legal_docs,
+        notes: formData.notes,
+        logo_url,
+        cover_url,
+      });
+
+      if (error) throw error;
+      alert('Listing berhasil ditambahkan!');
+      router.push('/franchisor/manage-listings');
+
+    } catch (error: any) {
+      alert('Terjadi kesalahan: ' + error.message);
+    }
+  };
+
   return (
     <div className="max-w-2xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-5">Tambah Listing Franchise Baru</h1>
-      <form className="space-y-5">
-        <div>
-          <label className="block font-semibold">Nama Franchise</label>
-          <input type="text" className="w-full border p-2 rounded"/>
-        </div>
-
-        <div>
-          <label className="block font-semibold">Deskripsi Franchise</label>
-          <textarea className="w-full border p-2 rounded" rows={2}/>
-        </div>
-
-        <div>
-          <label className="block font-semibold">Investasi Minimum (Rp)</label>
-          <input type="number" className="w-full border p-2 rounded"/>
-        </div>
-
-        <div>
-          <label className="block font-semibold">Mode Operasi</label>
-          <select className="w-full border p-2 rounded">
-            <option>Autopilot</option>
-            <option>Semi Autopilot</option>
-          </select>
-          <p className="text-sm italic text-gray-600">
-            <strong>Autopilot</strong>: Bisnis berjalan otomatis sepenuhnya tanpa keterlibatan pemilik harian.<br/>
-            <strong>Semi Autopilot</strong>: Bisnis berjalan otomatis sebagian, namun membutuhkan keterlibatan ringan dari pemilik.
-          </p>
-        </div>
-
-        <div>
-          <label className="block font-semibold">Lokasi Franchise</label>
-          <input type="text" className="w-full border p-2 rounded"/>
-        </div>
-
-        <div>
-          <label className="block font-semibold">Kategori Franchise</label>
-          <select className="w-full border p-2 rounded">
-            <option>F&B</option>
-            <option>Retail</option>
-            <option>Jasa</option>
-            <option>Kesehatan & Kecantikan</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block font-semibold">Kontak WhatsApp Franchise</label>
-          <input type="text" className="w-full border p-2 rounded"/>
-        </div>
-
-        <div>
-          <label className="block font-semibold">Kontak Email Franchise</label>
-          <input type="email" className="w-full border p-2 rounded"/>
-        </div>
-
-        <div>
-          <label className="block font-semibold">Website Franchise (opsional)</label>
-          <input type="text" className="w-full border p-2 rounded"/>
-        </div>
-
-        <div>
-          <label className="block font-semibold">Slug URL (otomatis)</label>
-          <input type="text" className="w-full border p-2 rounded bg-gray-100" disabled/>
-        </div>
-
-        <div>
-          <label className="block font-semibold">Logo Franchise (logo icon kecil)</label>
-          <input type="file" className="block mt-2"/>
-        </div>
-
-        <div>
-          <label className="block font-semibold">Cover Franchise (gambar banner utama)</label>
-          <input type="file" className="block mt-2"/>
-        </div>
-
-        <div>
-          <label className="block font-semibold">Dokumen Hukum Franchise</label>
-          <input type="checkbox" id="dokumenHukum"/>
-          <label htmlFor="dokumenHukum" className="ml-2">Sudah Punya Dokumen Hukum</label>
-          
-          <div className="ml-6 mt-2">
-            <label className="block"><input type="checkbox"/> STPW (Surat Tanda Pendaftaran Waralaba)</label>
-            <label className="block"><input type="checkbox"/> Perjanjian Waralaba</label>
-            <label className="block"><input type="checkbox"/> SIUP (Surat Izin Usaha Perdagangan)</label>
-            <label className="block"><input type="checkbox"/> SITU (Surat Izin Tempat Usaha)</label>
-            <label className="block"><input type="checkbox"/> Akta Pendirian Usaha</label>
-          </div>
-        </div>
-
-        <div>
-          <label className="block font-semibold">Catatan Tambahan (opsional)</label>
-          <textarea className="w-full border p-2 rounded" rows={2}/>
-        </div>
-
-        <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded">
-          Tambah Listing
-        </button>
+      <form className="space-y-5" onSubmit={handleSubmit}>
+        <input name="franchise_name" placeholder="Nama Franchise" className="w-full border p-2 rounded" onChange={handleChange} />
+        <textarea name="description" placeholder="Deskripsi Franchise" className="w-full border p-2 rounded" rows={2} onChange={handleChange}/>
+        <input name="investment_min" type="number" placeholder="Investasi Minimum (Rp)" className="w-full border p-2 rounded" onChange={handleChange} />
+        <select name="operation_mode" className="w-full border p-2 rounded" onChange={handleChange}>
+          <option>Autopilot</option>
+          <option>Semi Autopilot</option>
+        </select>
+        <input name="location" placeholder="Lokasi Franchise" className="w-full border p-2 rounded" onChange={handleChange}/>
+        <select name="category" className="w-full border p-2 rounded" onChange={handleChange}>
+          <option>F&B</option>
+          <option>Retail</option>
+          <option>Jasa</option>
+          <option>Kesehatan & Kecantikan</option>
+        </select>
+        <input name="whatsapp_contact" placeholder="WhatsApp" className="w-full border p-2 rounded" onChange={handleChange} />
+        <input name="email_contact" placeholder="Email" className="w-full border p-2 rounded" onChange={handleChange} />
+        <input name="website_url" placeholder="Website" className="w-full border p-2 rounded" onChange={handleChange}/>
+        <input type="file" name="logo" onChange={handleFileChange} />
+        <input type="file" name="cover" onChange={handleFileChange} />
+        <button className="bg-blue-600 text-white px-6 py-2 rounded">Tambah Listing</button>
       </form>
     </div>
-  )
+  );
 }
