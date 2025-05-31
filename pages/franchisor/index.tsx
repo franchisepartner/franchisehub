@@ -28,7 +28,7 @@ export default function FranchisorForm() {
 
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('id')
+      .select('id, role')
       .eq('id', user.id)
       .single()
 
@@ -69,13 +69,11 @@ export default function FranchisorForm() {
     const logoPath = `logos/${uuidv4()}_${logoFile.name}`
     const ktpPath = `ktps/${uuidv4()}_${ktpFile.name}`
 
-    const { error: logoError } = await supabase
-      .storage
+    const { error: logoError } = await supabase.storage
       .from('franchisor-assets')
       .upload(logoPath, logoFile)
 
-    const { error: ktpError } = await supabase
-      .storage
+    const { error: ktpError } = await supabase.storage
       .from('franchisor-assets')
       .upload(ktpPath, ktpFile)
 
@@ -124,7 +122,7 @@ export default function FranchisorForm() {
       .eq('id', user.id)
 
     if (error) {
-      alert('Gagal mengubah role. Coba lagi.')
+      alert(`Gagal mengubah role: ${error.message}`)
     } else {
       router.push('/')
     }
@@ -137,7 +135,8 @@ export default function FranchisorForm() {
       {status === 'approved' ? (
         <div className="bg-green-100 border border-green-300 p-4 rounded mb-4">
           <p className="text-green-700 font-medium mb-2">
-            ✅ Pendaftaran anda telah disetujui Administrator FranchiseHub.<br />
+            ✅ Pendaftaran anda telah disetujui Administrator FranchiseHub.
+            <br />
             Silahkan lakukan pembayaran paket pilihan anda untuk mendapatkan akses role Franchisor.
           </p>
           <button
@@ -153,7 +152,24 @@ export default function FranchisorForm() {
         </button>
       ) : (
         <>
-          {/* form inputs dan upload fields */}
+          <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Nama Brand" value={brand_name} onChange={(e) => setBrandName(e.target.value)} />
+          <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Deskripsi Usaha" value={description} onChange={(e) => setDescription(e.target.value)} />
+          <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Email Aktif" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Nomor WhatsApp" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} />
+          <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Link Website" value={website} onChange={(e) => setWebsite(e.target.value)} />
+          <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Kategori Usaha" value={category} onChange={(e) => setCategory(e.target.value)} />
+          <input className="w-full border rounded px-3 py-2 mb-4" placeholder="Lokasi Usaha" value={location} onChange={(e) => setLocation(e.target.value)} />
+
+          <div className="mb-4">
+            <label>Upload Logo Usaha</label>
+            <input type="file" onChange={(e) => setLogoFile(e.target.files?.[0] || null)} />
+          </div>
+
+          <div className="mb-6">
+            <label>Upload Foto KTP</label>
+            <input type="file" onChange={(e) => setKtpFile(e.target.files?.[0] || null)} />
+          </div>
+
           <button
             onClick={handleSubmit}
             className={`w-full py-2 text-white rounded ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-700 hover:bg-green-800'}`}
