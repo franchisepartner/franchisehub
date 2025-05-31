@@ -1,89 +1,108 @@
 // pages/franchisor/manage-listings/new.tsx
-import { useState } from 'react'
-import { useRouter } from 'next/router'
-import { supabase } from '../../../lib/supabaseClient'
-import { v4 as uuidv4 } from 'uuid'
+import { useState } from 'react';
+import { useRouter } from 'next/router';
+import { supabase } from '../../../lib/supabaseClient';
 
-export default function NewListing() {
+export default function NewFranchiseListing() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     franchise_name: '',
     description: '',
-    category: '',
-    investment_min: 0,
+    investment_min: '',
+    operation_mode: 'autopilot',
     location: '',
-    mode: '',
-    dokumen_hukum_sudah_punya: false,
-    dokumen_hukum_akan_diurus: false,
-    whatsapp_contact: '',
-    email_contact: '',
-    website_url: '',
-    slug: '',
-    google_maps_url: '',
-    notes: '',
-    tags: '',
-    logo: null as File | null,
-  })
+    category: '',
+    has_permit: 'akan/sedang diurus',
+  });
 
-  const router = useRouter()
-  const [loading, setLoading] = useState(false)
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
-  const handleChange = (e: any) => {
-    const { name, value, type, checked, files } = e.target
-    setFormData({
-      ...formData,
-      [name]: type === 'checkbox' ? checked : files ? files[0] : value,
-    })
-  }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  const handleSubmit = async (e: any) => {
-    e.preventDefault()
-    setLoading(true)
+    const { data: { user } } = await supabase.auth.getUser();
 
-    const user = await supabase.auth.getUser()
-
-    if (!user.data.user) {
-      alert('User belum login')
-      setLoading(false)
-      return
+    if (!user) {
+      alert('Harap login terlebih dahulu.');
+      return;
     }
 
-    const logoPath = `logos/${uuidv4()}_${formData.logo?.name}`
-
-    const { error: logoError } = await supabase.storage
-      .from('franchise-assets')
-      .upload(logoPath, formData.logo!)
-
-    if (logoError) {
-      alert('Upload logo gagal!')
-      setLoading(false)
-      return
-    }
-
-    const { error } = await supabase.from('franchise_listings').insert({
+    const { error } = await supabase.from('franchises').insert({
+      franchisor_id: user.id,
       ...formData,
-      logo_url: logoPath,
-      user_id: user.data.user.id,
-      operation_mode: formData.mode,
-    })
+    });
 
     if (error) {
-      alert('Gagal menambahkan listing')
+      alert(`Gagal menambahkan listing: ${error.message}`);
     } else {
-      alert('Listing berhasil ditambahkan!')
-      router.push('/franchisor/dashboard')
+      router.push('/franchisor/dashboard');
     }
-    setLoading(false)
-  }
+  };
 
   return (
     <div className="p-6">
       <h1 className="text-xl font-semibold mb-4">Tambah Listing Franchise Baru</h1>
       <form onSubmit={handleSubmit}>
-        <input name="franchise_name" placeholder="Nama Franchise" required className="border p-2 w-full mb-2" onChange={handleChange}/>
-        <textarea name="description" placeholder="Deskripsi" required className="border p-2 w-full mb-2" onChange={handleChange}/>
-        <input name="category" placeholder="Kategori" required className="border p-2 w-full mb-2" onChange={handleChange}/>
-        <input name="investment_min" placeholder="Investasi Minimal" type="number" required className="border p-2 w-full mb-2" onChange={handleChange}/>
-        <input name="location" placeholder="Lokasi" required className="border p-2 w-full mb-2" onChange={handleChange}/>
-
-        <select name="mode" required className="border p-2 w-full mb-2" onChange={handleChange}>
-          <option
+        <input
+          name="franchise_name"
+          placeholder="Nama Franchise"
+          required
+          className="border p-2 w-full mb-2"
+          onChange={handleChange}
+        />
+        <textarea
+          name="description"
+          placeholder="Deskripsi Franchise"
+          required
+          className="border p-2 w-full mb-2"
+          onChange={handleChange}
+        />
+        <input
+          name="investment_min"
+          placeholder="Investasi Minimum"
+          type="number"
+          required
+          className="border p-2 w-full mb-2"
+          onChange={handleChange}
+        />
+        <select
+          name="operation_mode"
+          className="border p-2 w-full mb-2"
+          onChange={handleChange}
+          value={formData.operation_mode}
+        >
+          <option value="autopilot">Autopilot</option>
+          <option value="semi-autopilot">Semi-Autopilot</option>
+        </select>
+        <input
+          name="location"
+          placeholder="Lokasi Franchise"
+          required
+          className="border p-2 w-full mb-2"
+          onChange={handleChange}
+        />
+        <input
+          name="category"
+          placeholder="Kategori Franchise"
+          required
+          className="border p-2 w-full mb-2"
+          onChange={handleChange}
+        />
+        <select
+          name="has_permit"
+          className="border p-2 w-full mb-4"
+          onChange={handleChange}
+          value={formData.has_permit}
+        >
+          <option value="sudah punya">Sudah Punya</option>
+          <option value="akan/sedang diurus">Akan/Sedang Diurus</option>
+        </select>
+        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">
+          Tambah Listing
+        </button>
+      </form>
+    </div>
+  );
+}
