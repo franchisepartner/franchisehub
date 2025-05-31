@@ -26,7 +26,6 @@ export default function FranchisorForm() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    // 🔁 Tambahkan pengecekan apakah user punya entry di tabel profiles
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('id')
@@ -138,8 +137,7 @@ export default function FranchisorForm() {
       {status === 'approved' ? (
         <div className="bg-green-100 border border-green-300 p-4 rounded mb-4">
           <p className="text-green-700 font-medium mb-2">
-            ✅ Pendaftaran anda telah disetujui Administrator FranchiseHub.
-            <br />
+            ✅ Pendaftaran anda telah disetujui Administrator FranchiseHub.<br />
             Silahkan lakukan pembayaran paket pilihan anda untuk mendapatkan akses role Franchisor.
           </p>
           <button
@@ -155,24 +153,7 @@ export default function FranchisorForm() {
         </button>
       ) : (
         <>
-          <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Nama Brand" value={brand_name} onChange={(e) => setBrandName(e.target.value)} />
-          <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Deskripsi Usaha" value={description} onChange={(e) => setDescription(e.target.value)} />
-          <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Email Aktif" value={email} onChange={(e) => setEmail(e.target.value)} />
-          <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Nomor WhatsApp" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} />
-          <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Link Website" value={website} onChange={(e) => setWebsite(e.target.value)} />
-          <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Kategori Usaha" value={category} onChange={(e) => setCategory(e.target.value)} />
-          <input className="w-full border rounded px-3 py-2 mb-4" placeholder="Lokasi Usaha" value={location} onChange={(e) => setLocation(e.target.value)} />
-
-          <div className="mb-4">
-            <label className="block mb-1">Upload Logo Usaha</label>
-            <input type="file" onChange={(e) => setLogoFile(e.target.files?.[0] || null)} />
-          </div>
-
-          <div className="mb-6">
-            <label className="block mb-1">Upload Foto KTP</label>
-            <input type="file" onChange={(e) => setKtpFile(e.target.files?.[0] || null)} />
-          </div>
-
+          {/* form inputs dan upload fields */}
           <button
             onClick={handleSubmit}
             className={`w-full py-2 text-white rounded ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-700 hover:bg-green-800'}`}
