@@ -58,7 +58,7 @@ export default function NewListing() {
       alert(`Upload gagal: ${JSON.stringify(error)}`);
       throw error;
     }
-    
+
     return fileName;
   };
 
@@ -110,13 +110,6 @@ export default function NewListing() {
       <form onSubmit={handleSubmit} className="space-y-6">
         <table className="w-full table-auto border-separate border-spacing-y-4">
           <tbody>
-        <button type="submit" disabled={loading} className="btn btn-primary w-full">
-          {loading ? 'Menyimpan...' : 'Tambah Listing'}
-        </button>
-      </form>
-    </div>
-  );
-}
             <tr>
               <td className="w-1/3 font-medium">Nama Franchise</td>
               <td><input required name="franchise_name" value={form.franchise_name} onChange={handleChange} className="input w-full" /></td>
