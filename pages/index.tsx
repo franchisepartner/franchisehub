@@ -17,55 +17,51 @@ interface Franchise {
 }
 
 export default function Home() {
-  // -------------------------------
-  // 1) State untuk daftar franchise
-  // -------------------------------
+  // ---------------------------------------------
+  // 1) State: daftar franchise (diambil dari Supabase)
+  // ---------------------------------------------
   const [franchises, setFranchises] = useState<Franchise[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // -------------------------------
-  // 2) State untuk tab Hero
-  // -------------------------------
+  // ---------------------------------------------
+  // 2) State: tab Hero (dijual / disewa / properti baru)
+  // ---------------------------------------------
   const [tab, setTab] = useState<'dijual' | 'disewa' | 'baru'>('dijual');
 
-  // -------------------------------
-  // 3) State untuk session & role
-  // -------------------------------
+  // ---------------------------------------------
+  // 3) State: session & role user
+  // ---------------------------------------------
   const [session, setSession] = useState<any>(null);
   const [role, setRole] = useState<string>('');
 
-  // -------------------------------
-  // 4) Ref untuk kontainer Menu Utama
-  // -------------------------------
+  // ---------------------------------------------
+  // 4) Ref: kontainer “Menu Utama” untuk auto-scroll
+  // ---------------------------------------------
   const menuRef = useRef<HTMLDivElement | null>(null);
 
-  // ====================================================
-  // 5) Ambil session awal & pantau perubahan autentikasi
-  // ====================================================
+  // ======================================================
+  // 5) Ambil session awal & pantau perubahan login/logout
+  // ======================================================
   useEffect(() => {
-    // Ambil session
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
     });
-
-    // Pantau perubahan (login/logout)
     supabase.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession);
     });
   }, []);
 
-  // ====================================================
+  // ======================================================
   // 6) Jika session berubah, ambil role user dari tabel profiles
-  // ====================================================
+  // ======================================================
   useEffect(() => {
     async function fetchRole() {
-      if (session && session.user?.id) {
+      if (session?.user?.id) {
         const { data: profile, error } = await supabase
           .from('profiles')
           .select('role')
           .eq('id', session.user.id)
           .single();
-
         if (!error && profile) {
           setRole(profile.role);
         } else {
@@ -78,9 +74,9 @@ export default function Home() {
     fetchRole();
   }, [session]);
 
-  // ====================================================
-  // 7) Fetch daftar franchise & ubah logo_url menjadi publicUrl
-  // ====================================================
+  // ======================================================
+  // 7) Fetch daftar franchise dari Supabase & convert logo_url
+  // ======================================================
   useEffect(() => {
     const fetchFranchises = async () => {
       const { data, error } = await supabase
@@ -91,7 +87,7 @@ export default function Home() {
       if (error) {
         console.error('Error fetching franchises:', error);
       } else if (data) {
-        const franchisesWithImages = data.map((fr) => ({
+        const withImages = data.map((fr) => ({
           ...fr,
           logo_url: supabase
             .storage
@@ -100,7 +96,7 @@ export default function Home() {
             .data
             .publicUrl!,
         }));
-        setFranchises(franchisesWithImages);
+        setFranchises(withImages);
       }
       setLoading(false);
     };
@@ -108,34 +104,28 @@ export default function Home() {
     fetchFranchises();
   }, []);
 
-  // ====================================================
-  // 8) Auto‐scroll (looping) untuk Menu Utama
-  // ====================================================
+  // ======================================================
+  // 8) Buat auto‐scroll looping untuk Menu Utama (horizontal)
+  // ======================================================
   useEffect(() => {
     const container = menuRef.current;
     if (!container) return;
 
-    // Tipe interval (ReturnType<typeof setInterval> agar sesuai dengan clearInterval)
     let scrollInterval: ReturnType<typeof setInterval>;
 
     const startAutoScroll = () => {
-      const itemEls = container.querySelectorAll<HTMLAnchorElement>('.menu-item');
-      if (itemEls.length === 0) return;
+      const items = container.querySelectorAll<HTMLAnchorElement>('.menu-item');
+      if (items.length === 0) return;
 
-      // Hitung lebar satu item + margin‐right
-      const itemWidth =
-        itemEls[0].offsetWidth +
-        parseInt(getComputedStyle(itemEls[0]).marginRight || '0');
+      const style = getComputedStyle(items[0]);
+      const itemWidth = items[0].offsetWidth + parseInt(style.marginRight || '0');
 
       scrollInterval = setInterval(() => {
         if (!container) return;
         const maxScrollLeft = container.scrollWidth - container.clientWidth;
-
         if (container.scrollLeft + itemWidth >= maxScrollLeft + 1) {
-          // Jika sudah di ujung kanan → kembali ke posisi awal
           container.scrollTo({ left: 0, behavior: 'smooth' });
         } else {
-          // Scroll ke kanan sejauh satu item
           container.scrollBy({ left: itemWidth, behavior: 'smooth' });
         }
       }, 2500);
@@ -158,7 +148,7 @@ export default function Home() {
           {/* Logo FranchiseHub */}
           <div className="flex items-center space-x-2">
             <Image
-              src="/logo-franchisehub-white.svg"
+              src="/logo-franchisehub-white.svg"   // Ganti jika nama file logo Anda berbeda
               alt="FranchiseHub"
               width={140}
               height={32}
@@ -222,7 +212,7 @@ export default function Home() {
         {/* Banner */}
         <div className="h-96 w-full overflow-hidden">
           <Image
-            src="/banner-franchise.jpg"
+            src="/banner-franchise.jpg"   // Ganti dengan path banner Anda
             alt="Banner Franchise"
             layout="fill"
             objectFit="cover"
@@ -230,10 +220,10 @@ export default function Home() {
           />
         </div>
 
-        {/* Kotak Search Utama */}
+        {/* Kotak Search Utama (diletakkan di tengah bawah banner) */}
         <div className="absolute inset-x-0 bottom-0 transform translate-y-1/2 px-6 lg:px-8">
           <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
-            {/* Tabs: Dijual / Disewa / Properti Baru */}
+            {/* Tab Navigasi */}
             <div className="flex">
               <button
                 onClick={() => setTab('dijual')}
@@ -293,11 +283,11 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Spacer agar konten tidak tertutup hero */}
+      {/* Spacer agar konten di bawah tidak tertutup */}
       <div className="h-24"></div>
 
       {/* =======================
-           MENU UTAMA (Carousel Loop)
+           MENU UTAMA (Horizontal Scroll + Loop)
          ======================= */}
       <section className="container mx-auto px-6 lg:px-8 mt-12">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">Menu Utama</h2>
@@ -306,7 +296,7 @@ export default function Home() {
           ref={menuRef}
           className="flex space-x-6 overflow-x-auto scroll-smooth hide-scrollbar pb-2"
         >
-          {/* 1) Pengumuman Administrator (hanya untuk role "Administrator") */}
+          {/* 1) Pengumuman Administrator (hanya jika role === 'Administrator') */}
           {role === 'Administrator' && (
             <Link href="/announcement" passHref>
               <a className="menu-item flex-shrink-0 flex flex-col items-center">
@@ -322,15 +312,11 @@ export default function Home() {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M12 8c-3.866 0-7 1.343-7 3v2c0 1.657 
-                         3.134 3 7 3s7-1.343 7-3v-2c0-1.657-3.134-3-7-3z"
+                      d="M12 8c-3.866 0-7 1.343-7 3v2
+                         c0 1.657 3.134 3 7 3s7-1.343 
+                         7-3v-2c0-1.657-3.134-3-7-3z"
                     />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 21v-5"
-                    />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 21v-5" />
                   </svg>
                 </div>
                 <span className="mt-1 text-xs text-gray-700 text-center">
@@ -549,7 +535,7 @@ export default function Home() {
             </a>
           </Link>
 
-          {/* 9) Jadi Franchisor (jika session ada) */}
+          {/* 9) Jadi Franchisor (hanya jika session ada) */}
           {session && (
             <Link href="/franchisor" passHref>
               <a className="menu-item flex-shrink-0 flex flex-col items-center">
@@ -577,7 +563,7 @@ export default function Home() {
             </Link>
           )}
 
-          {/* 10) Dashboard Administrator (jika role === 'Administrator') */}
+          {/* 10) Dashboard Administrator (hanya jika role === 'Administrator') */}
           {role === 'Administrator' && (
             <Link href="/admin" passHref>
               <a className="menu-item flex-shrink-0 flex flex-col items-center">
@@ -605,7 +591,7 @@ export default function Home() {
             </Link>
           )}
 
-          {/* 11) Dashboard Franchisor (jika role === 'franchisor') */}
+          {/* 11) Dashboard Franchisor (hanya jika role === 'franchisor') */}
           {role === 'franchisor' && (
             <Link href="/franchisor/dashboard" passHref>
               <a className="menu-item flex-shrink-0 flex flex-col items-center">
@@ -633,7 +619,7 @@ export default function Home() {
             </Link>
           )}
 
-          {/* 12) Login (jika belum session) */}
+          {/* 12) Login (hanya jika belum ada session) */}
           {!session && (
             <Link href="/login" passHref>
               <a className="menu-item flex-shrink-0 flex flex-col items-center">
@@ -664,7 +650,7 @@ export default function Home() {
       </section>
 
       {/* =======================
-           DAFTAR FRANCHISE (GRID)
+           DAFTAR FRANCHISE (Grid)
          ======================= */}
       <section className="container mx-auto px-6 lg:px-8 mt-16">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Daftar Franchise</h2>
@@ -714,7 +700,7 @@ export default function Home() {
           <div>
             <h4 className="font-semibold mb-4">Tentang FranchiseHub</h4>
             <p className="text-sm text-gray-300">
-              FranchiseHub adalah platform terdepan untuk menemukan dan mengelola peluang franchise. 
+              FranchiseHub adalah platform terdepan untuk menemukan dan mengelola peluang franchise.  
               Kami memudahkan franchisor dan franchisee bertemu dalam satu ekosistem yang transparan.
             </p>
           </div>
@@ -747,12 +733,14 @@ export default function Home() {
               {/* Facebook */}
               <a href="#" className="hover:text-gray-400">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M22 12c0-5.522-4.478-10-10-10S2 6.478 2 12c0 4.991 
-                         3.656 9.128 8.438 9.879v-6.99H7.898v-2.889h2.54
-                         V9.845c0-2.507 1.492-3.89 3.777-3.89 1.094 
-                         0 2.238.195 2.238.195v2.463H15.04c-1.263 
-                         0-1.658.78-1.658 1.577v1.897h2.828l-.453 
-                         2.889h-2.375v6.99C18.344 21.128 22 16.991 22 12z" />
+                  <path d="M22 12c0-5.522-4.478-10-10-10S2 6.478 
+                         2 12c0 4.991 3.656 9.128 8.438 9.879v-6.99
+                         H7.898v-2.889h2.54V9.845c0-2.507 
+                         1.492-3.89 3.777-3.89 1.094 0 2.238.195 
+                         2.238.195v2.463H15.04c-1.263 0-1.658.78
+                         -1.658 1.577v1.897h2.828l-.453 
+                         2.889h-2.375v6.99C18.344 21.128 22 
+                         16.991 22 12z" />
                 </svg>
               </a>
               {/* Twitter */}
@@ -760,16 +748,13 @@ export default function Home() {
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M23.954 4.569c-.885.389-1.83.654-2.825.775
                          a4.936 4.936 0 002.163-2.724 9.868 
-                         9.868 0 01-3.127 1.195 4.92 
-                         4.92 0 00-8.379 4.482A13.955 
-                         13.955 0 011.671 3.149a4.822 
-                         4.822 0 001.523 6.56 4.902 
-                         4.902 0 01-2.229-.616c-.054 
-                         2.28 1.581 4.415 3.949 4.89a4.935 
-                         4.935 0 01-2.224.085 4.928 
-                         4.928 0 004.604 3.417A9.867 
-                         9.867 0 010 19.54a13.9 13.9 0 
-                         007.548 2.212c9.058 0 14.01-7.507 
+                         9.868 0 01-3.127 1.195 4.92 4.92 0 00-8.379 
+                         4.482A13.955 13.955 0 011.671 3.149a4.822 
+                         4.822 0 001.523 6.56 4.902 4.902 0 01-2.229-.616
+                         c-.054 2.28 1.581 4.415 3.949 4.89a4.935 
+                         4.935 0 01-2.224.085 4.928 4.928 0 004.604 
+                         3.417A9.867 9.867 0 010 19.54a13.9 13.9 
+                         0 007.548 2.212c9.058 0 14.01-7.507 
                          14.01-14.01 0-.213 0-.425-.015-.637A10.012 
                          10.012 0 0024 4.59z" />
                 </svg>
@@ -777,39 +762,47 @@ export default function Home() {
               {/* Instagram */}
               <a href="#" className="hover:text-gray-400">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2.163c3.204 0 3.584.012 4.849.07 1.366.062 
-                         2.633.313 3.608 1.289.974.975 1.227 2.243 
-                         1.289 3.608.058 1.265.069 1.646.069 4.848 
-                         0 3.205-.011 3.584-.069 4.849-.062 
-                         1.366-.315 2.633-1.289 3.608-.975.974-2.242 
-                         1.227-3.608 1.289-1.265.058-1.645.07-4.849.07-3.204 
-                         0-3.584-.012-4.849-.07-1.366-.062-2.633-.315-3.608-1.289-.974-.975-1.227-2.242-1.289-3.608-.058-1.265-.07-1.645-.07-4.849 
-                         0-3.205.012-3.584.07-4.849.062-1.366.315-2.633 
-                         1.289-3.608.975-.974 2.242-1.227 
-                         3.608-1.289 1.265-.058 1.645-.07 4.849-.07M12 
-                         0C8.741 0 8.332.014 7.052.072 5.78.13 4.602.346 
-                         3.603 1.345 2.605 2.343 2.39 3.52 2.332 4.792.274 
-                         6.074.26 6.483.26 12s.014 
-                         5.926.072 7.208c.058 
-                         1.272.273 2.449 1.271 
-                         3.447.998.999 2.175 1.215 3.447 
-                         1.273 1.282.058 1.691.072 7.217.072s5.935-.014 
-                         7.217-.072c1.272-.058 2.449-.274 
-                         3.447-1.273.998-.998 1.214-2.175 
-                         1.272-3.447.058-1.282.072-1.691.072-7.217s-.014-5.935-.072-7.217c-.058-1.272-.274-2.449-1.273-3.447C19.65.346 18.473.13 
-                         17.201.072 15.919.014 15.51 0 12 0zm0 
-                         5.838a6.162 6.162 0 100 12.324 6.162 
-                         6.162 0 000-12.324zm0 10.162a4 4 
-                         0 110-8 4 4 0 010 8zm6.406-11.845a1.44 
-                         1.44 0 11-2.88 0 1.44 1.44 0 012.88 0z" />
+                  <path d="M12 2.163c3.204 0 3.584.012 4.849.07 
+                         1.366.062 2.633.313 3.608 1.289.974.975 
+                         1.227 2.243 1.289 3.608.058 1.265.069 
+                         1.646.069 4.848 0 3.205-.011 3.584-.069 
+                         4.849-.062 1.366-.315 2.633-1.289 3.608
+                         -.975.974-2.242 1.227-3.608 1.289-1.265
+                         .058-1.645.07-4.849.07-3.204 0-3.584
+                         -.012-4.849-.07-1.366-.062-2.633-.315
+                         -3.608-1.289-.974-.975-1.227-2.242
+                         -1.289-3.608-.058-1.265-.07-1.645
+                         -.07-4.849 0-3.205.012-3.584.07-4.849
+                         .062-1.366.315-2.633 1.289-3.608
+                         .975-.974 2.242-1.227 3.608-1.289
+                         1.265-.058 1.645-.07 4.849-.07M12 0
+                         C8.741 0 8.332.014 7.052.072 5.78.13 
+                         4.602.346 3.603 1.345 2.605 2.343 
+                         2.39 3.52 2.332 4.792  .274 6.074 
+                         .26 6.483.26 12s.014 5.926.072 7.208
+                         c.058 1.272.273 2.449 1.271 3.447
+                         .998.999 2.175 1.215 3.447 1.273 
+                         1.282.058 1.691.072 7.217.072s5.935
+                         -.014 7.217-.072c1.272-.058 2.449
+                         -.274 3.447-1.273 .998-.998 1.214
+                         -2.175 1.272-3.447.058-1.282.072
+                         -1.691.072-7.217s-.014-5.935-.072
+                         -7.217c-.058-1.272-.274-2.449
+                         -1.273-3.447C19.65.346 18.473.13
+                         17.201.072 15.919.014 15.51 0 
+                         12 0zm0 5.838a6.162 6.162 0 100 
+                         12.324 6.162 6.162 0 000-12.324zm0 
+                         10.162a4 4 0 110-8 4 4 0 010 8zm6.406
+                         -11.845a1.44 1.44 0 11-2.88 0 1.44 1.44 
+                         0 012.88 0z" />
                 </svg>
               </a>
             </div>
           </div>
+        </div>
 
-          <div className="mt-8 text-center text-sm text-gray-400">
-            &copy; 2025 FranchiseHub. Semua hak dilindungi.
-          </div>
+        <div className="mt-8 text-center text-sm text-gray-400">
+          &copy; 2025 FranchiseHub. Semua hak dilindungi.
         </div>
       </footer>
     </div>
