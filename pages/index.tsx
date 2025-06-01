@@ -21,14 +21,16 @@ const Home: NextPage = () => {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'dijual' | 'disewa' | 'baru'>('dijual');
 
-  // Daftar menu utama (contoh)
+  // Contoh daftar menu utama
   const menuItems = [
     {
       label: 'Notifikasiku',
       href: '/notifikasi',
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11c0-3.866-3.582-7-8-7S2 7.134 2 11v3.159c0 .538-.214 1.055-.595 1.436L0 17h5m10 0v1a3 3 0 11-6 0v-1m6 0H9" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11c0-3.866-3.582-7-8-7S2 7.134 2 11v3.159c0 .538-.214 1.055-.595 1.436L0 17h5m10 0v1a3 3 0 11-6 0v-1m6 0H9"
+          />
         </svg>
       ),
     },
@@ -64,7 +66,9 @@ const Home: NextPage = () => {
       href: '/help',
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-1.414 1.414m0 0a9 9 0 01-12.728 0m0 0L5.636 5.636m12.728 12.728l-1.414-1.414m0 0a9 9 0 01-12.728 0m0 0L5.636 18.364" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+            d="M18.364 5.636l-1.414 1.414m0 0a9 9 0 01-12.728 0m0 0L5.636 5.636m12.728 12.728l-1.414-1.414m0 0a9 9 0 01-12.728 0m0 0L5.636 18.364"
+          />
         </svg>
       ),
     },
@@ -82,7 +86,9 @@ const Home: NextPage = () => {
       href: '/privacy',
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 11c0 2.21-1.79 4-4 4m8-4c0 2.21-1.79 4-4 4M4 4h16v16H4V4z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+            d="M12 11c0 2.21-1.79 4-4 4m8-4c0 2.21-1.79 4-4 4M4 4h16v16H4V4z"
+          />
         </svg>
       ),
     },
@@ -97,12 +103,12 @@ const Home: NextPage = () => {
     },
   ];
 
-  // Ref untuk infinite scroll
+  // Ref untuk container menu utama
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number>();
 
   useEffect(() => {
-    // Fetch daftar franchise dari Supabase
+    // Fetch data franchise dari Supabase
     const fetchFranchises = async () => {
       const { data, error } = await supabase
         .from('franchise_listings')
@@ -117,46 +123,53 @@ const Home: NextPage = () => {
           logo_url: supabase
             .storage
             .from('listing-images')
-            .getPublicUrl(f.logo_url).data.publicUrl!,
+            .getPublicUrl(f.logo_url)
+            .data.publicUrl!,
         }));
         setFranchises(withImages);
       }
       setLoading(false);
     };
-
     fetchFranchises();
 
-    // Infinite horizontal scroll untuk menu utama
+    // ===== Infinite-scroll logic (automatic) =====
     const container = scrollContainerRef.current;
     if (!container) return;
 
     let scrollPos = 0;
-    const speed = 1; // meningkatkan scrollLeft sebanyak 1px per frame
+    const speed = 0.5; // scrollLeft bertambah 0.5px per frame
 
     const step = () => {
       if (!container) return;
       scrollPos += speed;
-      // Jika sudah mencapai setengah scrollWidth, reset ke nol
+      // Jika sudah mencapai setengah keseluruhan scrollWidth, reset ke 0
       if (scrollPos >= container.scrollWidth / 2) {
         scrollPos = 0;
       }
-      container.scrollLeft = scrollPos;
+      // Hanya otomatis scroll jika pengguna tidak sedang scroll secara manual
+      // (kita bisa mendeteksi apakah container.scrollLeft sudah diubah oleh user)
+      if (!container.matches(':hover')) {
+        // jika kursor tidak sedang hover, lanjut auto-scroll
+        container.scrollLeft = scrollPos;
+      }
       animationRef.current = requestAnimationFrame(step);
     };
 
     animationRef.current = requestAnimationFrame(step);
 
+    // Bersihkan ketika komponen unmount
     return () => {
-      if (animationRef.current) cancelAnimationFrame(animationRef.current);
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
     };
   }, []);
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      {/* ================= Hero Banner ================= */}
+      {/* ========== Hero Banner ========== */}
       <section className="relative bg-gray-100">
         <div className="h-96 w-full overflow-hidden relative">
-          {/* Menggunakan <img> biasa agar tidak perlu konfigurasi domain Next.js */}
           <img
             src="/banner-franchise.jpg"
             alt="Banner Franchise"
@@ -165,10 +178,10 @@ const Home: NextPage = () => {
         </div>
       </section>
 
-      {/* Spacer agar konten tidak overlap Hero */}
+      {/* Spacer agar konten tidak overlap */}
       <div className="h-24"></div>
 
-      {/* ================= Tabs Pencarian ================= */}
+      {/* ========== Tabs Pencarian ========== */}
       <div className="container mx-auto px-6 lg:px-8">
         <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-12">
           <div className="flex">
@@ -227,14 +240,14 @@ const Home: NextPage = () => {
         </div>
       </div>
 
-      {/* ================= Menu Utama (Infinite Scroll) ================= */}
-      <section className="overflow-x-hidden py-4">
+      {/* ========== Menu Utama (Infinite + Manual Scroll) ========== */}
+      <section className="py-4 overflow-x-auto">
         <div
           ref={scrollContainerRef}
-          className="flex space-x-8 whitespace-nowrap select-none"
-          style={{ overflowX: 'hidden' }}
+          className="flex space-x-8 whitespace-nowrap select-none scroll-smooth"
+          style={{ overflowX: 'auto' }}
         >
-          {/* Gandakan array dua kali agar loop mulus */}
+          {/* Kita gandakan array menuItems agar loop-nya mulus */}
           {[...menuItems, ...menuItems].map((item, idx) => (
             <Link key={idx} href={item.href} passHref>
               <a>
@@ -250,10 +263,9 @@ const Home: NextPage = () => {
         </div>
       </section>
 
-      {/* ================= Daftar Franchise ================= */}
+      {/* ========== Daftar Franchise ========== */}
       <section className="container mx-auto px-6 lg:px-8 mt-12">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Daftar Franchise</h2>
-
         {loading ? (
           <p className="text-center text-gray-500">Memuat daftar franchise...</p>
         ) : (
@@ -262,7 +274,6 @@ const Home: NextPage = () => {
               <Link key={fr.id} href={`/franchise/${fr.slug}`} passHref>
                 <a>
                   <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden cursor-pointer">
-                    {/* Menggunakan <img> biasa untuk logo */}
                     <div className="relative h-48">
                       <img
                         src={fr.logo_url}
@@ -290,7 +301,7 @@ const Home: NextPage = () => {
         )}
       </section>
 
-      {/* ================= Footer ================= */}
+      {/* ========== Footer ========== */}
       <footer className="mt-16 bg-gray-800 text-white py-8">
         <div className="container mx-auto px-6 text-center text-sm">
           &copy; 2025 FranchiseHub. Semua hak dilindungi.
