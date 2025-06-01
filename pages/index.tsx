@@ -33,7 +33,7 @@ export default function Home() {
       if (error) {
         console.error('Error fetching franchises:', error);
       } else if (data) {
-        // Ubah setiap logo_url menjadi publicUrl dari Supabase Storage
+        // Konversi setiap logo_url menjadi publicUrl dari Supabase Storage
         const franchisesWithImages = data.map((franchise) => ({
           ...franchise,
           logo_url: supabase
@@ -53,11 +53,10 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* ====================
-          Banner Franchise
-          (Menempel langsung ke atas, tanpa bar putih di atas-nya)
+          Banner Franchise (full‐width, tanpa bar putih di atas)
       ==================== */}
       <section className="relative w-full h-96">
-        {/* Pastikan file banner-franchise.jpg sudah ada di folder public/ */}
+        {/* Pastikan file banner-franchise.jpg sudah Anda letakkan di folder public/ */}
         <Image
           src="/banner-franchise.jpg"
           alt="Banner Franchise"
@@ -66,7 +65,7 @@ export default function Home() {
         />
       </section>
 
-      {/* Agar kotak pencarian (Tabs + Input) tidak menempel terlalu rapat ke banner */}
+      {/* Spacer agar kotak pencarian tidak menempel rapat ke banner */}
       <div className="h-12 lg:h-16"></div>
 
       {/* ====================
@@ -133,11 +132,11 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Ruang kosong supaya konten berikutnya tidak terlalu menempel */}
+      {/* Spacer kecil */}
       <div className="h-12"></div>
 
       {/* ====================
-          Menu Utama (Ikon Bulat, Scrollable secara horizontal)
+          Menu Utama (Ikon bulat, horizontally scrollable)
       ==================== */}
       <section className="px-6 lg:px-8">
         <h2 className="text-xl font-bold text-gray-800 mb-4">Menu Utama</h2>
@@ -321,7 +320,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Ruang kosong */}
+      {/* Spacer kecil */}
       <div className="h-12"></div>
 
       {/* ====================
@@ -337,7 +336,6 @@ export default function Home() {
             {franchises.map((fr) => (
               <Link key={fr.id} href={`/franchise/${fr.slug}`}>
                 <a className="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden">
-                  {/* Gambar Logo/Thumbnail */}
                   <div className="relative h-44">
                     <img
                       src={fr.logo_url}
@@ -364,7 +362,7 @@ export default function Home() {
         )}
       </section>
 
-      {/* Ruang kosong bawah */}
+      {/* Spacer bawah halaman */}
       <div className="h-20"></div>
     </div>
   );
