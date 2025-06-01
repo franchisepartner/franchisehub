@@ -1,6 +1,6 @@
 // File: pages/index.tsx
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import type { NextPage } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -21,31 +21,89 @@ const Home: NextPage = () => {
   const [franchises, setFranchises] = useState<Franchise[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'dijual' | 'disewa' | 'baru'>('dijual');
-  const [greetingName, setGreetingName] = useState<string | null>(null);
 
-  // Ambil nama user untuk salam (jika ada)
-  useEffect(() => {
-    const fetchUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (user) {
-        const fullName = (user.user_metadata as any)?.full_name;
-        const role = (user.user_metadata as any)?.role;
-        if (fullName && role) {
-          setGreetingName(`${fullName}_${role}`);
-        } else if (fullName) {
-          setGreetingName(fullName);
-        } else {
-          setGreetingName(user.email ?? null);
-        }
-      }
-    };
-    fetchUser();
-  }, []);
+  // Daftar menu utama (contoh)
+  const menuItems = [
+    {
+      label: 'Notifikasiku',
+      href: '/notifikasi',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11c0-3.866-3.582-7-8-7S2 7.134 2 11v3.159c0 .538-.214 1.055-.595 1.436L0 17h5m10 0v1a3 3 0 11-6 0v-1m6 0H9" />
+        </svg>
+      ),
+    },
+    {
+      label: 'Favoritku',
+      href: '/favorit',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+        </svg>
+      ),
+    },
+    {
+      label: 'Forum Global',
+      href: '/forum',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-600" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2a10 10 0 100 20 10 10 0 000-20zM8 10h8v2H8v-2zm0 4h5v2H8v-2z" />
+        </svg>
+      ),
+    },
+    {
+      label: 'Blog Global',
+      href: '/blog',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-purple-600" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M5 4h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V5a1 1 0 011-1zm2 3v2h10V7H7zm0 4v2h10v-2H7zm0 4v2h10v-2H7z" />
+        </svg>
+      ),
+    },
+    {
+      label: 'Pusat Bantuan',
+      href: '/help',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-1.414 1.414m0 0a9 9 0 01-12.728 0m0 0L5.636 5.636m12.728 12.728l-1.414-1.414m0 0a9 9 0 01-12.728 0m0 0L5.636 18.364" />
+        </svg>
+      ),
+    },
+    {
+      label: 'Syarat & Ketentuan',
+      href: '/terms',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-600" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M4 4h16v2H4V4zm0 6h10v2H4v-2zm0 6h16v2H4v-2z" />
+        </svg>
+      ),
+    },
+    {
+      label: 'Kebijakan Privasi',
+      href: '/privacy',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 11c0 2.21-1.79 4-4 4m8-4c0 2.21-1.79 4-4 4M4 4h16v16H4V4z" />
+        </svg>
+      ),
+    },
+    {
+      label: 'Jadi Franchisor',
+      href: '/franchisor',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-teal-600" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 2l3 5h-6l3-5zm0 6a4 4 0 110 8 4 4 0 010-8zm-4 8h8v2H8v-2zm-2-4H6v2h2v-2zm12 0h2v2h-2v-2z" />
+        </svg>
+      ),
+    },
+  ];
 
-  // Fetch daftar franchise
+  // Refs untuk infinite loop
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const animationRef = useRef<number>();
+
   useEffect(() => {
+    // Fetch daftar franchise
     const fetchFranchises = async () => {
       const { data, error } = await supabase
         .from('franchise_listings')
@@ -55,283 +113,145 @@ const Home: NextPage = () => {
       if (error) {
         console.error('Error fetching franchises:', error);
       } else if (data) {
-        const franchisesWithImages = data.map((franchise) => ({
-          ...franchise,
+        const withImages = data.map((f) => ({
+          ...f,
           logo_url: supabase
             .storage
             .from('listing-images')
-            .getPublicUrl(franchise.logo_url)
-            .data
-            .publicUrl!,
+            .getPublicUrl(f.logo_url).data.publicUrl!,
         }));
-        setFranchises(franchisesWithImages);
+        setFranchises(withImages);
       }
       setLoading(false);
     };
 
     fetchFranchises();
+
+    // Infinite scroll horizontal (simple marquee effect)
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    let scrollAmount = 0;
+    const speed = 1; // pixels per frame
+
+    const step = () => {
+      if (!container) return;
+      scrollAmount += speed;
+      if (scrollAmount >= container.scrollWidth / 2) {
+        // reset to beginning
+        scrollAmount = 0;
+      }
+      container.scrollLeft = scrollAmount;
+      animationRef.current = requestAnimationFrame(step);
+    };
+
+    animationRef.current = requestAnimationFrame(step);
+
+    return () => {
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
+    };
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* ========= HEADER (SINGLE NAVBAR) ========= */}
-      <header className="bg-white shadow-sm">
-        <div className="container mx-auto flex items-center justify-between py-4 px-6 lg:px-8">
-          <div className="flex items-center space-x-4">
-            <h1 className="text-2xl font-bold text-blue-600">FranchiseHub</h1>
-          </div>
-          <div className="hidden lg:flex items-center space-x-6 font-medium text-gray-700">
-            <Link href="#"><a className="hover:text-blue-600">Cari Agen</a></Link>
-            <Link href="#"><a className="hover:text-blue-600">Aset Bank</a></Link>
-            <Link href="#"><a className="hover:text-blue-600">Explore</a></Link>
-            <Link href="#"><a className="hover:text-blue-600">Berita</a></Link>
-            <Link href="#"><a className="hover:text-blue-600">Perusahaan</a></Link>
-            <Link href="#"><a className="hover:text-blue-600">Bantuan</a></Link>
-          </div>
-          <div className="hidden lg:flex items-center space-x-4">
-            <button className="bg-blue-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-blue-700 transition">
-              Pasang Iklan
-            </button>
-            {greetingName ? (
-              <div className="flex items-center space-x-2">
-                <span className="text-gray-600">Halo, {greetingName}!</span>
-                <button
-                  onClick={async () => {
-                    await supabase.auth.signOut();
-                    location.href = '/';
-                  }}
-                  className="text-red-600 hover:underline"
-                >
-                  Logout
-                </button>
-              </div>
-            ) : (
-              <Link href="/login"><a className="text-blue-600 hover:underline">Login</a></Link>
-            )}
-          </div>
-          <button className="lg:hidden">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
-            </svg>
-          </button>
-        </div>
-      </header>
-
-      {/* ========= HERO SECTION ========= */}
+    <div className="bg-gray-50 min-h-screen">
+      {/* Hero Banner */}
       <section className="relative bg-gray-100">
-        <div className="h-96 w-full overflow-hidden">
+        <div className="h-96 w-full overflow-hidden relative">
           <Image
-            src="/banner-franchise.jpg"
+            src="/banner-franchise.jpg" // Pastikan banner ini ada di folder public/
             alt="Banner Franchise"
             layout="fill"
             objectFit="cover"
             className="brightness-75"
           />
         </div>
-        <div className="absolute inset-x-0 bottom-0 transform translate-y-1/2 px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
-            {/* Tabs: Dijual / Disewa / Properti Baru */}
-            <div className="flex">
-              <button
-                onClick={() => setTab('dijual')}
-                className={`flex-1 py-3 text-center font-medium ${
-                  tab === 'dijual'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                Dijual
-              </button>
-              <button
-                onClick={() => setTab('disewa')}
-                className={`flex-1 py-3 text-center font-medium ${
-                  tab === 'disewa'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                Disewa
-              </button>
-              <button
-                onClick={() => setTab('baru')}
-                className={`flex-1 py-3 text-center font-medium ${
-                  tab === 'baru'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                Properti Baru
-              </button>
-            </div>
-            {/* Form Pencarian */}
-            <div className="p-6">
-              <form className="flex space-x-4">
-                <input
-                  type="text"
-                  placeholder={
-                    tab === 'dijual'
-                      ? 'Cari franchise untuk dijual...'
-                      : tab === 'disewa'
-                      ? 'Cari franchise untuk disewa...'
-                      : 'Cari properti baru...'
-                  }
-                  className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-                />
-                <button
-                  type="submit"
-                  className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
-                >
-                  Cari
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
       </section>
 
-      {/* Spacer agar konten tidak tertutup hero */}
-      <div className="h-24" />
+      {/* Spacer agar konten tidak overlap Hero */}
+      <div className="h-24"></div>
 
-      {/* ========= ICON SHORTCUTS SECTION ========= */}
-      <section className="container mx-auto px-6 lg:px-8 mt-12">
-        <div className="overflow-x-auto no-scrollbar">
-          <div className="inline-flex space-x-6">
-            {[
-              {
-                label: 'Cari Agen',
-                icon: (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2a5 5 0 00-5 5v1H5a2 2 0 00-2 2v2h18v-2a2 2 0 00-2-2h-2V7a5 5 0 00-5-5z" />
-                    <path fillRule="evenodd" d="M4 13v2a6 6 0 006 6h4a6 6 0 006-6v-2H4zm6 1a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1z" clipRule="evenodd" />
-                  </svg>
-                ),
-              },
-              {
-                label: 'Iklankan Franchise',
-                icon: (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-600" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M19 13H5v-2h14v2zm0-6H5v2h14V7zm0 10H5v2h14v-2z" />
-                  </svg>
-                ),
-              },
-              {
-                label: 'Jual Franchisemu',
-                icon: (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-orange-600" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M3 21h18V3H3v18zM5 5h14v14H5V5z" />
-                    <path d="M9 9h6v2H9V9zm0 4h6v2H9v-2z" />
-                  </svg>
-                ),
-              },
-              {
-                label: 'Cari Franchise',
-                icon: (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-red-600" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zM9.5 14C7.02 14 5 11.98 5 9.5S7.02 5 9.5 5 14 7.02 14 9.5 11.98 14 9.5 14z" />
-                  </svg>
-                ),
-              },
-              {
-                label: 'Simulasi Investasi',
-                icon: (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-purple-600" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zM5 9V6.19l7-3.11 7 3.11V9c0 4.44-2.79 8.85-7 9.88C7.79 17.85 5 13.44 5 9z" />
-                    <path d="M11 12h2v5h-2zm0-4h2v2h-2z" />
-                  </svg>
-                ),
-              },
-              {
-                label: 'Pengumuman Administrator',
-                icon: (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-yellow-600" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2a10 10 0 00-10 10h2a8 8 0 1116 0h2a10 10 0 00-10-10zM11 14h2v2h-2zm0-8h2v6h-2z" />
-                  </svg>
-                ),
-              },
-              {
-                label: 'Notifikasiku',
-                icon: (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 1a7 7 0 00-7 7v5.586l-1.707 1.707A1 1 0 004 17h16a1 1 0 00.707-1.707L19 13.586V8a7 7 0 00-7-7zm0 20a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
-                  </svg>
-                ),
-              },
-              {
-                label: 'Favoritku',
-                icon: (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-red-600" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5A5.5 5.5 0 017.5 3a5.452 5.452 0 014.5 2.09A5.452 5.452 0 0116.5 3 5.5 5.5 0 0122 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                  </svg>
-                ),
-              },
-              {
-                label: 'Forum Global',
-                icon: (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-600" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2a10 10 0 00-10 10c0 5.523 4.477 10 10 10 1.767 0 3.42-.459 4.842-1.261L22 22l-1.261-5.158A9.953 9.953 0 0022 12c0-5.523-4.477-10-10-10zm-1 11H7l4-4 4 4h-4v4h-2v-4z" />
-                  </svg>
-                ),
-              },
-              {
-                label: 'Blog Global',
-                icon: (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-purple-600" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2zm14 2H5v14h14V5zm-9 11v-1h6v1h-6zm0-3v-1h6v1h-6zm0-3v-1h6v1h-6z" />
-                  </svg>
-                ),
-              },
-              {
-                label: 'Pusat Bantuan',
-                icon: (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M11 18h2v-2h-2v2zm0-4h2v-2h-2v2z" />
-                    <path d="M12 1C6.48 1 2 5.48 2 11s4.48 10 10 10c1.93 0 3.73-.65 5.18-1.74L22 22l-1.46-5.42C20.59 14.03 22 12.06 22 10c0-5.52-4.48-9-10-9zm0 17c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z" />
-                  </svg>
-                ),
-              },
-              {
-                label: 'Syarat & Ketentuan',
-                icon: (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-600" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2a9.981 9.981 0 00-7.071 2.929A9.981 9.981 0 002 12c0 2.654 1.036 5.117 2.929 7.071A9.981 9.981 0 0012 22a9.981 9.981 0 007.071-2.929A9.981 9.981 0 0022 12c0-2.654-1.036-5.117-2.929-7.071A9.981 9.981 0 0012 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
-                  </svg>
-                ),
-              },
-              {
-                label: 'Kebijakan Privasi',
-                icon: (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-600" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 19c-3.86-1.12-7-4.86-7-9V6.19l7-3.11 7 3.11V11c0 4.14-3.14 7.88-7 9z" />
-                    <path d="M12 8a4 4 0 100 8 4 4 0 000-8zm0 6a2 2 0 110-4 2 2 0 010 4z" />
-                  </svg>
-                ),
-              },
-              {
-                label: 'Jadi Franchisor',
-                icon: (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-600" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M4 4h16v2H4z" />
-                    <path d="M6 7h12v13H6z" />
-                    <path d="M9 10v6h6v-6H9z" />
-                  </svg>
-                ),
-              },
-            ].map((item, idx) => (
-              <div key={idx} className="flex flex-col items-center mx-2">
-                <div className="bg-white p-4 rounded-full shadow-md">
-                  <button>{item.icon}</button>
-                </div>
-                <span className="mt-2 text-xs font-medium text-gray-700 whitespace-nowrap">
+      {/* Tabs Pencarian */}
+      <div className="container mx-auto px-6 lg:px-8">
+        <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-12">
+          <div className="flex">
+            <button
+              onClick={() => setTab('dijual')}
+              className={`flex-1 py-3 text-center font-medium ${
+                tab === 'dijual'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              Dijual
+            </button>
+            <button
+              onClick={() => setTab('disewa')}
+              className={`flex-1 py-3 text-center font-medium ${
+                tab === 'disewa'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              Disewa
+            </button>
+            <button
+              onClick={() => setTab('baru')}
+              className={`flex-1 py-3 text-center font-medium ${
+                tab === 'baru'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              Properti Baru
+            </button>
+          </div>
+          <div className="p-6">
+            <form className="flex space-x-4">
+              <input
+                type="text"
+                placeholder={
+                  tab === 'dijual'
+                    ? 'Cari franchise untuk dijual...'
+                    : tab === 'disewa'
+                    ? 'Cari franchise untuk disewa...'
+                    : 'Cari properti baru...'
+                }
+                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+              />
+              <button
+                type="submit"
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
+              >
+                Cari
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      {/* Menu Utama (infinite scroll) */}
+      <section className="overflow-x-hidden py-4">
+        <div
+          ref={scrollContainerRef}
+          className="flex space-x-8 whitespace-nowrap select-none"
+          style={{ width: '200%', /* Agar marquee */ }}
+        >
+          {/* Duplikasikan array dua kali untuk loop mulus */}
+          {[...menuItems, ...menuItems].map((item, idx) => (
+            <Link key={idx} href={item.href}>
+              <div className="flex-shrink-0 flex flex-col items-center justify-center w-20 h-20 bg-white rounded-full shadow-md mx-2 cursor-pointer hover:shadow-lg transition">
+                {item.icon}
+                <span className="mt-1 text-xs text-gray-700 text-center">
                   {item.label}
                 </span>
               </div>
-            ))}
-          </div>
+            </Link>
+          ))}
         </div>
       </section>
 
-      {/* ========= DAFTAR FRANCHISE (Grid) ========= */}
-      <section className="container mx-auto px-6 lg:px-8 mt-16">
+      {/* Daftar Franchise */}
+      <section className="container mx-auto px-6 lg:px-8 mt-12">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Daftar Franchise</h2>
 
         {loading ? (
@@ -339,14 +259,14 @@ const Home: NextPage = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {franchises.map((fr) => (
-              <Link key={fr.id} href={`/franchise/${fr.slug}`} passHref>
+              <Link key={fr.id} href={`/franchise/${fr.slug}`}>
                 <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden cursor-pointer">
-                  {/* Gambar Logo/Thumbnail */}
                   <div className="relative h-48">
-                    <img
+                    <Image
                       src={fr.logo_url}
                       alt={fr.franchise_name}
-                      className="w-full h-full object-cover"
+                      layout="fill"
+                      objectFit="cover"
                     />
                     <span className="absolute top-3 left-3 bg-yellow-400 text-xs font-semibold text-black px-2 py-1 rounded">
                       {fr.category}
@@ -368,63 +288,9 @@ const Home: NextPage = () => {
         )}
       </section>
 
-      {/* ========= FOOTER ========= */}
-      <footer className="mt-20 bg-gray-800 text-white py-12">
-        <div className="container mx-auto px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Kolom Tentang */}
-          <div>
-            <h4 className="font-semibold mb-4">Tentang FranchiseHub</h4>
-            <p className="text-sm text-gray-300">
-              FranchiseHub adalah platform terdepan untuk menemukan dan mengelola peluang franchise.
-              Kami memudahkan franchisor dan franchisee bertemu dalam satu ekosistem yang transparan.
-            </p>
-          </div>
-          {/* Kolom Menu Cepat */}
-          <div>
-            <h4 className="font-semibold mb-4">Menu Cepat</h4>
-            <ul className="space-y-2 text-sm text-gray-300">
-              <li>
-                <Link href="#"><a className="hover:underline">Cari Agen</a></Link>
-              </li>
-              <li>
-                <Link href="#"><a className="hover:underline">Iklankan Franchise</a></Link>
-              </li>
-              <li>
-                <Link href="#"><a className="hover:underline">Jual Franchise</a></Link>
-              </li>
-              <li>
-                <Link href="#"><a className="hover:underline">Simulasi Investasi</a></Link>
-              </li>
-            </ul>
-          </div>
-          {/* Kolom Kontak */}
-          <div>
-            <h4 className="font-semibold mb-4">Kontak Kami</h4>
-            <p className="text-sm text-gray-300">Email: support@franchisehub.co.id</p>
-            <p className="text-sm text-gray-300">Telepon: +62 812 3456 7890</p>
-            <div className="mt-4 flex space-x-4">
-              {/* Facebook */}
-              <a href="#" className="hover:text-gray-400">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M22 12c0-5.522-4.478-10-10-10S2 6.478 2 12c0 4.991 3.656 9.128 8.438 9.879v-6.99H7.898v-2.889h2.54V9.845c0-2.507 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.463H15.04c-1.263 0-1.658.78-1.658 1.577v1.897h2.828l-.453 2.889h-2.375v6.99C18.344 21.128 22 16.991 22 12z" />
-                </svg>
-              </a>
-              {/* Twitter */}
-              <a href="#" className="hover:text-gray-400">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M23.954 4.569c-.885.389-1.83.654-2.825.775a4.936 4.936 0 002.163-2.724 9.868 9.868 0 01-3.127 1.195 4.92 4.92 0 00-8.379 4.482A13.955 13.955 0 011.671 3.149a4.822 4.822 0 001.523 6.56 4.902 4.902 0 01-2.229-.616c-.054 2.28 1.581 4.415 3.949 4.89a4.935 4.935 0 01-2.224.085 4.928 4.928 0 004.604 3.417A9.867 9.867 0 010 19.54a13.9 13.9 0 007.548 2.212c9.058 0 14.01-7.507 14.01-14.01 0-.213 0-.425-.015-.637A10.012 10.012 0 0024 4.59z" />
-                </svg>
-              </a>
-              {/* Instagram */}
-              <a href="#" className="hover:text-gray-400">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2.163c3.204 0 3.584.012 4.849.07 1.366.062 2.633.313 3.608 1.289.974.975 1.227 2.243 1.289 3.608.058 1.265.069 1.646.069 4.848 0 3.205-.011 3.584-.069 4.849-.062 1.366-.315 2.633-1.289 3.608-.975.974-2.242 1.227-3.608 1.289-1.265.058-1.645.07-4.849.07-3.204 0-3.584-.012-4.849-.07-1.366-.062-2.633-.315-3.608-1.289-.974-.975-1.227-2.242-1.289-3.608-.058-1.265-.07-1.645-.07-4.849 0-3.205.012-3.584.07-4.849.062-1.366.315-2.633 1.289-3.608.975-.974 2.242-1.227 3.608-1.289 1.265-.058 1.645-.07 4.849-.07M12 0C8.741 0 8.332.014 7.052.072 5.78.13 4.602.346 3.603 1.345 2.605 2.343 2.39 3.52 2.332 4.792.274 6.074.26 6.483.26 12s.014 5.926.072 7.208c.058 1.272.273 2.449 1.271 3.447.998.999 2.175 1.215 3.447 1.273 1.282.058 1.691.072 7.217.072s5.935-.014 7.217-.072c1.272-.058 2.449-.274 3.447-1.273.998-.998 1.214-2.175 1.272-3.447.058-1.282.072-1.691.072-7.217s-.014-5.935-.072-7.217c-.058-1.272-.274-2.449-1.273-3.447C19.65.346 18.473.13 17.201.072 15.919.014 15.51 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zm0 10.162a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 11-2.88 0 1.44 1.44 0 012.88 0z" />
-                </svg>
-              </a>
-            </div>
-          </div>
-        </div>
-        <div className="mt-8 text-center text-sm text-gray-400">
+      {/* Footer */}
+      <footer className="mt-16 bg-gray-800 text-white py-8">
+        <div className="container mx-auto px-6 text-center text-sm">
           &copy; 2025 FranchiseHub. Semua hak dilindungi.
         </div>
       </footer>
