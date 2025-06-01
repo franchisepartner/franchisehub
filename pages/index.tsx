@@ -11,8 +11,8 @@ interface Franchise {
   category: string;
   investment_min: number;
   location: string;
-  logo_url: string; // Ini adalah URL publik gambar logo
-  slug: string;     // Kita akan pakai ini nanti untuk halaman detail
+  logo_url: string;
+  slug: string;
 }
 
 export default function Home() {
@@ -22,7 +22,6 @@ export default function Home() {
 
   useEffect(() => {
     const fetchFranchises = async () => {
-      // Ambil data dari Supabase (tabel: franchise_listings)
       const { data, error } = await supabase
         .from('franchise_listings')
         .select('id, franchise_name, description, category, investment_min, location, logo_url, slug')
@@ -31,7 +30,6 @@ export default function Home() {
       if (error) {
         console.error('Error fetching franchises:', error);
       } else if (data) {
-        // Ubah setiap franchise.logo_url menjadi public URL (Supabase Storage)
         const franchisesWithImages = data.map((franchise) => ({
           ...franchise,
           logo_url:
@@ -53,21 +51,25 @@ export default function Home() {
   return (
     <div className="w-full">
       {/* ========== Banner Section ========== */}
-      <div className="relative w-full h-[280px] sm:h-[320px] md:h-[420px] lg:h-[540px]">
+      <div className="relative w-full h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px]">
         <Image
-          src="/banner-franchisehub.PNG"      // Pastikan file ada di public/banner-franchisehub.PNG
+          src="/banner-franchisehub.PNG"
           alt="Banner FranchiseHub"
           fill
           className="object-cover brightness-75"
         />
 
-        {/*
-          Jika Anda ingin menambahkan teks overlay lagi nanti, 
-          Anda bisa tempatkan di sini. 
-          Sekarang kita tidak menampilkan teks, jadi bagian ini dihapus.
-        */}
+        {/* Hanya satu curve di kiri bawah */}
+        <svg
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+          className="absolute bottom-0 left-0 w-32 h-24"
+        >
+          {/* Path ini menghasilkan arc yang hanya di pojok kiri bawah */}
+          <path d="M 0 100 C 0 0 100 0 100 100 Z" fill="white" />
+        </svg>
 
-        {/* Search form overlay (menempel pada kurva banner) */}
+        {/* Search form overlay */}
         <div className="absolute bottom-0 inset-x-0 transform translate-y-1/2 px-4 sm:px-6 lg:px-8">
           <div className="bg-white rounded-xl shadow-lg p-4 w-full max-w-3xl mx-auto">
             {/* Tabs */}
@@ -103,7 +105,7 @@ export default function Home() {
                 Properti Baru
               </button>
             </div>
-            {/* Form Pencarian */}
+            {/* Form pencarian */}
             <form className="mt-4 flex space-x-2">
               <input
                 type="text"
@@ -127,8 +129,8 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Spacer agar konten berikutnya (Menu Utama) tidak tertutup overlay */}
-      <div className="h-24 md:h-28 lg:h-32"></div>
+      {/* Spacer agar tidak tertutup overlay */}
+      <div className="h-24 md:h-28"></div>
 
       {/* ========== Menu Utama (Scrollable horizontally) ========== */}
       <section className="w-full overflow-x-auto whitespace-nowrap py-6 px-4 sm:px-6 lg:px-8">
@@ -137,79 +139,122 @@ export default function Home() {
             {
               label: 'Notifikasiku',
               icon: (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path d="M12 22a2 2 0 002-2H10a2 2 0 002 2zm6-6V9a6 6 0 10-12 0v7l-2 2v1h16v-1l-2-2z"/>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 text-blue-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path d="M12 22a2 2 0 002-2H10a2 2 0 002 2zm6-6V9a6 6 0 10-12 0v7l-2 2v1h16v-1l-2-2z" />
                 </svg>
               ),
             },
             {
               label: 'Favoritku',
               icon: (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path d="M5 15l7 7 7-7V5a2 2 0 00-2-2h-10a2 2 0 00-2 2v10z"/>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 text-red-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path d="M5 15l7 7 7-7V5a2 2 0 00-2-2h-10a2 2 0 00-2 2v10z" />
                 </svg>
               ),
             },
             {
               label: 'Forum Global',
               icon: (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8s-9-3.582-9-8 4.03-8 9-8 9 3.582 9 8z"/>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 text-green-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8s-9-3.582-9-8 4.03-8 9-8 9 3.582 9 8z" />
                 </svg>
               ),
             },
             {
               label: 'Blog Global',
               icon: (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path d="M4 6h16M4 12h16M4 18h16"/>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 text-purple-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               ),
             },
             {
               label: 'Pusat Bantuan',
               icon: (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8s-9-3.582-9-8 4.03-8 9-8 9 3.582 9 8z"/>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 text-indigo-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8s-9-3.582-9-8 4.03-8 9-8 9 3.582 9 8z" />
                 </svg>
               ),
             },
             {
               label: 'Syarat & Ketentuan',
               icon: (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path d="M5 5v14h14V5H5z"/>
-                  <path d="M9 9h6v6H9z"/>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 text-gray-700"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path d="M5 5v14h14V5H5z" />
+                  <path d="M9 9h6v6H9z" />
                 </svg>
               ),
             },
             {
               label: 'Kebijakan Privasi',
               icon: (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path d="M12 2L4 6v6c0 5.523 3.582 10 8 10s8-4.477 8-10V6l-8-4z"/>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 text-green-700"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path d="M12 2L4 6v6c0 5.523 3.582 10 8 10s8-4.477 8-10V6l-8-4z" />
                 </svg>
               ),
             },
             {
               label: 'Jadi Franchisor',
               icon: (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path d="M12 8c-1.657 0-3 1.343-3 3 0 3 3 7 3 7s3-4 3-7c0-1.657-1.343-3-3-3z"/>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 text-teal-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path d="M12 8c-1.657 0-3 1.343-3 3 0 3 3 7 3 7s3-4 3-7c0-1.657-1.343-3-3-3z" />
                 </svg>
               ),
             },
           ].map((item) => (
-            <div
-              key={item.label}
-              className="inline-flex flex-col items-center justify-center w-24"
-            >
+            <div key={item.label} className="inline-flex flex-col items-center justify-center w-24">
               <div className="bg-white rounded-full shadow-md p-4">
                 {item.icon}
               </div>
-              <span className="text-xs text-gray-600 mt-1 text-center">
-                {item.label}
-              </span>
+              <span className="text-xs text-gray-600 mt-1 text-center">{item.label}</span>
             </div>
           ))}
         </div>
@@ -251,7 +296,7 @@ export default function Home() {
         )}
       </section>
 
-      {/* ========== Footer ========== */}
+      {/* ========== Footer (opsional) ========== */}
       <footer className="mt-16 bg-gray-800 text-white py-12">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
@@ -263,45 +308,25 @@ export default function Home() {
           <div>
             <h4 className="font-semibold mb-4">Menu Cepat</h4>
             <ul className="space-y-2 text-sm text-gray-300">
-              <li>
-                <a href="#" className="hover:underline">
-                  Cari Agen
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:underline">
-                  Iklankan Franchise
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:underline">
-                  Jual Franchise
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:underline">
-                  Simulasi Investasi
-                </a>
-              </li>
+              <li><a href="#" className="hover:underline">Cari Agen</a></li>
+              <li><a href="#" className="hover:underline">Iklankan Franchise</a></li>
+              <li><a href="#" className="hover:underline">Jual Franchise</a></li>
+              <li><a href="#" className="hover:underline">Simulasi Investasi</a></li>
             </ul>
           </div>
           <div>
             <h4 className="font-semibold mb-4">Kontak Kami</h4>
-            <p className="text-sm text-gray-300">
-              Email: support@franchisehub.co.id
-            </p>
-            <p className="text-sm text-gray-300">
-              Telepon: +62 812 3456 7890
-            </p>
+            <p className="text-sm text-gray-300">Email: support@franchisehub.co.id</p>
+            <p className="text-sm text-gray-300">Telepon: +62 812 3456 7890</p>
             <div className="mt-4 flex space-x-4">
               <a href="#" className="hover:text-gray-400">
-                {/* Facebook */}
+                {/* Facebook icon */}
               </a>
               <a href="#" className="hover:text-gray-400">
-                {/* Twitter */}
+                {/* Twitter icon */}
               </a>
               <a href="#" className="hover:text-gray-400">
-                {/* Instagram */}
+                {/* Instagram icon */}
               </a>
             </div>
           </div>
