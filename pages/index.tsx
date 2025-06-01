@@ -25,22 +25,21 @@ export default function Home() {
     const fetchFranchises = async () => {
       const { data, error } = await supabase
         .from('franchise_listings')
-        .select(
-          'id, franchise_name, description, category, investment_min, location, logo_url, slug'
-        )
+        .select('id, franchise_name, description, category, investment_min, location, logo_url, slug')
         .order('created_at', { ascending: false });
 
       if (error) {
         console.error('Error fetching franchises:', error);
       } else if (data) {
         // Ubah setiap logo_url menjadi publicUrl dari Supabase Storage
-        const franchisesWithImages = data.map((fr) => ({
-          ...fr,
+        const franchisesWithImages = data.map((franchise) => ({
+          ...franchise,
           logo_url: supabase
             .storage
             .from('listing-images')
-            .getPublicUrl(fr.logo_url)
-            .data.publicUrl!,
+            .getPublicUrl(franchise.logo_url)
+            .data
+            .publicUrl!,
         }));
         setFranchises(franchisesWithImages);
       }
@@ -52,288 +51,196 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* ======= Banner Franchise ======= */}
-      <section className="relative w-full h-96">
-        {/* Pastikan banner‐franchise.jpg Anda taruh di folder public/ */}
+      {/* ============= Hero Section ============= */}
+      <section className="relative h-[24rem] w-full overflow-hidden">
+        {/* Banner Image */}
         <Image
-          src="/banner-franchise.jpg"
+          src="/banner-franchise.jpg"           {/* Pastikan banner-franchise.jpg ada di folder public */}
           alt="Banner Franchise"
           fill
-          className="object-cover brightness-75"
+          objectFit="cover"
+          className="brightness-75"
         />
-      </section>
 
-      {/* Spacer agar kotak pencarian tidak menempel rapat ke banner */}
-      <div className="h-12 lg:h-16"></div>
-
-      {/* ======= Kotak Pencarian (Tabs + Input) ======= */}
-      <section className="px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
-          {/* Tabs: Dijual / Disewa / Properti Baru */}
-          <div className="flex border-b">
-            <button
-              onClick={() => setTab('dijual')}
-              className={`flex-1 py-3 text-center font-medium ${
-                tab === 'dijual'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white text-gray-600 hover:bg-gray-50'
-              }`}
-            >
-              Dijual
-            </button>
-            <button
-              onClick={() => setTab('disewa')}
-              className={`flex-1 py-3 text-center font-medium ${
-                tab === 'disewa'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white text-gray-600 hover:bg-gray-50'
-              }`}
-            >
-              Disewa
-            </button>
-            <button
-              onClick={() => setTab('baru')}
-              className={`flex-1 py-3 text-center font-medium ${
-                tab === 'baru'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white text-gray-600 hover:bg-gray-50'
-              }`}
-            >
-              Properti Baru
-            </button>
-          </div>
-
-          {/* Form Pencarian */}
-          <div className="p-6">
-            <form className="flex space-x-4">
-              <input
-                type="text"
-                placeholder={
-                  tab === 'dijual'
-                    ? 'Cari franchise untuk dijual...'
-                    : tab === 'disewa'
-                    ? 'Cari franchise untuk disewa...'
-                    : 'Cari properti baru...'
-                }
-                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-              />
+        {/* Overlay Search Card */}
+        <div className="absolute inset-x-0 bottom-0 transform translate-y-1/2 px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
+            {/* Tabs: Dijual / Disewa / Properti Baru */}
+            <div className="flex">
               <button
-                type="submit"
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
+                onClick={() => setTab('dijual')}
+                className={`flex-1 py-3 text-center font-medium ${
+                  tab === 'dijual'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white text-gray-600 hover:bg-gray-50'
+                }`}
               >
-                Cari
+                Dijual
               </button>
-            </form>
+              <button
+                onClick={() => setTab('disewa')}
+                className={`flex-1 py-3 text-center font-medium ${
+                  tab === 'disewa'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                Disewa
+              </button>
+              <button
+                onClick={() => setTab('baru')}
+                className={`flex-1 py-3 text-center font-medium ${
+                  tab === 'baru'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                Properti Baru
+              </button>
+            </div>
+
+            {/* Form Pencarian */}
+            <div className="p-6">
+              <form className="flex space-x-4">
+                <input
+                  type="text"
+                  placeholder={
+                    tab === 'dijual'
+                      ? 'Cari franchise untuk dijual...'
+                      : tab === 'disewa'
+                      ? 'Cari franchise untuk disewa...'
+                      : 'Cari properti baru...'
+                  }
+                  className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                />
+                <button
+                  type="submit"
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
+                >
+                  Cari
+                </button>
+              </form>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Spacer kecil */}
-      <div className="h-12"></div>
+      {/* Spacer agar konten di bawah tidak tertutup */}
+      <div className="h-32"></div>
 
-      {/* ======= Menu Utama (Horizontally Scrollable) ======= */}
-      <section className="px-6 lg:px-8">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">Menu Utama</h2>
+      {/* ============= Icon Shortcuts Section ============= */}
+      <section className="container mx-auto px-6 lg:px-8 mt-12">
+        <h2 className="sr-only">Menu Utama</h2>
         <div className="overflow-x-auto">
-          <div className="flex space-x-6 pb-2">
-            {[
-              {
-                label: 'Notifikasiku',
-                icon: (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6 text-blue-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                    />
-                  </svg>
-                ),
-                href: '/notifikasi',
-              },
-              {
-                label: 'Favoritku',
-                icon: (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6 text-red-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 15l7-7 7 7"
-                    />
-                  </svg>
-                ),
-                href: '/favorit',
-              },
-              {
-                label: 'Forum Global',
-                icon: (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6 text-green-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17 8h2a2 2 0 012 2v8l-4-4H7a2 2 0 01-2-2V8c0-1.105.895-2 2-2h2"
-                    />
-                  </svg>
-                ),
-                href: '/forum',
-              },
-              {
-                label: 'Blog Global',
-                icon: (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6 text-purple-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 16h8M8 12h8m-8-4h8M5 6h14M5 18h14"
-                    />
-                  </svg>
-                ),
-                href: '/blog',
-              },
-              {
-                label: 'Pusat Bantuan',
-                icon: (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6 text-indigo-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M10 6h4m4 0h2a2 2 0 012 2v4M6 6H4a2 2 0 00-2 2v4m0 4h2m4 0h4m4 0h2a2 2 0 002-2v-4m0 0v4a2 2 0 01-2 2h-2M6 18H4a2 2 0 01-2-2v-4m0 0V6a2 2 0 012-2h2"
-                    />
-                  </svg>
-                ),
-                href: '/help',
-              },
-              {
-                label: 'Syarat & Ketentuan',
-                icon: (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6 text-gray-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 11c0-1.5.5-3 1.5-4m-3 4c0 1.5.5 3 1.5 4m4-8v8"
-                    />
-                  </svg>
-                ),
-                href: '/terms',
-              },
-              {
-                label: 'Kebijakan Privasi',
-                icon: (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6 text-gray-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 16v4m8-4v4m-16-4v4m4-8v4m8-4v4m-4-4v4"
-                    />
-                  </svg>
-                ),
-                href: '/privacy',
-              },
-              {
-                label: 'Jadi Franchisor',
-                icon: (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6 text-green-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                ),
-                href: '/franchisor',
-              },
-            ].map((item) => (
-              <Link key={item.label} href={item.href}>
-                <a className="flex-shrink-0 flex flex-col items-center text-center">
-                  <div className="bg-white p-4 rounded-full shadow-md">
-                    {item.icon}
-                  </div>
-                  <span className="mt-2 text-xs font-medium text-gray-700 whitespace-nowrap">
-                    {item.label}
-                  </span>
-                </a>
-              </Link>
-            ))}
+          <div className="inline-flex space-x-6">
+            {/* Contoh Icon: Notifikasiku */}
+            <Link href="#" className="flex flex-col items-center min-w-[5rem]">
+              <div className="bg-white p-4 rounded-full shadow-md">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2a5 5 0 00-5 5v1H5a2 2 0 00-2 2v2h18v-2a2 2 0 00-2-2h-2V7a5 5 0 00-5-5z" />
+                  <path
+                    fillRule="evenodd"
+                    d="M4 13v2a6 6 0 006 6h4a6 6 0 006-6v-2H4zm6 1a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+              <span className="mt-2 text-xs font-medium text-gray-700">Notifikasiku</span>
+            </Link>
+
+            {/* Favoritku */}
+            <Link href="#" className="flex flex-col items-center min-w-[5rem]">
+              <div className="bg-white p-4 rounded-full shadow-md">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-red-600" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 6.42 3.42 5 5.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5 18.58 5 20 6.42 20 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                </svg>
+              </div>
+              <span className="mt-2 text-xs font-medium text-gray-700">Favoritku</span>
+            </Link>
+
+            {/* Forum Global */}
+            <Link href="#" className="flex flex-col items-center min-w-[5rem]">
+              <div className="bg-white p-4 rounded-full shadow-md">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-600" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2a10 10 0 00-9.95 9.09C2.02 12.5 2 12.74 2 13c0 2.76 2.24 5 5 5h3l4 4v-4h3c2.76 0 5-2.24 5-5 0-.26-.02-.5-.05-.91A10 10 0 0012 2z" />
+                </svg>
+              </div>
+              <span className="mt-2 text-xs font-medium text-gray-700">Forum Global</span>
+            </Link>
+
+            {/* Blog Global */}
+            <Link href="#" className="flex flex-col items-center min-w-[5rem]">
+              <div className="bg-white p-4 rounded-full shadow-md">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-purple-600" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M3 5h18v2H3V5zm0 4h12v2H3V9zm0 4h18v2H3v-2zm0 4h12v2H3v-2z" />
+                </svg>
+              </div>
+              <span className="mt-2 text-xs font-medium text-gray-700">Blog Global</span>
+            </Link>
+
+            {/* Pusat Bantuan */}
+            <Link href="#" className="flex flex-col items-center min-w-[5rem]">
+              <div className="bg-white p-4 rounded-full shadow-md">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-indigo-600" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm1.07-7.75c-.9.92-1.07 1.25-1.07 2.25h-2v-.5c0-1.1.3-1.7 1.07-2.41.7-.65 1.39-1.22 1.39-2.09 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 1.4-.7 2.08-1.93 3.25z" />
+                </svg>
+              </div>
+              <span className="mt-2 text-xs font-medium text-gray-700">Pusat Bantuan</span>
+            </Link>
+
+            {/* Syarat & Ketentuan */}
+            <Link href="#" className="flex flex-col items-center min-w-[5rem]">
+              <div className="bg-white p-4 rounded-full shadow-md">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-600" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2L2 7l10 5 10-5-10-5zm0 18l-9-4.5V10l9 4.5 9-4.5v5.5L12 20z" />
+                </svg>
+              </div>
+              <span className="mt-2 text-xs font-medium text-gray-700">Syarat & Ketentuan</span>
+            </Link>
+
+            {/* Kebijakan Privasi */}
+            <Link href="#" className="flex flex-col items-center min-w-[5rem]">
+              <div className="bg-white p-4 rounded-full shadow-md">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-800" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zM5 9V6.19l7-3.11 7 3.11V9c0 4.44-2.79 8.85-7 9.88C7.79 17.85 5 13.44 5 9z" />
+                  <path d="M11 12h2v5h-2zm0-4h2v2h-2z" />
+                </svg>
+              </div>
+              <span className="mt-2 text-xs font-medium text-gray-700">Kebijakan Privasi</span>
+            </Link>
+
+            {/* Jadi Franchisor */}
+            <Link href="#" className="flex flex-col items-center min-w-[5rem]">
+              <div className="bg-white p-4 rounded-full shadow-md">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-700" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2L2 7l10 5 10-5-10-5zm0 13l-9-4.5V10l9 4.5 9-4.5v.5L12 15z" />
+                </svg>
+              </div>
+              <span className="mt-2 text-xs font-medium text-gray-700">Jadi Franchisor</span>
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* Spacer kecil */}
-      <div className="h-12"></div>
-
-      {/* ======= Daftar Franchise (Grid) ======= */}
-      <section className="px-6 lg:px-8">
+      {/* ============= Daftar Franchise (Grid) ============= */}
+      <section className="container mx-auto px-6 lg:px-8 mt-16 mb-16">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Daftar Franchise</h2>
 
         {loading ? (
           <p className="text-center text-gray-500">Memuat daftar franchise...</p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {franchises.map((fr) => (
-              <Link key={fr.id} href={`/franchise/${fr.slug}`}>
-                <a className="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden">
-                  <div className="relative h-44">
+              <Link key={fr.id} href={`/franchise/${fr.slug}`} passHref>
+                <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden cursor-pointer">
+                  {/* Gambar Logo/Thumbnail */}
+                  <div className="relative h-48">
                     <img
                       src={fr.logo_url}
                       alt={fr.franchise_name}
                       className="w-full h-full object-cover"
                     />
-                    <span className="absolute top-2 left-2 bg-yellow-400 text-xs font-semibold text-black px-2 py-1 rounded">
+                    <span className="absolute top-3 left-3 bg-yellow-400 text-xs font-semibold text-black px-2 py-1 rounded">
                       {fr.category}
                     </span>
                   </div>
@@ -341,20 +248,19 @@ export default function Home() {
                     <h3 className="text-lg font-semibold text-gray-800">
                       {fr.franchise_name}
                     </h3>
-                    <p className="mt-1 text-sm text-gray-500">{fr.location}</p>
+                    <p className="mt-1 text-sm text-gray-500">
+                      {fr.location}
+                    </p>
                     <p className="mt-2 text-sm text-gray-700">
                       Investasi Mulai: Rp {fr.investment_min.toLocaleString('id-ID')}
                     </p>
                   </div>
-                </a>
+                </div>
               </Link>
             ))}
           </div>
         )}
       </section>
-
-      {/* Spacer bawah halaman */}
-      <div className="h-20"></div>
     </div>
   );
 }
