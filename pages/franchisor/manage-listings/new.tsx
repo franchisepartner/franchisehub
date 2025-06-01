@@ -92,8 +92,12 @@ export default function NewListing() {
       alert('Listing berhasil ditambahkan');
       router.push('/franchisor/manage-listings');
     } catch (err) {
-      console.error(err);
-      alert('Gagal menambahkan listing');
+        console.error('Error saat menambahkan listing:', err);
+        if (err instanceof Error) {
+          alert(`Gagal menambahkan listing: ${err.message}`);
+        } else {
+          alert('Gagal menambahkan listing karena kesalahan yang tidak diketahui.');
+        }
     } finally {
       setLoading(false);
     }
