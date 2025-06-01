@@ -50,63 +50,90 @@ export default function Home() {
 
   return (
     <div className="w-full">
-      {/* ========== Banner Section ========== */}
-      <div className="relative w-full h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px]">
+      {/*
+        ========= Banner Section =========
+        - Hanya menggunakan satu gambar banner baru: /banner-franchisehub.PNG
+        - Tinggi banner dibuat lebih kecil, agar mirip Rumah123
+        - Ditambahkan div berbentuk lingkaran terpotong di kiri bawah untuk efek “curve”
+        - Teks overlay (“Jual Beli Franchise Jadi Mudah”) dihilangkan
+      */}
+      <div className="relative w-full h-[180px] sm:h-[200px] md:h-[240px] lg:h-[280px] overflow-hidden">
         <Image
           src="/banner-franchisehub.PNG"
           alt="Banner FranchiseHub"
           fill
-          className="object-cover brightness-75"
+          className="object-cover"
         />
 
-        {/* Hanya satu curve di kiri bawah */}
-        <svg
-          viewBox="0 0 100 100"
-          preserveAspectRatio="none"
-          className="absolute bottom-0 left-0 w-32 h-24"
-        >
-          {/* Path ini menghasilkan arc yang hanya di pojok kiri bawah */}
-          <path d="M 0 100 C 0 0 100 0 100 100 Z" fill="white" />
-        </svg>
+        {/* 
+          Bentuk curve putih di kiri bawah. 
+          Ukuran dan posisi bisa disesuaikan lagi.
+        */}
+        <div
+          className="
+            absolute 
+            bottom-0 left-0 
+            w-[120px] h-[120px] 
+            bg-white 
+            rounded-tl-full 
+            sm:w-[150px] sm:h-[150px]
+            md:w-[180px] md:h-[180px]
+            lg:w-[200px] lg:h-[200px]
+          "
+        />
 
-        {/* Search form overlay */}
+        {/*
+          Search-form overlay:
+          - Dibuat lebih compact, persis di tengah horizontal banner
+          - Warna putih dengan bayangan lembut
+          - Rounded top corners
+        */}
         <div className="absolute bottom-0 inset-x-0 transform translate-y-1/2 px-4 sm:px-6 lg:px-8">
-          <div className="bg-white rounded-xl shadow-lg p-4 w-full max-w-3xl mx-auto">
+          <div className="bg-white rounded-xl shadow-lg p-3 w-full max-w-3xl mx-auto">
             {/* Tabs */}
             <div className="flex">
               <button
                 onClick={() => setTab('dijual')}
-                className={`flex-1 py-3 text-center font-medium rounded-t-xl ${
-                  tab === 'dijual'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
+                className={`
+                  flex-1 py-2 text-center text-sm md:text-base font-medium rounded-t-xl
+                  ${
+                    tab === 'dijual'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }
+                `}
               >
                 Dijual
               </button>
               <button
                 onClick={() => setTab('disewa')}
-                className={`flex-1 py-3 text-center font-medium rounded-t-xl ${
-                  tab === 'disewa'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
+                className={`
+                  flex-1 py-2 text-center text-sm md:text-base font-medium rounded-t-xl
+                  ${
+                    tab === 'disewa'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }
+                `}
               >
                 Disewa
               </button>
               <button
                 onClick={() => setTab('baru')}
-                className={`flex-1 py-3 text-center font-medium rounded-t-xl ${
-                  tab === 'baru'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
+                className={`
+                  flex-1 py-2 text-center text-sm md:text-base font-medium rounded-t-xl
+                  ${
+                    tab === 'baru'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }
+                `}
               >
                 Properti Baru
               </button>
             </div>
-            {/* Form pencarian */}
-            <form className="mt-4 flex space-x-2">
+            {/* Search input + button */}
+            <form className="mt-3 flex space-x-2">
               <input
                 type="text"
                 placeholder={
@@ -116,11 +143,17 @@ export default function Home() {
                     ? 'Cari franchise untuk disewa...'
                     : 'Cari properti baru...'
                 }
-                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="
+                  flex-1 px-3 py-2 text-sm border border-gray-300 
+                  rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400
+                "
               />
               <button
                 type="submit"
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
+                className="
+                  px-4 py-2 bg-blue-600 text-white text-sm rounded-lg 
+                  font-medium hover:bg-blue-700 transition
+                "
               >
                 Cari
               </button>
@@ -129,10 +162,15 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Spacer agar tidak tertutup overlay */}
+      {/*
+        Spacer agar konten di bawah tidak tertutup oleh search-overlay
+      */}
       <div className="h-24 md:h-28"></div>
 
-      {/* ========== Menu Utama (Scrollable horizontally) ========== */}
+      {/*
+        ========= Menu Utama (Scrollable horizontally) =========
+        (Tidak berubah dari kode sebelumnya)
+      */}
       <section className="w-full overflow-x-auto whitespace-nowrap py-6 px-4 sm:px-6 lg:px-8">
         <div className="inline-flex space-x-6">
           {[
@@ -251,7 +289,7 @@ export default function Home() {
             },
           ].map((item) => (
             <div key={item.label} className="inline-flex flex-col items-center justify-center w-24">
-              <div className="bg-white rounded-full shadow-md p-4">
+              <div className="bg-white rounded-full shadow-md p-3">
                 {item.icon}
               </div>
               <span className="text-xs text-gray-600 mt-1 text-center">{item.label}</span>
@@ -260,7 +298,10 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ========== Daftar Franchise (Grid) ========== */}
+      {/*
+        ========= Daftar Franchise (Grid) =========
+        (Tidak ada perubahan struktur; hanya ditampilkan seperti sebelumnya)
+      */}
       <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Daftar Franchise</h2>
         {loading ? (
@@ -296,7 +337,9 @@ export default function Home() {
         )}
       </section>
 
-      {/* ========== Footer (opsional) ========== */}
+      {/*
+        ========= Footer (opsional) =========
+      */}
       <footer className="mt-16 bg-gray-800 text-white py-12">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
@@ -308,10 +351,26 @@ export default function Home() {
           <div>
             <h4 className="font-semibold mb-4">Menu Cepat</h4>
             <ul className="space-y-2 text-sm text-gray-300">
-              <li><a href="#" className="hover:underline">Cari Agen</a></li>
-              <li><a href="#" className="hover:underline">Iklankan Franchise</a></li>
-              <li><a href="#" className="hover:underline">Jual Franchise</a></li>
-              <li><a href="#" className="hover:underline">Simulasi Investasi</a></li>
+              <li>
+                <a href="#" className="hover:underline">
+                  Cari Agen
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:underline">
+                  Iklankan Franchise
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:underline">
+                  Jual Franchise
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:underline">
+                  Simulasi Investasi
+                </a>
+              </li>
             </ul>
           </div>
           <div>
