@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useRef } from 'react';
 import type { NextPage } from 'next';
-import Image from 'next/image';
 import Link from 'next/link';
 import { supabase } from '../lib/supabaseClient';
 
@@ -98,12 +97,12 @@ const Home: NextPage = () => {
     },
   ];
 
-  // Refs untuk infinite loop
+  // Ref untuk infinite scroll
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number>();
 
   useEffect(() => {
-    // Fetch daftar franchise
+    // Fetch daftar franchise dari Supabase
     const fetchFranchises = async () => {
       const { data, error } = await supabase
         .from('franchise_listings')
@@ -127,21 +126,21 @@ const Home: NextPage = () => {
 
     fetchFranchises();
 
-    // Infinite scroll horizontal (simple marquee effect)
+    // Infinite horizontal scroll untuk menu utama
     const container = scrollContainerRef.current;
     if (!container) return;
 
-    let scrollAmount = 0;
-    const speed = 1; // pixels per frame
+    let scrollPos = 0;
+    const speed = 1; // meningkatkan scrollLeft sebanyak 1px per frame
 
     const step = () => {
       if (!container) return;
-      scrollAmount += speed;
-      if (scrollAmount >= container.scrollWidth / 2) {
-        // reset to beginning
-        scrollAmount = 0;
+      scrollPos += speed;
+      // Jika sudah mencapai setengah scrollWidth, reset ke nol
+      if (scrollPos >= container.scrollWidth / 2) {
+        scrollPos = 0;
       }
-      container.scrollLeft = scrollAmount;
+      container.scrollLeft = scrollPos;
       animationRef.current = requestAnimationFrame(step);
     };
 
@@ -154,15 +153,14 @@ const Home: NextPage = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      {/* Hero Banner */}
+      {/* ================= Hero Banner ================= */}
       <section className="relative bg-gray-100">
         <div className="h-96 w-full overflow-hidden relative">
-          <Image
-            src="/banner-franchise.jpg" // Pastikan banner ini ada di folder public/
+          {/* Menggunakan <img> biasa agar tidak perlu konfigurasi domain Next.js */}
+          <img
+            src="/banner-franchise.jpg"
             alt="Banner Franchise"
-            layout="fill"
-            objectFit="cover"
-            className="brightness-75"
+            className="object-cover w-full h-full brightness-75"
           />
         </div>
       </section>
@@ -170,7 +168,7 @@ const Home: NextPage = () => {
       {/* Spacer agar konten tidak overlap Hero */}
       <div className="h-24"></div>
 
-      {/* Tabs Pencarian */}
+      {/* ================= Tabs Pencarian ================= */}
       <div className="container mx-auto px-6 lg:px-8">
         <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-12">
           <div className="flex">
@@ -229,28 +227,30 @@ const Home: NextPage = () => {
         </div>
       </div>
 
-      {/* Menu Utama (infinite scroll) */}
+      {/* ================= Menu Utama (Infinite Scroll) ================= */}
       <section className="overflow-x-hidden py-4">
         <div
           ref={scrollContainerRef}
           className="flex space-x-8 whitespace-nowrap select-none"
-          style={{ width: '200%', /* Agar marquee */ }}
+          style={{ overflowX: 'hidden' }}
         >
-          {/* Duplikasikan array dua kali untuk loop mulus */}
+          {/* Gandakan array dua kali agar loop mulus */}
           {[...menuItems, ...menuItems].map((item, idx) => (
-            <Link key={idx} href={item.href}>
-              <div className="flex-shrink-0 flex flex-col items-center justify-center w-20 h-20 bg-white rounded-full shadow-md mx-2 cursor-pointer hover:shadow-lg transition">
-                {item.icon}
-                <span className="mt-1 text-xs text-gray-700 text-center">
-                  {item.label}
-                </span>
-              </div>
+            <Link key={idx} href={item.href} passHref>
+              <a>
+                <div className="flex-shrink-0 flex flex-col items-center justify-center w-20 h-20 bg-white rounded-full shadow-md mx-2 cursor-pointer hover:shadow-lg transition">
+                  {item.icon}
+                  <span className="mt-1 text-xs text-gray-700 text-center">
+                    {item.label}
+                  </span>
+                </div>
+              </a>
             </Link>
           ))}
         </div>
       </section>
 
-      {/* Daftar Franchise */}
+      {/* ================= Daftar Franchise ================= */}
       <section className="container mx-auto px-6 lg:px-8 mt-12">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Daftar Franchise</h2>
 
@@ -259,36 +259,38 @@ const Home: NextPage = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {franchises.map((fr) => (
-              <Link key={fr.id} href={`/franchise/${fr.slug}`}>
-                <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden cursor-pointer">
-                  <div className="relative h-48">
-                    <Image
-                      src={fr.logo_url}
-                      alt={fr.franchise_name}
-                      layout="fill"
-                      objectFit="cover"
-                    />
-                    <span className="absolute top-3 left-3 bg-yellow-400 text-xs font-semibold text-black px-2 py-1 rounded">
-                      {fr.category}
-                    </span>
+              <Link key={fr.id} href={`/franchise/${fr.slug}`} passHref>
+                <a>
+                  <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden cursor-pointer">
+                    {/* Menggunakan <img> biasa untuk logo */}
+                    <div className="relative h-48">
+                      <img
+                        src={fr.logo_url}
+                        alt={fr.franchise_name}
+                        className="w-full h-full object-cover"
+                      />
+                      <span className="absolute top-3 left-3 bg-yellow-400 text-xs font-semibold text-black px-2 py-1 rounded">
+                        {fr.category}
+                      </span>
+                    </div>
+                    <div className="p-4">
+                      <h3 className="text-lg font-semibold text-gray-800">
+                        {fr.franchise_name}
+                      </h3>
+                      <p className="mt-1 text-sm text-gray-500">{fr.location}</p>
+                      <p className="mt-2 text-sm text-gray-700">
+                        Investasi Mulai: Rp {fr.investment_min.toLocaleString('id-ID')}
+                      </p>
+                    </div>
                   </div>
-                  <div className="p-4">
-                    <h3 className="text-lg font-semibold text-gray-800">
-                      {fr.franchise_name}
-                    </h3>
-                    <p className="mt-1 text-sm text-gray-500">{fr.location}</p>
-                    <p className="mt-2 text-sm text-gray-700">
-                      Investasi Mulai: Rp {fr.investment_min.toLocaleString('id-ID')}
-                    </p>
-                  </div>
-                </div>
+                </a>
               </Link>
             ))}
           </div>
         )}
       </section>
 
-      {/* Footer */}
+      {/* ================= Footer ================= */}
       <footer className="mt-16 bg-gray-800 text-white py-8">
         <div className="container mx-auto px-6 text-center text-sm">
           &copy; 2025 FranchiseHub. Semua hak dilindungi.
