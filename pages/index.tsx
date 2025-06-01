@@ -27,8 +27,17 @@ const Home: NextPage = () => {
       label: 'Notifikasiku',
       href: '/notifikasi',
       icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-6 w-6 text-blue-600"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
             d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11c0-3.866-3.582-7-8-7S2 7.134 2 11v3.159c0 .538-.214 1.055-.595 1.436L0 17h5m10 0v1a3 3 0 11-6 0v-1m6 0H9"
           />
         </svg>
@@ -38,7 +47,13 @@ const Home: NextPage = () => {
       label: 'Favoritku',
       href: '/favorit',
       icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-6 w-6 text-red-500"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
         </svg>
       ),
@@ -47,7 +62,12 @@ const Home: NextPage = () => {
       label: 'Forum Global',
       href: '/forum',
       icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-600" viewBox="0 0 24 24" fill="currentColor">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-6 w-6 text-green-600"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+        >
           <path d="M12 2a10 10 0 100 20 10 10 0 000-20zM8 10h8v2H8v-2zm0 4h5v2H8v-2z" />
         </svg>
       ),
@@ -56,7 +76,12 @@ const Home: NextPage = () => {
       label: 'Blog Global',
       href: '/blog',
       icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-purple-600" viewBox="0 0 24 24" fill="currentColor">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-6 w-6 text-purple-600"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+        >
           <path d="M5 4h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V5a1 1 0 011-1zm2 3v2h10V7H7zm0 4v2h10v-2H7zm0 4v2h10v-2H7z" />
         </svg>
       ),
@@ -65,8 +90,17 @@ const Home: NextPage = () => {
       label: 'Pusat Bantuan',
       href: '/help',
       icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-6 w-6 text-indigo-600"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
             d="M18.364 5.636l-1.414 1.414m0 0a9 9 0 01-12.728 0m0 0L5.636 5.636m12.728 12.728l-1.414-1.414m0 0a9 9 0 01-12.728 0m0 0L5.636 18.364"
           />
         </svg>
@@ -85,8 +119,17 @@ const Home: NextPage = () => {
       label: 'Kebijakan Privasi',
       href: '/privacy',
       icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-6 w-6 text-gray-600"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
             d="M12 11c0 2.21-1.79 4-4 4m8-4c0 2.21-1.79 4-4 4M4 4h16v16H4V4z"
           />
         </svg>
@@ -105,7 +148,6 @@ const Home: NextPage = () => {
 
   // Ref untuk container menu-utama
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const animationRef = useRef<number>();
 
   useEffect(() => {
     // 1) Ambil data franchise dari Supabase
@@ -133,37 +175,7 @@ const Home: NextPage = () => {
     };
     fetchFranchises();
 
-    // 2) Infinite‐scroll logic untuk Menu Utama
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    let scrollPos = 0;
-    const speed = 0.5; // bertambah 0.5px per frame
-
-    const step = () => {
-      if (!container) return;
-      scrollPos += speed;
-
-      // Ketika sudah mencapai setengah panjang scrollWidth, reset ke 0
-      if (scrollPos >= container.scrollWidth / 2) {
-        scrollPos = 0;
-      }
-
-      // Hanya auto-scroll bila cursor TIDAK sedang hover di atas container
-      if (!container.matches(':hover')) {
-        container.scrollLeft = scrollPos;
-      }
-
-      animationRef.current = requestAnimationFrame(step);
-    };
-
-    animationRef.current = requestAnimationFrame(step);
-
-    return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-    };
+    // Tidak ada efek infinite-scroll di sini
   }, []);
 
   return (
@@ -174,7 +186,7 @@ const Home: NextPage = () => {
       <section className="relative bg-gray-100">
         <div className="h-96 w-full overflow-hidden relative">
           <img
-            src="/banner-franchise.jpg"
+            src="/banner-franchise.jpg"       {/* Pastikan file ada di folder public */}
             alt="Banner Franchise"
             className="object-cover w-full h-full brightness-75"
           />
@@ -246,7 +258,7 @@ const Home: NextPage = () => {
       </div>
 
       {/* ===================================== */}
-      {/*       Menu Utama (Infinite Scroll)    */}
+      {/*       Menu Utama (Manual Scroll)      */}
       {/* ===================================== */}
       <section className="py-4 overflow-x-hidden">
         <div
@@ -254,8 +266,8 @@ const Home: NextPage = () => {
           className="flex space-x-8 whitespace-nowrap select-none scroll-smooth no-scrollbar"
           style={{ overflowX: 'auto' }}
         >
-          {/* Gandakan array agar loop terasa “tanpa batas” */}
-          {[...menuItems, ...menuItems].map((item, idx) => (
+          {/* Menampilkan sekali saja (tanpa duplikasi) */}
+          {menuItems.map((item, idx) => (
             <Link key={idx} href={item.href} passHref>
               <a>
                 <div className="flex-shrink-0 flex flex-col items-center justify-center w-20 h-20 bg-white rounded-full shadow-md mx-2 cursor-pointer hover:shadow-lg transition">
@@ -329,7 +341,7 @@ const Home: NextPage = () => {
         }
         .no-scrollbar {
           -ms-overflow-style: none; /* IE and Edge */
-          scrollbar-width: none; /* Firefox */
+          scrollbar-width: none;    /* Firefox */
         }
       `}</style>
     </div>
