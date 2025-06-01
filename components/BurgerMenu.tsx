@@ -1,26 +1,26 @@
-import { useEffect, useState } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
-import { supabase } from '../lib/supabaseClient'
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { supabase } from '../lib/supabaseClient';
 
 interface Props {
-  open: boolean
-  onClose: () => void
+  open: boolean;
+  onClose: () => void;
 }
 
 export default function BurgerMenu({ open, onClose }: Props) {
-  const [session, setSession] = useState<any>(null)
-  const [role, setRole] = useState<string>('')
+  const [session, setSession] = useState<any>(null);
+  const [role, setRole] = useState<string>('');
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session)
-    })
+      setSession(data.session);
+    });
 
     supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
-    })
-  }, [])
+      setSession(session);
+    });
+  }, []);
 
   useEffect(() => {
     async function fetchRole() {
@@ -29,25 +29,25 @@ export default function BurgerMenu({ open, onClose }: Props) {
           .from('profiles')
           .select('role')
           .eq('id', session.user.id)
-          .single()
+          .single();
 
         if (profile && !error) {
-          setRole(profile.role)
+          setRole(profile.role);
         }
       }
     }
 
-    fetchRole()
-  }, [session])
+    fetchRole();
+  }, [session]);
 
-  const fullName = session?.user?.user_metadata?.full_name || 'User'
-  const avatar = session?.user?.user_metadata?.avatar_url
+  const fullName = session?.user?.user_metadata?.full_name || 'User';
+  const avatar = session?.user?.user_metadata?.avatar_url;
 
   const handleLogout = async () => {
-    await supabase.auth.signOut()
-    onClose()
-    location.href = '/'
-  }
+    await supabase.auth.signOut();
+    onClose();
+    location.href = '/';
+  };
 
   return (
     <div
@@ -121,7 +121,7 @@ export default function BurgerMenu({ open, onClose }: Props) {
           </Link>
         </li>
 
-        {role === 'Administrator' && (
+        {role === 'administrator' && (
           <li>
             <Link
               href="/admin"
@@ -179,5 +179,5 @@ export default function BurgerMenu({ open, onClose }: Props) {
         )}
       </ul>
     </div>
-  )
+  );
 }
