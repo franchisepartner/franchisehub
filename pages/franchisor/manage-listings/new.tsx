@@ -49,7 +49,7 @@ export default function NewListing() {
     }
   };
 
-  const uploadImage = async (file, pathPrefix) => {
+  const uploadImage = async (file: File, pathPrefix: string) => {
     const fileExt = file.name.split('.').pop();
     const fileName = `${pathPrefix}/${uuidv4()}.${fileExt}`;
     const { error } = await supabase.storage.from('listing-images').upload(fileName, file);
