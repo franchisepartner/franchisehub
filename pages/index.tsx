@@ -28,9 +28,8 @@ const Home: NextPage = () => {
     const fetchUser = async () => {
       const {
         data: { user },
-        error,
       } = await supabase.auth.getUser();
-      if (!error && user) {
+      if (user) {
         const fullName = (user.user_metadata as any)?.full_name;
         const role = (user.user_metadata as any)?.role;
         if (fullName && role) {
@@ -38,11 +37,10 @@ const Home: NextPage = () => {
         } else if (fullName) {
           setGreetingName(fullName);
         } else {
-          setGreetingName(user.email);
+          setGreetingName(user.email ?? null);
         }
       }
     };
-
     fetchUser();
   }, []);
 
