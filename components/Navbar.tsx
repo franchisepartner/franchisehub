@@ -2,23 +2,24 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/router'; // <-- impor useRouter
 import { supabase } from '../lib/supabaseClient';
 import BurgerMenu from './BurgerMenu';
+import { useRouter } from 'next/router';
 
 export default function Navbar() {
   const router = useRouter();
-  const [session, setSession] = useState<any>(null);
-  const [role, setRole] = useState<string>('Franchisee');
-  const [menuOpen, setMenuOpen] = useState(false);
 
-  // Jika path saat ini adalah "/" (halaman utama), jangan render navbar
+  // Jika kita berada di halaman utama (pathname === '/'), jangan render apa-apa.
   if (router.pathname === '/') {
     return null;
   }
 
+  const [session, setSession] = useState<any>(null);
+  const [role, setRole] = useState<string>('Franchisee');
+  const [menuOpen, setMenuOpen] = useState(false);
+
   useEffect(() => {
-    // Ambil session Supabase
+    // Ambil session supabase
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
       if (data.session) fetchUserRole(data.session.user.id);
@@ -30,9 +31,7 @@ export default function Navbar() {
       if (session) fetchUserRole(session.user.id);
     });
 
-    return () => {
-      listener?.subscription.unsubscribe();
-    };
+    return () => listener?.subscription.unsubscribe();
   }, []);
 
   const fetchUserRole = async (userId: string) => {
@@ -54,36 +53,37 @@ export default function Navbar() {
   return (
     <>
       <nav className="w-full bg-white shadow-md px-4 py-3 flex flex-wrap items-center justify-between gap-2 relative z-50">
-        {/* Baris ini berisi logo + burger-icon */}
-        <div className="flex justify-between items-center w-full lg:w-auto">
+        <div className="flex justify-between items-center w-full">
+          {/* Logo / Brand */}
           <Link href="/" className="text-xl font-bold text-blue-600">
             FranchiseHub
           </Link>
+
+          {/* Tombol Burger untuk membuka menu full‐screen / offcanvas */}
           <button
             onClick={() => setMenuOpen(true)}
-            className="text-2xl lg:hidden"
+            className="text-2xl"
             aria-label="Open menu"
           >
             ☰
           </button>
         </div>
 
-        {/* Search Bar */}
-        <div className="w-full lg:w-auto">
+        {/* Search bar */}
+        <div className="w-full mt-3 lg:mt-0">
           <input
             type="text"
             placeholder="Cari franchise..."
-            className="w-full px-3 py-2 border rounded"
+            className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
         </div>
 
-        {/* Salam pengguna */}
-        <div className="w-full lg:w-auto flex justify-end items-center text-sm">
+        {/* Salam pengguna di kanan bawah bar */}
+        <div className="w-full flex justify-end items-center text-sm mt-2 lg:mt-0">
           <p className="italic text-gray-500">Halo, {userGreeting}!</p>
         </div>
       </nav>
 
-      {/* BurgerMenu */}
       <BurgerMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
     </>
   );
