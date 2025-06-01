@@ -46,29 +46,32 @@ export default function Navbar() {
     ? `${session.user?.user_metadata?.full_name || 'User'}_${role}`
     : 'Calon Franchisee';
 
-  // Cek apakah saat ini berada di halaman utama ("/")
+  // Hanya tampilkan kolom pencarian jika bukan halaman utama ("/")
   const isHomePage = router.pathname === '/';
 
   return (
     <>
       <nav className="w-full bg-white shadow-md px-4 py-3 flex flex-wrap items-center justify-between gap-2 relative z-50">
-        {/* -------- Logo di pojok kiri -------- */}
+        {/* ------------ Logo di pojok kiri (ukuran kecil) ------------ */}
         <div className="flex items-center">
           <Link href="/" passHref>
-            <a className="flex-shrink-0">
-              {/* Pastikan file gambar logo Anda bernama ".gitkeep" di folder public/ */}
+            <a className="flex-shrink-0 flex items-center">
+              {/* 
+                Gunakan nama file logo persis seperti di folder public/,
+                misalnya: 22C6DD46-5682-4FDD-998B-710D24A74856.png
+              */}
               <Image
-                src="/.gitkeep"
+                src="/22C6DD46-5682-4FDD-998B-710D24A74856.png"
                 alt="FranchiseHub Logo"
-                width={120}
-                height={40}
+                width={40}     // Lebar 40px
+                height={40}    // Tinggi 40px
                 className="object-contain"
               />
             </a>
           </Link>
         </div>
 
-        {/* -------- Tombol Burger Menu -------- */}
+        {/* ------------ Tombol Burger Menu (hanya di mobile) ------------ */}
         <button
           onClick={() => setMenuOpen(true)}
           className="text-2xl lg:hidden"
@@ -77,8 +80,7 @@ export default function Navbar() {
           ☰
         </button>
 
-        {/* -------- Kolom Pencarian 
-                    hanya tampil jika bukan halaman utama -------- */}
+        {/* ------------ Kolom Pencarian (hanya jika bukan homepage) ------------ */}
         {!isHomePage && (
           <div className="flex-1 px-4 lg:px-8">
             <input
@@ -89,7 +91,7 @@ export default function Navbar() {
           </div>
         )}
 
-        {/* -------- Salam Pengguna & Logout/Profil -------- */}
+        {/* ------------ Salam Pengguna & Logout ------------ */}
         <div className="flex items-center space-x-4 text-sm">
           <p className="italic text-gray-500">Halo, {userGreeting}!</p>
           {session && (
@@ -106,7 +108,7 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* BurgerMenu (slide‐in menu) */}
+      {/* ------------ Komponen BurgerMenu (slide-in menu) ------------ */}
       <BurgerMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
     </>
   );
