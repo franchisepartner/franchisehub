@@ -10,6 +10,7 @@ interface Franchise {
   investment_min: number;
   location: string;
   logo_url: string;
+  cover_url: string;
   operation_mode: string;
   whatsapp_contact: string;
   email_contact: string;
@@ -40,7 +41,15 @@ export default function FranchiseDetail() {
         console.error('Error fetching franchise:', error);
         router.replace('/404');
       } else {
-        setFranchise(data);
+        const logoPublicUrl = supabase.storage
+          .from('listing-images')
+          .getPublicUrl(data.logo_url).data.publicUrl;
+
+        const coverPublicUrl = supabase.storage
+          .from('listing-images')
+          .getPublicUrl(data.cover_url).data.publicUrl;
+
+        setFranchise({ ...data, logo_url: logoPublicUrl, cover_url: coverPublicUrl });
       }
       setLoading(false);
     };
@@ -60,13 +69,14 @@ export default function FranchiseDetail() {
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">{franchise.franchise_name}</h1>
       <img src={franchise.logo_url} alt={franchise.franchise_name} className="w-48 h-48 object-cover rounded mb-4" />
+      <img src={franchise.cover_url} alt={`${franchise.franchise_name} cover`} className="w-full h-auto object-cover rounded mb-4" />
       <p className="mb-2"><strong>Deskripsi:</strong> {franchise.description}</p>
       <p className="mb-2"><strong>Kategori:</strong> {franchise.category}</p>
       <p className="mb-2"><strong>Minimal Investasi:</strong> Rp. {franchise.investment_min.toLocaleString('id-ID')}</p>
       <p className="mb-2"><strong>Lokasi:</strong> {franchise.location}</p>
       <p className="mb-2"><strong>Mode Operasi:</strong> {franchise.operation_mode}</p>
-      {franchise.website_url && <a href={franchise.website_url} className="text-blue-500 underline" target="_blank">Website</a>}
-      {franchise.google_maps_url && <a href={franchise.google_maps_url} className="text-blue-500 underline ml-4" target="_blank">Google Maps</a>}
+      {franchise.website_url && <a href={franchise.website_url} className="text-blue-500 underline" target="_blank" rel="noopener noreferrer">Website</a>}
+      {franchise.google_maps_url && <a href={franchise.google_maps_url} className="text-blue-500 underline ml-4" target="_blank" rel="noopener noreferrer">Google Maps</a>}
 
       <div className="mt-4">
         <strong>Kontak:</strong>
