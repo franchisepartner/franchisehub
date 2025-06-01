@@ -1,94 +1,57 @@
-import { useEffect, useState } from 'react'
-import Link from 'next/link'
-import { supabase } from '../../../lib/supabaseClient'
-import { useRouter } from 'next/router'
+import { useEffect, useState } from 'react';
+import { supabase } from '../../../lib/supabaseClient';
+import { useRouter } from 'next/router';
 
 export default function ManageListings() {
-  const [listings, setListings] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const router = useRouter()
+  const [listings, setListings] = useState<any[]>([]);
+  const router = useRouter();
 
   useEffect(() => {
-    fetchListings()
-  }, [])
+    const fetchListings = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.push('/login');
+        return;
+      }
 
-  const fetchListings = async () => {
-    setLoading(true)
-    const { data: { user } } = await supabase.auth.getUser()
+      const { data, error } = await supabase
+        .from('franchise_listings')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
 
-    if (!user) {
-      router.push('/login')
-      return
-    }
+      if (error) {
+        alert('Gagal memuat data listing');
+        return;
+      }
+      setListings(data);
+    };
 
-    const { data, error } = await supabase
-      .from('franchise_listings')
-      .select('id, franchise_name, location, operation_mode, created_at, slug')
-      .eq('user_id', user.id)
-
-    if (error) {
-      console.error('Error fetching listings:', error)
-      setListings([])
-    } else {
-      setListings(data)
-    }
-
-    setLoading(false)
-  }
-
-  if (loading) {
-    return <div className="p-6">Memuat listing Anda...</div>
-  }
+    fetchListings();
+  }, []);
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-semibold mb-4">Kelola Listing Franchise Anda</h1>
-
-      <Link href="/franchisor/manage-listings/new">
-        <button className="mb-4 px-4 py-2 bg-blue-600 text-white rounded">
-          ➕ Tambah Listing Baru
-        </button>
-      </Link>
-
+    <div className="max-w-4xl mx-auto p-4">
+      <h2 className="text-2xl font-bold">Listing Franchise Anda</h2>
       {listings.length === 0 ? (
-        <p>Anda belum memiliki listing franchise.</p>
+        <p className="mt-4">Anda belum punya listing franchise.</p>
       ) : (
-        <table className="w-full border-collapse border border-gray-300">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="border border-gray-300 px-3 py-2">Nama Franchise</th>
-              <th className="border border-gray-300 px-3 py-2">Lokasi</th>
-              <th className="border border-gray-300 px-3 py-2">Mode Operasi</th>
-              <th className="border border-gray-300 px-3 py-2">Tanggal Dibuat</th>
-              <th className="border border-gray-300 px-3 py-2">Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            {listings.map((listing) => (
-              <tr key={listing.id}>
-                <td className="border border-gray-300 px-3 py-2">{listing.franchise_name}</td>
-                <td className="border border-gray-300 px-3 py-2">{listing.location}</td>
-                <td className="border border-gray-300 px-3 py-2">{listing.operation_mode}</td>
-                <td className="border border-gray-300 px-3 py-2">
-                  {new Date(listing.created_at).toLocaleDateString('id-ID')}
-                </td>
-                <td className="border border-gray-300 px-3 py-2">
-                  <Link href={`/franchisor/manage-listings/edit/${listing.id}`}>
-                    <button className="px-3 py-1 bg-green-600 text-white rounded">
-                      ✏️ Edit
-                    </button>
-                  </Link>
-                  <Link href={`/franchise/${listing.slug}`}>
-                    <button className="ml-2 px-3 py-1 bg-gray-500 text-white rounded">
-                      🔗 Lihat
-                    </button>
-                  </Link>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <ul className="mt-4 space-y-2">
+          {listings.map((listing) => (
+            <li key={listing.id} className="p-4 border rounded shadow-sm">
+              <h3 className="text-xl font-semibold">{listing.franchise_name}</h3>
+              <p>{listing.category} - {listing.location}</p>
+              <p className="text-sm text-gray-600">Investasi: Rp {listing.investment_min}</p>
+              <button 
+                onClick={() => router.push(`/franchise/${listing.slug}`)}
+                className="btn btn-primary mt-2"
+              >
+                Lihat Detail
+              </button>
+            </li>
+          ))}
+        </ul>
       )}
     </div>
-  )
+  );
 }
