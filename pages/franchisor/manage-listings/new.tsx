@@ -4,9 +4,10 @@ import { supabase } from '../../../lib/supabaseClient';
 import { v4 as uuidv4 } from 'uuid';
 
 export default function NewListing() {
-  const user = useUser();
   const router = useRouter();
 
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     franchise_name: '',
     description: '',
@@ -26,11 +27,14 @@ export default function NewListing() {
     cover_file: null,
   });
 
-  const [loading, setLoading] = useState(false);
-
   useEffect(() => {
-    if (!user) router.push('/login');
-  }, [user]);
+    const fetchUser = async () => {
+      const { data, error } = await supabase.auth.getUser();
+      if (data?.user) setUser(data.user);
+      else router.push('/login');
+    };
+    fetchUser();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value, type, checked, files } = e.target;
