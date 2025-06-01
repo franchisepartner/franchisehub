@@ -1,8 +1,8 @@
 // File: pages/index.tsx
 
-import { useEffect, useState, useRef } from 'react';
-import type { NextPage } from 'next';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { supabase } from '../lib/supabaseClient';
 
 interface Franchise {
@@ -16,193 +16,66 @@ interface Franchise {
   slug: string;
 }
 
-const Home: NextPage = () => {
+export default function Home() {
   const [franchises, setFranchises] = useState<Franchise[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'dijual' | 'disewa' | 'baru'>('dijual');
 
-  // Daftar menu‐utama (ikon + label + tautan)
-  const menuItems = [
-    {
-      label: 'Notifikasiku',
-      href: '/notifikasi',
-      icon: (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-6 w-6 text-blue-600"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11c0-3.866-3.582-7-8-7S2 7.134 2 11v3.159c0 .538-.214 1.055-.595 1.436L0 17h5m10 0v1a3 3 0 11-6 0v-1m6 0H9"
-          />
-        </svg>
-      ),
-    },
-    {
-      label: 'Favoritku',
-      href: '/favorit',
-      icon: (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-6 w-6 text-red-500"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-        </svg>
-      ),
-    },
-    {
-      label: 'Forum Global',
-      href: '/forum',
-      icon: (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-6 w-6 text-green-600"
-          viewBox="0 0 24 24"
-          fill="currentColor"
-        >
-          <path d="M12 2a10 10 0 100 20 10 10 0 000-20zM8 10h8v2H8v-2zm0 4h5v2H8v-2z" />
-        </svg>
-      ),
-    },
-    {
-      label: 'Blog Global',
-      href: '/blog',
-      icon: (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-6 w-6 text-purple-600"
-          viewBox="0 0 24 24"
-          fill="currentColor"
-        >
-          <path d="M5 4h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V5a1 1 0 011-1zm2 3v2h10V7H7zm0 4v2h10v-2H7zm0 4v2h10v-2H7z" />
-        </svg>
-      ),
-    },
-    {
-      label: 'Pusat Bantuan',
-      href: '/help',
-      icon: (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-6 w-6 text-indigo-600"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M18.364 5.636l-1.414 1.414m0 0a9 9 0 01-12.728 0m0 0L5.636 5.636m12.728 12.728l-1.414-1.414m0 0a9 9 0 01-12.728 0m0 0L5.636 18.364"
-          />
-        </svg>
-      ),
-    },
-    {
-      label: 'Syarat & Ketentuan',
-      href: '/terms',
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-600" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M4 4h16v2H4V4zm0 6h10v2H4v-2zm0 6h16v2H4v-2z" />
-        </svg>
-      ),
-    },
-    {
-      label: 'Kebijakan Privasi',
-      href: '/privacy',
-      icon: (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-6 w-6 text-gray-600"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M12 11c0 2.21-1.79 4-4 4m8-4c0 2.21-1.79 4-4 4M4 4h16v16H4V4z"
-          />
-        </svg>
-      ),
-    },
-    {
-      label: 'Jadi Franchisor',
-      href: '/franchisor',
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-teal-600" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M12 2l3 5h-6l3-5zm0 6a4 4 0 110 8 4 4 0 010-8zm-4 8h8v2H8v-2zm-2-4H6v2h2v-2zm12 0h2v2h-2v-2z" />
-        </svg>
-      ),
-    },
-  ];
-
-  // Ref untuk container menu-utama
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
-    // Ambil data franchise dari Supabase
     const fetchFranchises = async () => {
       const { data, error } = await supabase
         .from('franchise_listings')
-        .select('id, franchise_name, description, category, investment_min, location, logo_url, slug')
+        .select(
+          'id, franchise_name, description, category, investment_min, location, logo_url, slug'
+        )
         .order('created_at', { ascending: false });
 
       if (error) {
         console.error('Error fetching franchises:', error);
       } else if (data) {
-        const withImages = data.map((f) => ({
-          ...f,
+        // Ubah setiap logo_url menjadi publicUrl dari Supabase Storage
+        const franchisesWithImages = data.map((franchise) => ({
+          ...franchise,
           logo_url: supabase
             .storage
             .from('listing-images')
-            .getPublicUrl(f.logo_url)
-            .data
-            .publicUrl!,
+            .getPublicUrl(franchise.logo_url)
+            .data.publicUrl!,
         }));
-        setFranchises(withImages);
+        setFranchises(franchisesWithImages);
       }
       setLoading(false);
     };
-    fetchFranchises();
 
-    // Tidak ada auto-scroll di sini
+    fetchFranchises();
   }, []);
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      {/* ===================================== */}
-      {/*        Hero Section (Banner)         */}
-      {/* ===================================== */}
-      <section className="relative bg-gray-100">
-        <div className="h-96 w-full overflow-hidden relative">
-          {/* Pastikan "banner-franchise.jpg" ada di folder public */}
-          <img
-            src="/banner-franchise.jpg"
-            alt="Banner Franchise"
-            className="object-cover w-full h-full brightness-75"
-          />
-        </div>
+    <div className="min-h-screen bg-gray-50">
+      {/* ====================
+          Banner Franchise
+          (Menempel langsung ke atas, tanpa bar putih di atas-nya)
+      ==================== */}
+      <section className="relative w-full h-96">
+        {/* Pastikan file banner-franchise.jpg sudah ada di folder public/ */}
+        <Image
+          src="/banner-franchise.jpg"
+          alt="Banner Franchise"
+          fill
+          className="object-cover brightness-75"
+        />
       </section>
 
-      {/* Spacer agar konten tidak tertutup */}
-      <div className="h-24"></div>
+      {/* Agar kotak pencarian (Tabs + Input) tidak menempel terlalu rapat ke banner */}
+      <div className="h-12 lg:h-16"></div>
 
-      {/* ===================================== */}
-      {/*            Tabs Pencarian            */}
-      {/* ===================================== */}
-      <div className="container mx-auto px-6 lg:px-8">
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-12">
-          <div className="flex">
+      {/* ====================
+          Kotak Pencarian (Tabs + Input)
+      ==================== */}
+      <section className="px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
+          {/* Tabs: Dijual / Disewa / Properti Baru */}
+          <div className="flex border-b">
             <button
               onClick={() => setTab('dijual')}
               className={`flex-1 py-3 text-center font-medium ${
@@ -234,6 +107,8 @@ const Home: NextPage = () => {
               Properti Baru
             </button>
           </div>
+
+          {/* Form Pencarian */}
           <div className="p-6">
             <form className="flex space-x-4">
               <input
@@ -256,64 +131,231 @@ const Home: NextPage = () => {
             </form>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* ===================================== */}
-      {/*       Menu Utama (Manual Scroll)      */}
-      {/* ===================================== */}
-      <section className="py-4">
-        <div
-          ref={scrollContainerRef}
-          className="flex space-x-8 whitespace-nowrap select-none scroll-smooth no-scrollbar"
-          style={{ overflowX: 'auto' }}
-        >
-          {menuItems.map((item, idx) => (
-            <Link key={idx} href={item.href} passHref>
-              <a>
-                <div className="flex-shrink-0 flex flex-col items-center justify-center w-20 h-20 bg-white rounded-full shadow-md mx-2 cursor-pointer hover:shadow-lg transition">
-                  {item.icon}
-                  <span className="mt-1 text-xs text-gray-700 text-center">
+      {/* Ruang kosong supaya konten berikutnya tidak terlalu menempel */}
+      <div className="h-12"></div>
+
+      {/* ====================
+          Menu Utama (Ikon Bulat, Scrollable secara horizontal)
+      ==================== */}
+      <section className="px-6 lg:px-8">
+        <h2 className="text-xl font-bold text-gray-800 mb-4">Menu Utama</h2>
+
+        <div className="overflow-x-auto">
+          <div className="flex space-x-6 pb-2">
+            {[
+              {
+                label: 'Notifikasiku',
+                icon: (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6 text-blue-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                    />
+                  </svg>
+                ),
+                href: '/notifikasi',
+              },
+              {
+                label: 'Favoritku',
+                icon: (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6 text-red-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 15l7-7 7 7"
+                    />
+                  </svg>
+                ),
+                href: '/favorit',
+              },
+              {
+                label: 'Forum Global',
+                icon: (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6 text-green-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17 8h2a2 2 0 012 2v8l-4-4H7a2 2 0 01-2-2V8c0-1.105.895-2 2-2h2"
+                    />
+                  </svg>
+                ),
+                href: '/forum',
+              },
+              {
+                label: 'Blog Global',
+                icon: (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6 text-purple-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 16h8M8 12h8m-8-4h8M5 6h14M5 18h14"
+                    />
+                  </svg>
+                ),
+                href: '/blog',
+              },
+              {
+                label: 'Pusat Bantuan',
+                icon: (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6 text-indigo-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M10 6h4m4 0h2a2 2 0 012 2v4M6 6H4a2 2 0 00-2 2v4m0 4h2m4 0h4m4 0h2a2 2 0 002-2v-4m0 0v4a2 2 0 01-2 2h-2M6 18H4a2 2 0 01-2-2v-4m0 0V6a2 2 0 012-2h2"
+                    />
+                  </svg>
+                ),
+                href: '/help',
+              },
+              {
+                label: 'Syarat & Ketentuan',
+                icon: (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6 text-gray-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 11c0-1.5.5-3 1.5-4m-3 4c0 1.5.5 3 1.5 4m4-8v8"
+                    />
+                  </svg>
+                ),
+                href: '/terms',
+              },
+              {
+                label: 'Kebijakan Privasi',
+                icon: (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6 text-gray-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 16v4m8-4v4m-16-4v4m4-8v4m8-4v4m-4-4v4"
+                    />
+                  </svg>
+                ),
+                href: '/privacy',
+              },
+              {
+                label: 'Jadi Franchisor',
+                icon: (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6 text-green-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                ),
+                href: '/franchisor',
+              },
+            ].map((item) => (
+              <Link key={item.label} href={item.href}>
+                <a className="flex-shrink-0 flex flex-col items-center text-center">
+                  <div className="bg-white p-4 rounded-full shadow-md">
+                    {item.icon}
+                  </div>
+                  <span className="mt-2 text-xs font-medium text-gray-700 whitespace-nowrap">
                     {item.label}
                   </span>
-                </div>
-              </a>
-            </Link>
-          ))}
+                </a>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* ===================================== */}
-      {/*            Daftar Franchise          */}
-      {/* ===================================== */}
-      <section className="container mx-auto px-6 lg:px-8 mt-12">
+      {/* Ruang kosong */}
+      <div className="h-12"></div>
+
+      {/* ====================
+          Daftar Franchise (Grid)
+      ==================== */}
+      <section className="px-6 lg:px-8">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Daftar Franchise</h2>
+
         {loading ? (
           <p className="text-center text-gray-500">Memuat daftar franchise...</p>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {franchises.map((fr) => (
-              <Link key={fr.id} href={`/franchise/${fr.slug}`} passHref>
-                <a>
-                  <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden cursor-pointer">
-                    <div className="relative h-48">
-                      <img
-                        src={fr.logo_url}
-                        alt={fr.franchise_name}
-                        className="w-full h-full object-cover"
-                      />
-                      <span className="absolute top-3 left-3 bg-yellow-400 text-xs font-semibold text-black px-2 py-1 rounded">
-                        {fr.category}
-                      </span>
-                    </div>
-                    <div className="p-4">
-                      <h3 className="text-lg font-semibold text-gray-800">
-                        {fr.franchise_name}
-                      </h3>
-                      <p className="mt-1 text-sm text-gray-500">{fr.location}</p>
-                      <p className="mt-2 text-sm text-gray-700">
-                        Investasi Mulai: Rp {fr.investment_min.toLocaleString('id-ID')}
-                      </p>
-                    </div>
+              <Link key={fr.id} href={`/franchise/${fr.slug}`}>
+                <a className="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden">
+                  {/* Gambar Logo/Thumbnail */}
+                  <div className="relative h-44">
+                    <img
+                      src={fr.logo_url}
+                      alt={fr.franchise_name}
+                      className="w-full h-full object-cover"
+                    />
+                    <span className="absolute top-2 left-2 bg-yellow-400 text-xs font-semibold text-black px-2 py-1 rounded">
+                      {fr.category}
+                    </span>
+                  </div>
+                  <div className="p-4">
+                    <h3 className="text-lg font-semibold text-gray-800">
+                      {fr.franchise_name}
+                    </h3>
+                    <p className="mt-1 text-sm text-gray-500">{fr.location}</p>
+                    <p className="mt-2 text-sm text-gray-700">
+                      Investasi Mulai: Rp {fr.investment_min.toLocaleString('id-ID')}
+                    </p>
                   </div>
                 </a>
               </Link>
@@ -322,30 +364,8 @@ const Home: NextPage = () => {
         )}
       </section>
 
-      {/* ===================================== */}
-      {/*                 Footer               */}
-      {/* ===================================== */}
-      <footer className="mt-16 bg-gray-800 text-white py-8">
-        <div className="container mx-auto px-6 text-center text-sm">
-          &copy; 2025 FranchiseHub. Semua hak dilindungi.
-        </div>
-      </footer>
-
-      {/* ===================================== */}
-      {/*      CSS Global untuk sembunyikan     */}
-      {/*           scrollbar di menu-utama     */}
-      {/* ===================================== */}
-      <style jsx global>{`
-        .no-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        .no-scrollbar {
-          -ms-overflow-style: none; /* IE and Edge */
-          scrollbar-width: none; /* Firefox */
-        }
-      `}</style>
+      {/* Ruang kosong bawah */}
+      <div className="h-20"></div>
     </div>
   );
-};
-
-export default Home;
+}
