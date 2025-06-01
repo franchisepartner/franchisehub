@@ -43,15 +43,14 @@ export default function FranchiseDetail() {
       } else {
         const logoPublicUrl = supabase.storage
           .from('listing-images')
-          .getPublicUrl(`logo/${data.logo_url}`).data.publicUrl;
+          .getPublicUrl(`logo/logo/${data.logo_url}`).data.publicUrl;
 
         const coverPublicUrl = supabase.storage
           .from('listing-images')
-          .getPublicUrl(`cover/${data.cover_url}`).data.publicUrl;
+          .getPublicUrl(`cover/cover/${data.cover_url}`).data.publicUrl;
 
         setFranchise({ ...data, logo_url: logoPublicUrl, cover_url: coverPublicUrl });
 
-        // Tambahkan log berikut untuk melihat URL
         console.log('Logo URL:', logoPublicUrl);
         console.log('Cover URL:', coverPublicUrl);
       }
