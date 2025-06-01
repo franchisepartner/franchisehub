@@ -17,38 +17,46 @@ interface Franchise {
 }
 
 export default function Home() {
-  // 1) Daftar franchise + loading state
+  // -------------------------------
+  // 1) State untuk daftar franchise
+  // -------------------------------
   const [franchises, setFranchises] = useState<Franchise[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 2) Tab Hero: dijual / disewa / properti baru
+  // -------------------------------
+  // 2) State untuk tab Hero
+  // -------------------------------
   const [tab, setTab] = useState<'dijual' | 'disewa' | 'baru'>('dijual');
 
-  // 3) Session dan role user (untuk menampilkan / menyembunyikan menu tertentu)
+  // -------------------------------
+  // 3) State untuk session & role
+  // -------------------------------
   const [session, setSession] = useState<any>(null);
   const [role, setRole] = useState<string>('');
 
-  // 4) Ref ke kontainer menu utama (untuk keperluan carousel otomatis)
+  // -------------------------------
+  // 4) Ref untuk kontainer Menu Utama
+  // -------------------------------
   const menuRef = useRef<HTMLDivElement | null>(null);
 
-  // ==============================================
-  // Ambil session + pantau perubahan autentikasi
-  // ==============================================
+  // ====================================================
+  // 5) Ambil session awal & pantau perubahan autentikasi
+  // ====================================================
   useEffect(() => {
-    // Ambil session saat awal render
+    // Ambil session
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
     });
 
-    // Pantau perubahan auth (login/logout)
+    // Pantau perubahan (login/logout)
     supabase.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession);
     });
   }, []);
 
-  // ==============================================
-  // Jika session berubah, ambil role dari tabel "profiles"
-  // ==============================================
+  // ====================================================
+  // 6) Jika session berubah, ambil role user dari tabel profiles
+  // ====================================================
   useEffect(() => {
     async function fetchRole() {
       if (session && session.user?.id) {
@@ -60,6 +68,8 @@ export default function Home() {
 
         if (!error && profile) {
           setRole(profile.role);
+        } else {
+          setRole('');
         }
       } else {
         setRole('');
@@ -68,9 +78,9 @@ export default function Home() {
     fetchRole();
   }, [session]);
 
-  // ==============================================
-  // Fetch daftar franchise + ubah logo_url ke publicUrl
-  // ==============================================
+  // ====================================================
+  // 7) Fetch daftar franchise & ubah logo_url menjadi publicUrl
+  // ====================================================
   useEffect(() => {
     const fetchFranchises = async () => {
       const { data, error } = await supabase
@@ -98,35 +108,34 @@ export default function Home() {
     fetchFranchises();
   }, []);
 
-  // ==============================================
-  // Atur carousel (auto-scroll) untuk menu utama → looping
-  // ==============================================
+  // ====================================================
+  // 8) Auto‐scroll (looping) untuk Menu Utama
+  // ====================================================
   useEffect(() => {
     const container = menuRef.current;
     if (!container) return;
 
-    // Deklarasi tipe interval (ReturnType<typeof setInterval> → akan jadi "number" di browser)
+    // Tipe interval (ReturnType<typeof setInterval> agar sesuai dengan clearInterval)
     let scrollInterval: ReturnType<typeof setInterval>;
 
     const startAutoScroll = () => {
-      const itemEls = container.querySelectorAll<HTMLDivElement>('.menu-item');
+      const itemEls = container.querySelectorAll<HTMLAnchorElement>('.menu-item');
       if (itemEls.length === 0) return;
 
-      // Lebar satu item + margin kanan
+      // Hitung lebar satu item + margin‐right
       const itemWidth =
         itemEls[0].offsetWidth +
         parseInt(getComputedStyle(itemEls[0]).marginRight || '0');
 
-      // Setiap 2.5 detik, scroll container ke kanan
       scrollInterval = setInterval(() => {
         if (!container) return;
         const maxScrollLeft = container.scrollWidth - container.clientWidth;
 
-        // Jika sudah di ujung kanan (atau hampir), kembali ke posisi awal
         if (container.scrollLeft + itemWidth >= maxScrollLeft + 1) {
+          // Jika sudah di ujung kanan → kembali ke posisi awal
           container.scrollTo({ left: 0, behavior: 'smooth' });
         } else {
-          // Scroll satu item lebar
+          // Scroll ke kanan sejauh satu item
           container.scrollBy({ left: itemWidth, behavior: 'smooth' });
         }
       }, 2500);
@@ -134,7 +143,6 @@ export default function Home() {
 
     startAutoScroll();
 
-    // Bersihkan interval saat unmount
     return () => {
       clearInterval(scrollInterval);
     };
@@ -142,10 +150,12 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* ========== HEADER ========== */}
+      {/* =======================
+           HEADER
+         ======================= */}
       <header className="bg-blue-600 text-white">
         <div className="container mx-auto flex items-center justify-between py-4 px-6 lg:px-8">
-          {/* Logo */}
+          {/* Logo FranchiseHub */}
           <div className="flex items-center space-x-2">
             <Image
               src="/logo-franchisehub-white.svg"
@@ -156,7 +166,7 @@ export default function Home() {
             />
           </div>
 
-          {/* Navigation (desktop) */}
+          {/* Navigasi (desktop) */}
           <nav className="hidden lg:flex space-x-6 font-medium">
             <Link href="#" className="hover:underline">Cari Agen</Link>
             <Link href="#" className="hover:underline">Aset Bank</Link>
@@ -205,7 +215,9 @@ export default function Home() {
         </div>
       </header>
 
-      {/* ========== HERO SECTION ========== */}
+      {/* =======================
+           HERO SECTION
+         ======================= */}
       <section className="relative bg-gray-100">
         {/* Banner */}
         <div className="h-96 w-full overflow-hidden">
@@ -284,7 +296,9 @@ export default function Home() {
       {/* Spacer agar konten tidak tertutup hero */}
       <div className="h-24"></div>
 
-      {/* ========== MENU UTAMA (Carousel Loop) ========== */}
+      {/* =======================
+           MENU UTAMA (Carousel Loop)
+         ======================= */}
       <section className="container mx-auto px-6 lg:px-8 mt-12">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">Menu Utama</h2>
 
@@ -292,7 +306,41 @@ export default function Home() {
           ref={menuRef}
           className="flex space-x-6 overflow-x-auto scroll-smooth hide-scrollbar pb-2"
         >
-          {/* Notifikasiku */}
+          {/* 1) Pengumuman Administrator (hanya untuk role "Administrator") */}
+          {role === 'Administrator' && (
+            <Link href="/announcement" passHref>
+              <a className="menu-item flex-shrink-0 flex flex-col items-center">
+                <div className="w-16 h-16 bg-white rounded-full shadow flex items-center justify-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-8 w-8 text-yellow-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8c-3.866 0-7 1.343-7 3v2c0 1.657 
+                         3.134 3 7 3s7-1.343 7-3v-2c0-1.657-3.134-3-7-3z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 21v-5"
+                    />
+                  </svg>
+                </div>
+                <span className="mt-1 text-xs text-gray-700 text-center">
+                  Pengumuman Admin
+                </span>
+              </a>
+            </Link>
+          )}
+
+          {/* 2) Notifikasiku */}
           <Link href="/notifikasi" passHref>
             <a className="menu-item flex-shrink-0 flex flex-col items-center">
               <div className="w-16 h-16 bg-white rounded-full shadow flex items-center justify-center">
@@ -307,11 +355,11 @@ export default function Home() {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 
-                       0118 14.158V11a6.002 6.002 0 
-                       00-4-5.659V5a2 2 0 10-4 0v.
-                       341C8.67 6.165 8 7.388 8 
-                       8.75v5.408c0 .538-.214 
+                    d="M15 17h5l-1.405-1.405A2.032 
+                       2.032 0 0118 14.158V11a6.002 
+                       6.002 0 00-4-5.659V5a2 2 0 
+                       10-4 0v.341C8.67 6.165 8 
+                       7.388 8 8.75v5.408c0 .538-.214 
                        1.055-.595 1.436L6 17h9z"
                   />
                 </svg>
@@ -322,7 +370,7 @@ export default function Home() {
             </a>
           </Link>
 
-          {/* Favoritku */}
+          {/* 3) Favoritku */}
           <Link href="/favorit" passHref>
             <a className="menu-item flex-shrink-0 flex flex-col items-center">
               <div className="w-16 h-16 bg-white rounded-full shadow flex items-center justify-center">
@@ -342,7 +390,7 @@ export default function Home() {
             </a>
           </Link>
 
-          {/* Forum Global */}
+          {/* 4) Forum Global */}
           <Link href="/forum" passHref>
             <a className="menu-item flex-shrink-0 flex flex-col items-center">
               <div className="w-16 h-16 bg-white rounded-full shadow flex items-center justify-center">
@@ -357,8 +405,9 @@ export default function Home() {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M8 10h.01M12 10h.01M16 10h.01M21 21l-6-6m-4 
-                       0a8 8 0 10-8-8 8 8 0 008 8z"
+                    d="M8 10h.01M12 10h.01M16 
+                       10h.01M21 21l-6-6m-4 0a8 8 0 
+                       10-8-8 8 8 0 008 8z"
                   />
                 </svg>
               </div>
@@ -368,7 +417,7 @@ export default function Home() {
             </a>
           </Link>
 
-          {/* Blog Global */}
+          {/* 5) Blog Global */}
           <Link href="/blog" passHref>
             <a className="menu-item flex-shrink-0 flex flex-col items-center">
               <div className="w-16 h-16 bg-white rounded-full shadow flex items-center justify-center">
@@ -402,7 +451,7 @@ export default function Home() {
             </a>
           </Link>
 
-          {/* Pusat Bantuan */}
+          {/* 6) Pusat Bantuan */}
           <Link href="/help" passHref>
             <a className="menu-item flex-shrink-0 flex flex-col items-center">
               <div className="w-16 h-16 bg-white rounded-full shadow flex items-center justify-center">
@@ -436,7 +485,7 @@ export default function Home() {
             </a>
           </Link>
 
-          {/* Syarat & Ketentuan */}
+          {/* 7) Syarat & Ketentuan */}
           <Link href="/terms" passHref>
             <a className="menu-item flex-shrink-0 flex flex-col items-center">
               <div className="w-16 h-16 bg-white rounded-full shadow flex items-center justify-center">
@@ -468,7 +517,7 @@ export default function Home() {
             </a>
           </Link>
 
-          {/* Kebijakan Privasi */}
+          {/* 8) Kebijakan Privasi */}
           <Link href="/privacy" passHref>
             <a className="menu-item flex-shrink-0 flex flex-col items-center">
               <div className="w-16 h-16 bg-white rounded-full shadow flex items-center justify-center">
@@ -500,7 +549,7 @@ export default function Home() {
             </a>
           </Link>
 
-          {/* Jika sudah login, tampilkan "Jadi Franchisor" */}
+          {/* 9) Jadi Franchisor (jika session ada) */}
           {session && (
             <Link href="/franchisor" passHref>
               <a className="menu-item flex-shrink-0 flex flex-col items-center">
@@ -528,7 +577,7 @@ export default function Home() {
             </Link>
           )}
 
-          {/* Dashboard Admin (hanya jika role === 'Administrator') */}
+          {/* 10) Dashboard Administrator (jika role === 'Administrator') */}
           {role === 'Administrator' && (
             <Link href="/admin" passHref>
               <a className="menu-item flex-shrink-0 flex flex-col items-center">
@@ -556,7 +605,7 @@ export default function Home() {
             </Link>
           )}
 
-          {/* Dashboard Franchisor (hanya jika role === 'franchisor') */}
+          {/* 11) Dashboard Franchisor (jika role === 'franchisor') */}
           {role === 'franchisor' && (
             <Link href="/franchisor/dashboard" passHref>
               <a className="menu-item flex-shrink-0 flex flex-col items-center">
@@ -584,7 +633,7 @@ export default function Home() {
             </Link>
           )}
 
-          {/* Jika belum login, tampilkan tombol "Login" */}
+          {/* 12) Login (jika belum session) */}
           {!session && (
             <Link href="/login" passHref>
               <a className="menu-item flex-shrink-0 flex flex-col items-center">
@@ -600,8 +649,8 @@ export default function Home() {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M5 12h14m-7-7l7 7-7
-                         7"
+                      d="M5 12h14m-7-7l7 
+                         7-7 7"
                     />
                   </svg>
                 </div>
@@ -614,7 +663,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ========== DAFTAR FRANCHISE (GRID) ========== */}
+      {/* =======================
+           DAFTAR FRANCHISE (GRID)
+         ======================= */}
       <section className="container mx-auto px-6 lg:px-8 mt-16">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Daftar Franchise</h2>
 
@@ -654,7 +705,9 @@ export default function Home() {
         )}
       </section>
 
-      {/* ========== FOOTER (opsional) ========== */}
+      {/* =======================
+           FOOTER (opsional)
+         ======================= */}
       <footer className="mt-20 bg-gray-800 text-white py-12">
         <div className="container mx-auto px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Kolom Tentang */}
@@ -694,12 +747,12 @@ export default function Home() {
               {/* Facebook */}
               <a href="#" className="hover:text-gray-400">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M22 12c0-5.522-4.478-10-10-10S2 6.478 2 12
-                         c0 4.991 3.656 9.128 8.438 9.879v-6.99H7.898v-2.889
-                         h2.54V9.845c0-2.507 1.492-3.89 3.777-3.89 1.094 0 
-                         2.238.195 2.238.195v2.463H15.04c-1.263 0-1.658.78-1.658 
-                         1.577v1.897h2.828l-.453 2.889h-2.375v6.99C18.344 21.128 
-                         22 16.991 22 12z" />
+                  <path d="M22 12c0-5.522-4.478-10-10-10S2 6.478 2 12c0 4.991 
+                         3.656 9.128 8.438 9.879v-6.99H7.898v-2.889h2.54
+                         V9.845c0-2.507 1.492-3.89 3.777-3.89 1.094 
+                         0 2.238.195 2.238.195v2.463H15.04c-1.263 
+                         0-1.658.78-1.658 1.577v1.897h2.828l-.453 
+                         2.889h-2.375v6.99C18.344 21.128 22 16.991 22 12z" />
                 </svg>
               </a>
               {/* Twitter */}
