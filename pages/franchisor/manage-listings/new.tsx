@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useUser } from '@supabase/auth-helpers-react';
+import { useUser } from '../../../lib/supabaseClient';
 import { useRouter } from 'next/router';
-import { supabase } from '../../../lib/supabaseClient';
 import { v4 as uuidv4 } from 'uuid';
 
 export default function NewListing() {
