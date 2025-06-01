@@ -3,6 +3,16 @@ import { supabase } from '../../../lib/supabaseClient'
 import { v4 as uuidv4 } from 'uuid'
 import { useRouter } from 'next/router'
 
+const legalDocsList = [
+  { key: 'stpw', label: 'STPW' },
+  { key: 'perjanjian', label: 'Perjanjian Waralaba' },
+  { key: 'siup', label: 'SIUP' },
+  { key: 'situ', label: 'SITU' },
+  { key: 'akta', label: 'Akta Pendirian Usaha' }
+] as const;
+
+type LegalDocKey = typeof legalDocsList[number]['key'];
+
 export default function NewFranchiseListing() {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
@@ -17,13 +27,9 @@ export default function NewFranchiseListing() {
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [coverFile, setCoverFile] = useState<File | null>(null)
   const [hasLegalDocs, setHasLegalDocs] = useState(false)
-  const [legalDocs, setLegalDocs] = useState({
-    stpw: false,
-    perjanjian: false,
-    siup: false,
-    situ: false,
-    akta: false
-  })
+  const [legalDocs, setLegalDocs] = useState<Record<LegalDocKey, boolean>>(
+    legalDocsList.reduce((acc, doc) => ({ ...acc, [doc.key]: false }), {})
+  )
   const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -84,6 +90,10 @@ export default function NewFranchiseListing() {
     setLoading(false)
   }
 
+  const handleLegalDocsChange = (key: LegalDocKey) => (checked: boolean) => {
+    setLegalDocs(prev => ({ ...prev, [key]: checked }))
+  }
+
   return (
     <div className="max-w-xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-5">Tambah Listing Franchise Baru</h1>
@@ -91,17 +101,21 @@ export default function NewFranchiseListing() {
       <input className="w-full border p-2 mb-2" placeholder="Nama Franchise" value={name} onChange={(e) => setName(e.target.value)} />
       <textarea className="w-full border p-2 mb-2" rows={2} placeholder="Deskripsi Franchise" value={description} onChange={(e) => setDescription(e.target.value)} />
       <input className="w-full border p-2 mb-2" type="number" placeholder="Investasi Minimum (Rp)" value={investment} onChange={(e) => setInvestment(e.target.value)} />
+
       <select className="w-full border p-2 mb-2" value={operationMode} onChange={(e) => setOperationMode(e.target.value)}>
         <option>Autopilot</option>
         <option>Semi Autopilot</option>
       </select>
+
       <input className="w-full border p-2 mb-2" placeholder="Lokasi Franchise" value={location} onChange={(e) => setLocation(e.target.value)} />
+
       <select className="w-full border p-2 mb-2" value={category} onChange={(e) => setCategory(e.target.value)}>
         <option>F&B</option>
         <option>Retail</option>
         <option>Jasa</option>
         <option>Kesehatan & Kecantikan</option>
       </select>
+
       <input className="w-full border p-2 mb-2" placeholder="Kontak WhatsApp Franchise" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} />
       <input className="w-full border p-2 mb-2" type="email" placeholder="Kontak Email Franchise" value={email} onChange={(e) => setEmail(e.target.value)} />
       <input className="w-full border p-2 mb-2" placeholder="Website Franchise (opsional)" value={website} onChange={(e) => setWebsite(e.target.value)} />
@@ -113,11 +127,12 @@ export default function NewFranchiseListing() {
       <label className="block">
         <input type="checkbox" checked={hasLegalDocs} onChange={(e) => setHasLegalDocs(e.target.checked)} /> Sudah Punya Dokumen Hukum
       </label>
+
       {hasLegalDocs && (
         <div className="ml-4">
-          {Object.keys(legalDocs).map(doc => (
-            <label key={doc} className="block">
-              <input type="checkbox" checked={legalDocs[doc]} onChange={(e) => setLegalDocs({ ...legalDocs, [doc]: e.target.checked })} /> {doc.toUpperCase()}
+          {legalDocsList.map(doc => (
+            <label key={doc.key} className="block">
+              <input type="checkbox" checked={legalDocs[doc.key]} onChange={(e) => handleLegalDocsChange(doc.key)(e.target.checked)} /> {doc.label}
             </label>
           ))}
         </div>
