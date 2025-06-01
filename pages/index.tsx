@@ -17,23 +17,21 @@ interface Franchise {
 }
 
 export default function Home() {
-  // 1) State untuk daftar franchise
+  // Daftar franchise
   const [franchises, setFranchises] = useState<Franchise[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 2) State untuk tab pencarian (dijual / disewa / properti baru)
+  // Tab pencarian: dijual / disewa / properti baru
   const [tab, setTab] = useState<'dijual' | 'disewa' | 'baru'>('dijual');
 
-  // 3) State untuk session & role user
+  // Session dan role user
   const [session, setSession] = useState<any>(null);
   const [role, setRole] = useState<string>('');
 
-  // 4) Ref untuk kontainer Menu Utama (agar bisa auto-scroll)
+  // Ref untuk container Menu Utama (untuk auto‐scroll)
   const menuRef = useRef<HTMLDivElement | null>(null);
 
-  // ================================================================
-  // Ambil session sekaligus melacak perubahan login/logout
-  // ================================================================
+  // 1) Ambil session dan pasang listener auth-state-change
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
@@ -43,23 +41,20 @@ export default function Home() {
     });
   }, []);
 
-  // ================================================================
-  // Jika session berubah, ambil role user dari tabel 'profiles'
-  // ================================================================
+  // 2) Jika session ada, ambil role dari tabel profiles
   useEffect(() => {
+    if (!session || !session.user) {
+      setRole('');
+      return;
+    }
     async function fetchRole() {
-      if (session?.user?.id) {
-        const { data: profile, error } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', session.user.id)
-          .single();
-
-        if (!error && profile) {
-          setRole(profile.role);
-        } else {
-          setRole('');
-        }
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', session.user.id)
+        .single();
+      if (!error && profile) {
+        setRole(profile.role);
       } else {
         setRole('');
       }
@@ -67,9 +62,7 @@ export default function Home() {
     fetchRole();
   }, [session]);
 
-  // ================================================================
-  // Fetch daftar franchise (dari Supabase) & ubah logo_url -> publicUrl
-  // ================================================================
+  // 3) Fetch daftar franchise dan convert logo_url→publicUrl
   useEffect(() => {
     const fetchFranchises = async () => {
       const { data, error } = await supabase
@@ -97,9 +90,7 @@ export default function Home() {
     fetchFranchises();
   }, []);
 
-  // ================================================================
-  // Auto-scroll looping untuk Menu Utama (agar terus berputar)
-  // ================================================================
+  // 4) Auto‐scroll -> Menu Utama (infinite loop)
   useEffect(() => {
     const container = menuRef.current;
     if (!container) return;
@@ -111,42 +102,46 @@ export default function Home() {
       if (items.length === 0) return;
 
       const style = getComputedStyle(items[0]);
-      // lebar satu item + margin kanan
+      // Lebar satu item + margin‐kanan (jika ada)
       const itemWidth = items[0].offsetWidth + parseInt(style.marginRight || '0');
 
       scrollInterval = setInterval(() => {
         if (!container) return;
+
         const maxScrollLeft = container.scrollWidth - container.clientWidth;
+        // Jika sudah mendekati ujung kanan, kembali ke awal
         if (container.scrollLeft + itemWidth >= maxScrollLeft + 1) {
-          // jika sudah di ujung, kembali ke awal
           container.scrollTo({ left: 0, behavior: 'smooth' });
         } else {
-          // geser ke kanan sejauh satu item
           container.scrollBy({ left: itemWidth, behavior: 'smooth' });
         }
       }, 2500);
     };
 
     startAutoScroll();
-
-    return () => {
-      clearInterval(scrollInterval);
-    };
+    return () => clearInterval(scrollInterval);
   }, []);
+
+  // 5) Handle logout
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    // Setelah logout, refresh halaman atau redirect ke landing page
+    window.location.href = '/';
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/*
-         ======================
-         1) HEADER (NAVBAR)
-         ======================
+        ==============================
+        HEADER (HANYA SATU BAR PUTIH)
+        ==============================
       */}
-      <header className="bg-blue-600 text-white">
+      <header className="bg-white shadow-sm">
         <div className="container mx-auto flex items-center justify-between py-4 px-6 lg:px-8">
-          {/* Logo FranchiseHub */}
+          {/* Logo / Judul */}
           <div className="flex items-center space-x-2">
             <Image
-              src="/logo-franchisehub-white.svg"  // letakkan file ini di /public
+              src="/logo-franchisehub.svg"   // simpan logo Anda di /public/logo-franchisehub.svg
               alt="FranchiseHub"
               width={140}
               height={32}
@@ -154,48 +149,57 @@ export default function Home() {
             />
           </div>
 
-          {/* Navigasi (hanya tampil di layar lebar) */}
-          <nav className="hidden lg:flex space-x-6 font-medium">
-            <Link href="#" className="hover:underline">Cari Agen</Link>
-            <Link href="#" className="hover:underline">Aset Bank</Link>
-            <Link href="#" className="hover:underline">Explore</Link>
-            <Link href="#" className="hover:underline">Berita</Link>
-            <Link href="#" className="hover:underline">Perusahaan</Link>
-            <Link href="#" className="hover:underline">Bantuan</Link>
-          </nav>
-
-          {/* Tombol “Pasang Iklan” & “Akun” (hanya di layar lebar) */}
-          <div className="hidden lg:flex items-center space-x-4">
-            <button className="bg-white text-blue-600 px-4 py-2 rounded-md font-semibold hover:bg-gray-100 transition">
-              Pasang Iklan
-            </button>
-            <button className="flex items-center space-x-2 hover:underline">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.121 17.804A9 9 0 1112 21a9 9 0 01-6.879-3.196z" />
-              </svg>
-              <span>Akun</span>
-            </button>
+          {/* Search Bar (Desktop & Mobile) */}
+          <div className="flex-1 px-6">
+            <input
+              type="text"
+              placeholder="Cari franchise..."
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
           </div>
 
-          {/* Tombol Hamburger (hanya di layar kecil) */}
-          <button className="lg:hidden">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
-            </svg>
-          </button>
+          {/* Salam / Akun / Logout */}
+          <div className="flex items-center space-x-4">
+            {session?.user && (
+              <span className="text-sm text-gray-600 italic">
+                Halo, {session.user.user_metadata.full_name || 'User'}{role ? `_${role}` : ''}!
+              </span>
+            )}
+            {session ? (
+              <button
+                onClick={handleLogout}
+                className="text-sm text-red-600 hover:underline"
+              >
+                Logout
+              </button>
+            ) : (
+              <Link
+                href="/login"
+                className="text-sm text-blue-600 hover:underline"
+              >
+                Login
+              </Link>
+            )}
+            {/* Hamburger (hanya mobile) */}
+            <button className="lg:hidden">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
+              </svg>
+            </button>
+          </div>
         </div>
       </header>
 
       {/*
-         ======================
-         2) HERO SECTION
-         ======================
+        =======================================
+        HERO SECTION (+ Kotak Pencarian Tabs)
+        =======================================
       */}
       <section className="relative bg-gray-100">
-        {/* Banner (pastikan file /public/banner-franchise.jpg ada) */}
+        {/* Banner (pastikan /public/banner-franchise.jpg ada) */}
         <div className="h-96 w-full overflow-hidden">
           <Image
-            src="/banner-franchise.jpg"  // simpan di /public
+            src="/banner-franchise.jpg"
             alt="Banner Franchise"
             layout="fill"
             objectFit="cover"
@@ -203,17 +207,15 @@ export default function Home() {
           />
         </div>
 
-        {/* Kotak pencarian (letak absolut di atas banner, di bagian bawah) */}
+        {/* Kotak pencarian (tabs) */}
         <div className="absolute inset-x-0 bottom-0 transform translate-y-1/2 px-6 lg:px-8">
           <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
-            {/* Tabs: Dijual / Disewa / Properti Baru */}
+            {/* Tabs */}
             <div className="flex">
               <button
                 onClick={() => setTab('dijual')}
                 className={`flex-1 py-3 text-center font-medium ${
-                  tab === 'dijual'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white text-gray-600 hover:bg-gray-50'
+                  tab === 'dijual' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
                 }`}
               >
                 Dijual
@@ -221,9 +223,7 @@ export default function Home() {
               <button
                 onClick={() => setTab('disewa')}
                 className={`flex-1 py-3 text-center font-medium ${
-                  tab === 'disewa'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white text-gray-600 hover:bg-gray-50'
+                  tab === 'disewa' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
                 }`}
               >
                 Disewa
@@ -231,16 +231,14 @@ export default function Home() {
               <button
                 onClick={() => setTab('baru')}
                 className={`flex-1 py-3 text-center font-medium ${
-                  tab === 'baru'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white text-gray-600 hover:bg-gray-50'
+                  tab === 'baru' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
                 }`}
               >
                 Properti Baru
               </button>
             </div>
 
-            {/* Form pencarian */}
+            {/* Form Pencarian */}
             <div className="p-6">
               <form className="flex space-x-4">
                 <input
@@ -266,13 +264,13 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Jeda agar konten di bawah tidak tertutup oleh Hero */}
+      {/* Spacer agar konten di bawah tidak tertutup hero */}
       <div className="h-24"></div>
 
       {/*
-         ======================
-         3) MENU UTAMA (SCROLL HORIZONTAL)
-         ======================
+        ===========================
+        MENU UTAMA (SCROLL HORIZONTAL)
+        ===========================
       */}
       <section className="container mx-auto px-6 lg:px-8 mt-12">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">Menu Utama</h2>
@@ -470,7 +468,7 @@ export default function Home() {
             </Link>
           )}
 
-          {/* 9) Dashboard Administrator (jika role === 'Administrator') */}
+          {/* 9) Dashboard Admin (jika role Administrator) */}
           {role === 'Administrator' && (
             <Link href="/admin" passHref>
               <a className="menu-item flex-shrink-0 flex flex-col items-center">
@@ -492,7 +490,7 @@ export default function Home() {
             </Link>
           )}
 
-          {/* 10) Dashboard Franchisor (jika role === 'franchisor') */}
+          {/* 10) Dashboard Franchisor (jika role franchisor) */}
           {role === 'franchisor' && (
             <Link href="/franchisor/dashboard" passHref>
               <a className="menu-item flex-shrink-0 flex flex-col items-center">
@@ -539,9 +537,9 @@ export default function Home() {
       </section>
 
       {/*
-         ======================
-         4) DAFTAR FRANCHISE (GRID)
-         ======================
+        ====================================
+        DAFTAR FRANCHISE (GRID 3 KOL)  
+        ====================================
       */}
       <section className="container mx-auto px-6 lg:px-8 mt-16">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Daftar Franchise</h2>
@@ -553,7 +551,7 @@ export default function Home() {
             {franchises.map((fr) => (
               <Link key={fr.id} href={`/franchise/${fr.slug}`} passHref>
                 <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden cursor-pointer">
-                  {/* Gambar Logo/Thumbnail */}
+                  {/* Thumbnail & Kategori */}
                   <div className="relative h-48">
                     <img
                       src={fr.logo_url}
@@ -583,9 +581,9 @@ export default function Home() {
       </section>
 
       {/*
-         ======================
-         5) FOOTER
-         ======================
+        ===========================
+        FOOTER
+        ===========================
       */}
       <footer className="mt-20 bg-gray-800 text-white py-12">
         <div className="container mx-auto px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -603,16 +601,24 @@ export default function Home() {
             <h4 className="font-semibold mb-4">Menu Cepat</h4>
             <ul className="space-y-2 text-sm text-gray-300">
               <li>
-                <Link href="#" className="hover:underline">Cari Agen</Link>
+                <Link href="#" className="hover:underline">
+                  Cari Agen
+                </Link>
               </li>
               <li>
-                <Link href="#" className="hover:underline">Iklankan Franchise</Link>
+                <Link href="#" className="hover:underline">
+                  Iklankan Franchise
+                </Link>
               </li>
               <li>
-                <Link href="#" className="hover:underline">Jual Franchise</Link>
+                <Link href="#" className="hover:underline">
+                  Jual Franchise
+                </Link>
               </li>
               <li>
-                <Link href="#" className="hover:underline">Simulasi Investasi</Link>
+                <Link href="#" className="hover:underline">
+                  Simulasi Investasi
+                </Link>
               </li>
             </ul>
           </div>
