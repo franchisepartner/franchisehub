@@ -25,18 +25,25 @@ const Home: NextPage = () => {
 
   // Ambil nama user untuk salam (jika ada)
   useEffect(() => {
-    const user = supabase.auth.user();
-    if (user) {
-      const fullName = (user.user_metadata as any)?.full_name;
-      const role = (user.user_metadata as any)?.role;
-      if (fullName && role) {
-        setGreetingName(`${fullName}_${role}`);
-      } else if (fullName) {
-        setGreetingName(fullName);
-      } else {
-        setGreetingName(user.email);
+    const fetchUser = async () => {
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
+      if (!error && user) {
+        const fullName = (user.user_metadata as any)?.full_name;
+        const role = (user.user_metadata as any)?.role;
+        if (fullName && role) {
+          setGreetingName(`${fullName}_${role}`);
+        } else if (fullName) {
+          setGreetingName(fullName);
+        } else {
+          setGreetingName(user.email);
+        }
       }
-    }
+    };
+
+    fetchUser();
   }, []);
 
   // Fetch daftar franchise
@@ -91,8 +98,8 @@ const Home: NextPage = () => {
               <div className="flex items-center space-x-2">
                 <span className="text-gray-600">Halo, {greetingName}!</span>
                 <button
-                  onClick={() => {
-                    supabase.auth.signOut();
+                  onClick={async () => {
+                    await supabase.auth.signOut();
                     location.href = '/';
                   }}
                   className="text-red-600 hover:underline"
