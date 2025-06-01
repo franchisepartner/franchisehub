@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '../../../lib/supabaseClient';
 import { v4 as uuidv4 } from 'uuid';
+import type { User } from '@supabase/supabase-js';
 
 export default function NewListing() {
   const router = useRouter();
 
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     franchise_name: '',
@@ -66,7 +67,7 @@ export default function NewListing() {
       const slug = form.franchise_name.toLowerCase().replace(/\s+/g, '-');
 
       const { error } = await supabase.from('franchise_listings').insert({
-        user_id: user.id,
+        user_id: user?.id,
         franchise_name: form.franchise_name,
         description: form.description,
         category: form.category,
