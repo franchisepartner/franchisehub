@@ -17,31 +17,23 @@ interface Franchise {
 }
 
 export default function Home() {
-  // ---------------------------------------------
-  // 1) State: daftar franchise (diambil dari Supabase)
-  // ---------------------------------------------
+  // 1) State untuk daftar franchise
   const [franchises, setFranchises] = useState<Franchise[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // ---------------------------------------------
-  // 2) State: tab Hero (dijual / disewa / properti baru)
-  // ---------------------------------------------
+  // 2) State untuk tab pencarian (dijual / disewa / properti baru)
   const [tab, setTab] = useState<'dijual' | 'disewa' | 'baru'>('dijual');
 
-  // ---------------------------------------------
-  // 3) State: session & role user
-  // ---------------------------------------------
+  // 3) State untuk session & role user
   const [session, setSession] = useState<any>(null);
   const [role, setRole] = useState<string>('');
 
-  // ---------------------------------------------
-  // 4) Ref: kontainer “Menu Utama” untuk auto-scroll
-  // ---------------------------------------------
+  // 4) Ref untuk kontainer Menu Utama (agar bisa auto-scroll)
   const menuRef = useRef<HTMLDivElement | null>(null);
 
-  // ======================================================
-  // 5) Ambil session awal & pantau perubahan login/logout
-  // ======================================================
+  // ================================================================
+  // Ambil session sekaligus melacak perubahan login/logout
+  // ================================================================
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
@@ -51,9 +43,9 @@ export default function Home() {
     });
   }, []);
 
-  // ======================================================
-  // 6) Jika session berubah, ambil role user dari tabel profiles
-  // ======================================================
+  // ================================================================
+  // Jika session berubah, ambil role user dari tabel 'profiles'
+  // ================================================================
   useEffect(() => {
     async function fetchRole() {
       if (session?.user?.id) {
@@ -62,6 +54,7 @@ export default function Home() {
           .select('role')
           .eq('id', session.user.id)
           .single();
+
         if (!error && profile) {
           setRole(profile.role);
         } else {
@@ -74,9 +67,9 @@ export default function Home() {
     fetchRole();
   }, [session]);
 
-  // ======================================================
-  // 7) Fetch daftar franchise dari Supabase & convert logo_url
-  // ======================================================
+  // ================================================================
+  // Fetch daftar franchise (dari Supabase) & ubah logo_url -> publicUrl
+  // ================================================================
   useEffect(() => {
     const fetchFranchises = async () => {
       const { data, error } = await supabase
@@ -104,9 +97,9 @@ export default function Home() {
     fetchFranchises();
   }, []);
 
-  // ======================================================
-  // 8) Buat auto‐scroll looping untuk Menu Utama (horizontal)
-  // ======================================================
+  // ================================================================
+  // Auto-scroll looping untuk Menu Utama (agar terus berputar)
+  // ================================================================
   useEffect(() => {
     const container = menuRef.current;
     if (!container) return;
@@ -118,14 +111,17 @@ export default function Home() {
       if (items.length === 0) return;
 
       const style = getComputedStyle(items[0]);
+      // lebar satu item + margin kanan
       const itemWidth = items[0].offsetWidth + parseInt(style.marginRight || '0');
 
       scrollInterval = setInterval(() => {
         if (!container) return;
         const maxScrollLeft = container.scrollWidth - container.clientWidth;
         if (container.scrollLeft + itemWidth >= maxScrollLeft + 1) {
+          // jika sudah di ujung, kembali ke awal
           container.scrollTo({ left: 0, behavior: 'smooth' });
         } else {
+          // geser ke kanan sejauh satu item
           container.scrollBy({ left: itemWidth, behavior: 'smooth' });
         }
       }, 2500);
@@ -140,15 +136,17 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* =======================
-           HEADER
-         ======================= */}
+      {/*
+         ======================
+         1) HEADER (NAVBAR)
+         ======================
+      */}
       <header className="bg-blue-600 text-white">
         <div className="container mx-auto flex items-center justify-between py-4 px-6 lg:px-8">
           {/* Logo FranchiseHub */}
           <div className="flex items-center space-x-2">
             <Image
-              src="/logo-franchisehub-white.svg"   // Ganti jika nama file logo Anda berbeda
+              src="/logo-franchisehub-white.svg"  // letakkan file ini di /public
               alt="FranchiseHub"
               width={140}
               height={32}
@@ -156,7 +154,7 @@ export default function Home() {
             />
           </div>
 
-          {/* Navigasi (desktop) */}
+          {/* Navigasi (hanya tampil di layar lebar) */}
           <nav className="hidden lg:flex space-x-6 font-medium">
             <Link href="#" className="hover:underline">Cari Agen</Link>
             <Link href="#" className="hover:underline">Aset Bank</Link>
@@ -166,53 +164,38 @@ export default function Home() {
             <Link href="#" className="hover:underline">Bantuan</Link>
           </nav>
 
-          {/* Tombol Pasang Iklan & Akun (desktop) */}
+          {/* Tombol “Pasang Iklan” & “Akun” (hanya di layar lebar) */}
           <div className="hidden lg:flex items-center space-x-4">
             <button className="bg-white text-blue-600 px-4 py-2 rounded-md font-semibold hover:bg-gray-100 transition">
               Pasang Iklan
             </button>
             <button className="flex items-center space-x-2 hover:underline">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5.121 17.804A9 9 0 1112 21a9 9 0 01-6.879-3.196z"
-                />
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.121 17.804A9 9 0 1112 21a9 9 0 01-6.879-3.196z" />
               </svg>
               <span>Akun</span>
             </button>
           </div>
 
-          {/* Hamburger (mobile) */}
+          {/* Tombol Hamburger (hanya di layar kecil) */}
           <button className="lg:hidden">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6 text-white"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
             </svg>
           </button>
         </div>
       </header>
 
-      {/* =======================
-           HERO SECTION
-         ======================= */}
+      {/*
+         ======================
+         2) HERO SECTION
+         ======================
+      */}
       <section className="relative bg-gray-100">
-        {/* Banner */}
+        {/* Banner (pastikan file /public/banner-franchise.jpg ada) */}
         <div className="h-96 w-full overflow-hidden">
           <Image
-            src="/banner-franchise.jpg"   // Ganti dengan path banner Anda
+            src="/banner-franchise.jpg"  // simpan di /public
             alt="Banner Franchise"
             layout="fill"
             objectFit="cover"
@@ -220,10 +203,10 @@ export default function Home() {
           />
         </div>
 
-        {/* Kotak Search Utama (diletakkan di tengah bawah banner) */}
+        {/* Kotak pencarian (letak absolut di atas banner, di bagian bawah) */}
         <div className="absolute inset-x-0 bottom-0 transform translate-y-1/2 px-6 lg:px-8">
           <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
-            {/* Tab Navigasi */}
+            {/* Tabs: Dijual / Disewa / Properti Baru */}
             <div className="flex">
               <button
                 onClick={() => setTab('dijual')}
@@ -257,7 +240,7 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Form Pencarian */}
+            {/* Form pencarian */}
             <div className="p-6">
               <form className="flex space-x-4">
                 <input
@@ -283,12 +266,14 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Spacer agar konten di bawah tidak tertutup */}
+      {/* Jeda agar konten di bawah tidak tertutup oleh Hero */}
       <div className="h-24"></div>
 
-      {/* =======================
-           MENU UTAMA (Horizontal Scroll + Loop)
-         ======================= */}
+      {/*
+         ======================
+         3) MENU UTAMA (SCROLL HORIZONTAL)
+         ======================
+      */}
       <section className="container mx-auto px-6 lg:px-8 mt-12">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">Menu Utama</h2>
 
@@ -296,47 +281,11 @@ export default function Home() {
           ref={menuRef}
           className="flex space-x-6 overflow-x-auto scroll-smooth hide-scrollbar pb-2"
         >
-          {/* 1) Pengumuman Administrator (hanya jika role === 'Administrator') */}
-          {role === 'Administrator' && (
-            <Link href="/announcement" passHref>
-              <a className="menu-item flex-shrink-0 flex flex-col items-center">
-                <div className="w-16 h-16 bg-white rounded-full shadow flex items-center justify-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-8 w-8 text-yellow-500"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8c-3.866 0-7 1.343-7 3v2
-                         c0 1.657 3.134 3 7 3s7-1.343 
-                         7-3v-2c0-1.657-3.134-3-7-3z"
-                    />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 21v-5" />
-                  </svg>
-                </div>
-                <span className="mt-1 text-xs text-gray-700 text-center">
-                  Pengumuman Admin
-                </span>
-              </a>
-            </Link>
-          )}
-
-          {/* 2) Notifikasiku */}
+          {/* 1) Notifikasiku */}
           <Link href="/notifikasi" passHref>
             <a className="menu-item flex-shrink-0 flex flex-col items-center">
               <div className="w-16 h-16 bg-white rounded-full shadow flex items-center justify-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-8 w-8 text-blue-500"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -356,17 +305,11 @@ export default function Home() {
             </a>
           </Link>
 
-          {/* 3) Favoritku */}
+          {/* 2) Favoritku */}
           <Link href="/favorit" passHref>
             <a className="menu-item flex-shrink-0 flex flex-col items-center">
               <div className="w-16 h-16 bg-white rounded-full shadow flex items-center justify-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-8 w-8 text-red-500"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
@@ -376,17 +319,11 @@ export default function Home() {
             </a>
           </Link>
 
-          {/* 4) Forum Global */}
+          {/* 3) Forum Global */}
           <Link href="/forum" passHref>
             <a className="menu-item flex-shrink-0 flex flex-col items-center">
               <div className="w-16 h-16 bg-white rounded-full shadow flex items-center justify-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-8 w-8 text-green-500"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -403,17 +340,11 @@ export default function Home() {
             </a>
           </Link>
 
-          {/* 5) Blog Global */}
+          {/* 4) Blog Global */}
           <Link href="/blog" passHref>
             <a className="menu-item flex-shrink-0 flex flex-col items-center">
               <div className="w-16 h-16 bg-white rounded-full shadow flex items-center justify-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-8 w-8 text-purple-500"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -437,17 +368,11 @@ export default function Home() {
             </a>
           </Link>
 
-          {/* 6) Pusat Bantuan */}
+          {/* 5) Pusat Bantuan */}
           <Link href="/help" passHref>
             <a className="menu-item flex-shrink-0 flex flex-col items-center">
               <div className="w-16 h-16 bg-white rounded-full shadow flex items-center justify-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-8 w-8 text-indigo-500"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -471,17 +396,11 @@ export default function Home() {
             </a>
           </Link>
 
-          {/* 7) Syarat & Ketentuan */}
+          {/* 6) Syarat & Ketentuan */}
           <Link href="/terms" passHref>
             <a className="menu-item flex-shrink-0 flex flex-col items-center">
               <div className="w-16 h-16 bg-white rounded-full shadow flex items-center justify-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-8 w-8 text-gray-700"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -503,17 +422,11 @@ export default function Home() {
             </a>
           </Link>
 
-          {/* 8) Kebijakan Privasi */}
+          {/* 7) Kebijakan Privasi */}
           <Link href="/privacy" passHref>
             <a className="menu-item flex-shrink-0 flex flex-col items-center">
               <div className="w-16 h-16 bg-white rounded-full shadow flex items-center justify-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-8 w-8 text-gray-500"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -535,18 +448,12 @@ export default function Home() {
             </a>
           </Link>
 
-          {/* 9) Jadi Franchisor (hanya jika session ada) */}
+          {/* 8) Jadi Franchisor (jika sudah login) */}
           {session && (
             <Link href="/franchisor" passHref>
               <a className="menu-item flex-shrink-0 flex flex-col items-center">
                 <div className="w-16 h-16 bg-white rounded-full shadow flex items-center justify-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-8 w-8 text-teal-500"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -563,18 +470,12 @@ export default function Home() {
             </Link>
           )}
 
-          {/* 10) Dashboard Administrator (hanya jika role === 'Administrator') */}
+          {/* 9) Dashboard Administrator (jika role === 'Administrator') */}
           {role === 'Administrator' && (
             <Link href="/admin" passHref>
               <a className="menu-item flex-shrink-0 flex flex-col items-center">
                 <div className="w-16 h-16 bg-white rounded-full shadow flex items-center justify-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-8 w-8 text-red-500"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -591,18 +492,12 @@ export default function Home() {
             </Link>
           )}
 
-          {/* 11) Dashboard Franchisor (hanya jika role === 'franchisor') */}
+          {/* 10) Dashboard Franchisor (jika role === 'franchisor') */}
           {role === 'franchisor' && (
             <Link href="/franchisor/dashboard" passHref>
               <a className="menu-item flex-shrink-0 flex flex-col items-center">
                 <div className="w-16 h-16 bg-white rounded-full shadow flex items-center justify-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-8 w-8 text-green-500"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -619,18 +514,12 @@ export default function Home() {
             </Link>
           )}
 
-          {/* 12) Login (hanya jika belum ada session) */}
+          {/* 11) Login (jika belum login) */}
           {!session && (
             <Link href="/login" passHref>
               <a className="menu-item flex-shrink-0 flex flex-col items-center">
                 <div className="w-16 h-16 bg-white rounded-full shadow flex items-center justify-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-8 w-8 text-blue-500"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -649,9 +538,11 @@ export default function Home() {
         </div>
       </section>
 
-      {/* =======================
-           DAFTAR FRANCHISE (Grid)
-         ======================= */}
+      {/*
+         ======================
+         4) DAFTAR FRANCHISE (GRID)
+         ======================
+      */}
       <section className="container mx-auto px-6 lg:px-8 mt-16">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Daftar Franchise</h2>
 
@@ -691,9 +582,11 @@ export default function Home() {
         )}
       </section>
 
-      {/* =======================
-           FOOTER (opsional)
-         ======================= */}
+      {/*
+         ======================
+         5) FOOTER
+         ======================
+      */}
       <footer className="mt-20 bg-gray-800 text-white py-12">
         <div className="container mx-auto px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Kolom Tentang */}
@@ -799,10 +692,6 @@ export default function Home() {
               </a>
             </div>
           </div>
-        </div>
-
-        <div className="mt-8 text-center text-sm text-gray-400">
-          &copy; 2025 FranchiseHub. Semua hak dilindungi.
         </div>
       </footer>
     </div>
