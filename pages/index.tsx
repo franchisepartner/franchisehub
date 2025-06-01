@@ -1,6 +1,6 @@
 // File: pages/index.tsx
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { supabase } from '../lib/supabaseClient';
@@ -17,31 +17,34 @@ interface Franchise {
 }
 
 export default function Home() {
-  // State untuk daftar franchise
+  // Daftar franchise + loading state
   const [franchises, setFranchises] = useState<Franchise[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // State untuk tab hero (Dijual / Disewa / Baru)
+  // Tab Hero: dijual / disewa / baru
   const [tab, setTab] = useState<'dijual' | 'disewa' | 'baru'>('dijual');
 
-  // State untuk session dan role user
+  // Session dan role user (untuk menampilkan / menyembunyikan menu tertentu)
   const [session, setSession] = useState<any>(null);
   const [role, setRole] = useState<string>('');
 
-  // Fetch session & role user
+  // Ref ke kontainer menu utama (untuk keperluan carousel otomatis)
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  // 1) Ambil session beserta role
   useEffect(() => {
-    // Ambil session saat komponen mount
+    // Ambil session saat awal render
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
     });
 
-    // Listen perubahan auth
+    // Pantau perubahan auth (login/logout)
     supabase.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession);
     });
   }, []);
 
-  // Jika session berubah, fetch profile untuk mendapatkan role
+  // 2) Jika session berubah, ambil role user dari tabel "profiles"
   useEffect(() => {
     async function fetchRole() {
       if (session && session.user?.id) {
@@ -58,11 +61,10 @@ export default function Home() {
         setRole('');
       }
     }
-
     fetchRole();
   }, [session]);
 
-  // Fetch daftar franchise dari Supabase
+  // 3) Fetch daftar franchise dan ubah logo_url → public URL Supabase Storage
   useEffect(() => {
     const fetchFranchises = async () => {
       const { data, error } = await supabase
@@ -73,13 +75,12 @@ export default function Home() {
       if (error) {
         console.error('Error fetching franchises:', error);
       } else if (data) {
-        // Ubah setiap logo_url menjadi publicUrl dari Supabase Storage
-        const franchisesWithImages = data.map((franchise) => ({
-          ...franchise,
+        const franchisesWithImages = data.map((fr) => ({
+          ...fr,
           logo_url: supabase
             .storage
             .from('listing-images')
-            .getPublicUrl(franchise.logo_url)
+            .getPublicUrl(fr.logo_url)
             .data
             .publicUrl!,
         }));
@@ -91,6 +92,41 @@ export default function Home() {
     fetchFranchises();
   }, []);
 
+  // 4) Atur carousel (auto-scroll) untuk menu utama → looping
+  useEffect(() => {
+    const container = menuRef.current;
+    if (!container) return;
+
+    // Setelah komponen mount, mulai interval auto-scroll
+    let scrollInterval: NodeJS.Timer;
+
+    const startAutoScroll = () => {
+      const itemEls = container.querySelectorAll<HTMLDivElement>('.menu-item');
+      if (itemEls.length === 0) return;
+
+      const itemWidth = itemEls[0].offsetWidth + parseInt(getComputedStyle(itemEls[0]).marginRight || '0');
+      // Interval: setiap 2.5 detik, scroll ke kanan sebesar satu itemWidth
+      scrollInterval = setInterval(() => {
+        if (!container) return;
+        const maxScrollLeft = container.scrollWidth - container.clientWidth;
+        // Jika sudah di ujung kanan (atau hampir), kembalikan ke posisi 0
+        if (container.scrollLeft + itemWidth >= maxScrollLeft + 1) {
+          container.scrollTo({ left: 0, behavior: 'smooth' });
+        } else {
+          // Scroll satu item lebar
+          container.scrollBy({ left: itemWidth, behavior: 'smooth' });
+        }
+      }, 2500);
+    };
+
+    startAutoScroll();
+
+    // Bersihkan interval saat unmount
+    return () => {
+      clearInterval(scrollInterval);
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* ========== Header ========== */}
@@ -98,7 +134,6 @@ export default function Home() {
         <div className="container mx-auto flex items-center justify-between py-4 px-6 lg:px-8">
           {/* Logo */}
           <div className="flex items-center space-x-2">
-            {/* Ganti src dengan logo FranchiseHub Anda */}
             <Image
               src="/logo-franchisehub-white.svg"
               alt="FranchiseHub"
@@ -145,7 +180,7 @@ export default function Home() {
         {/* Banner */}
         <div className="h-96 w-full overflow-hidden">
           <Image
-            src="/banner-franchise.jpg"       // Ganti dengan path banner Anda
+            src="/banner-franchise.jpg"
             alt="Banner Franchise"
             layout="fill"
             objectFit="cover"
@@ -219,40 +254,17 @@ export default function Home() {
       {/* Spacer agar konten tidak tertutup hero */}
       <div className="h-24"></div>
 
-      {/* ========== Icon Shortcuts Section ========== */}
+      {/* ========== Menu Utama (Carousel Loop) ========== */}
       <section className="container mx-auto px-6 lg:px-8 mt-12">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">Menu Utama</h2>
 
-        {/* Container yang bisa di‐scroll horizontal */}
-        <div className="flex space-x-6 overflow-x-auto pb-2">
-          {/* Item: Pengumuman Administrator */}
-          <Link href="/announcement" passHref>
-            <a className="flex-shrink-0 flex flex-col items-center">
-              <div className="w-16 h-16 bg-white rounded-full shadow flex items-center justify-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-8 w-8 text-yellow-500"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C8.67 6.165 8 7.388 8 8.75v5.408c0 .538-.214 1.055-.595 1.436L6 17h9z"
-                  />
-                </svg>
-              </div>
-              <span className="mt-1 text-xs text-gray-700 text-center">
-                Pengumuman Admin
-              </span>
-            </a>
-          </Link>
-
-          {/* Item: Notifikasiku */}
+        <div
+          ref={menuRef}
+          className="flex space-x-6 overflow-x-auto scroll-smooth hide-scrollbar pb-2"
+        >
+          {/* Notifikasiku */}
           <Link href="/notifikasi" passHref>
-            <a className="flex-shrink-0 flex flex-col items-center">
+            <a className="menu-item flex-shrink-0 flex flex-col items-center">
               <div className="w-16 h-16 bg-white rounded-full shadow flex items-center justify-center">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -265,7 +277,9 @@ export default function Home() {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C8.67 6.165 8 7.388 8 8.75v5.408c0 .538-.214 1.055-.595 1.436L6 17h9z"
+                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.
+                    341C8.67 6.165 8 7.388 8 8.75v5.408c0 
+                    .538-.214 1.055-.595 1.436L6 17h9z"
                   />
                 </svg>
               </div>
@@ -275,9 +289,9 @@ export default function Home() {
             </a>
           </Link>
 
-          {/* Item: Favoritku */}
+          {/* Favoritku */}
           <Link href="/favorit" passHref>
-            <a className="flex-shrink-0 flex flex-col items-center">
+            <a className="menu-item flex-shrink-0 flex flex-col items-center">
               <div className="w-16 h-16 bg-white rounded-full shadow flex items-center justify-center">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -300,9 +314,9 @@ export default function Home() {
             </a>
           </Link>
 
-          {/* Item: Forum Global */}
+          {/* Forum Global */}
           <Link href="/forum" passHref>
-            <a className="flex-shrink-0 flex flex-col items-center">
+            <a className="menu-item flex-shrink-0 flex flex-col items-center">
               <div className="w-16 h-16 bg-white rounded-full shadow flex items-center justify-center">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -315,7 +329,8 @@ export default function Home() {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M8 10h.01M12 10h.01M16 10h.01M21 21l-6-6m-4 0a8 8 0 10-8-8 8 8 0 008 8z"
+                    d="M8 10h.01M12 10h.01M16 
+                    10h.01M21 21l-6-6m-4 0a8 8 0 10-8-8 8 8 0 008 8z"
                   />
                 </svg>
               </div>
@@ -325,9 +340,9 @@ export default function Home() {
             </a>
           </Link>
 
-          {/* Item: Blog Global */}
+          {/* Blog Global */}
           <Link href="/blog" passHref>
-            <a className="flex-shrink-0 flex flex-col items-center">
+            <a className="menu-item flex-shrink-0 flex flex-col items-center">
               <div className="w-16 h-16 bg-white rounded-full shadow flex items-center justify-center">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -340,13 +355,16 @@ export default function Home() {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M12 8c-1.657 0-3 1.343-3 3v3h6v-3c0-1.657-1.343-3-3-3z"
+                    d="M12 8c-1.657 0-3 1.343-3 
+                    3v3h6v-3c0-1.657-1.343-3-3-3z"
                   />
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M5 21h14a2 2 0 002-2v-3a7 7 0 00-7-7H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                    d="M5 21h14a2 2 0 002-2v-3a7 
+                    7 0 00-7-7H5a2 2 0 00-2 
+                    2v8a2 2 0 002 2z"
                   />
                 </svg>
               </div>
@@ -356,9 +374,9 @@ export default function Home() {
             </a>
           </Link>
 
-          {/* Item: Pusat Bantuan */}
+          {/* Pusat Bantuan */}
           <Link href="/help" passHref>
-            <a className="flex-shrink-0 flex flex-col items-center">
+            <a className="menu-item flex-shrink-0 flex flex-col items-center">
               <div className="w-16 h-16 bg-white rounded-full shadow flex items-center justify-center">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -371,7 +389,10 @@ export default function Home() {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M18 10c0 3.866-3.582 7-8 7-4.418 0-8-3.134-8-7 0-3.866 3.582-7 8-7 4.418 0 8 3.134 8 7z"
+                    d="M18 10c0 3.866-3.582 
+                    7-8 7-4.418 0-8-3.134-8-7 0-3.866 
+                    3.582-7 8-7 4.418 0 
+                    8 3.134 8 7z"
                   />
                   <path
                     strokeLinecap="round"
@@ -387,9 +408,9 @@ export default function Home() {
             </a>
           </Link>
 
-          {/* Item: Syarat & Ketentuan */}
+          {/* Syarat & Ketentuan */}
           <Link href="/terms" passHref>
-            <a className="flex-shrink-0 flex flex-col items-center">
+            <a className="menu-item flex-shrink-0 flex flex-col items-center">
               <div className="w-16 h-16 bg-white rounded-full shadow flex items-center justify-center">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -402,7 +423,8 @@ export default function Home() {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M12 8c-4 0-8 2-8 6 0 4 4 6 8 6s8-2 8-6c0-4-4-6-8-6z"
+                    d="M12 8c-4 0-8 2-8 6 0 4 4 
+                    6 8 6s8-2 8-6c0-4-4-6-8-6z"
                   />
                   <path
                     strokeLinecap="round"
@@ -418,9 +440,9 @@ export default function Home() {
             </a>
           </Link>
 
-          {/* Item: Kebijakan Privasi */}
+          {/* Kebijakan Privasi */}
           <Link href="/privacy" passHref>
-            <a className="flex-shrink-0 flex flex-col items-center">
+            <a className="menu-item flex-shrink-0 flex flex-col items-center">
               <div className="w-16 h-16 bg-white rounded-full shadow flex items-center justify-center">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -433,7 +455,8 @@ export default function Home() {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M12 11c0-3.866.686-7 3-7s3 3.134 3 7c0 3.866-3 5-3 5s-3-1.134-3-5z"
+                    d="M12 11c0-3.866.686-7 3-7s3 
+                    3.134 3 7c0 3.866-3 5-3 5s-3-1.134-3-5z"
                   />
                   <path
                     strokeLinecap="round"
@@ -449,10 +472,10 @@ export default function Home() {
             </a>
           </Link>
 
-          {/* Item: Jadi Franchisor (jika sudah login) */}
+          {/* Jadi Franchisor (hanya jika user sudah login) */}
           {session && (
             <Link href="/franchisor" passHref>
-              <a className="flex-shrink-0 flex flex-col items-center">
+              <a className="menu-item flex-shrink-0 flex flex-col items-center">
                 <div className="w-16 h-16 bg-white rounded-full shadow flex items-center justify-center">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -465,7 +488,8 @@ export default function Home() {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M16 7a4 4 0 00-8 0v2H6a2 2 0 00-2 2v8h16v-8a2 2 0 00-2-2h-2V7z"
+                      d="M16 7a4 4 0 00-8 0v2H6a2 2 0 
+                      00-2 2v8h16v-8a2 2 0 00-2-2h-2V7z"
                     />
                   </svg>
                 </div>
@@ -476,10 +500,10 @@ export default function Home() {
             </Link>
           )}
 
-          {/* Item: Dashboard Admin (hanya untuk role Administrator) */}
+          {/* Dashboard Admin (hanya jika role === 'Administrator') */}
           {role === 'Administrator' && (
             <Link href="/admin" passHref>
-              <a className="flex-shrink-0 flex flex-col items-center">
+              <a className="menu-item flex-shrink-0 flex flex-col items-center">
                 <div className="w-16 h-16 bg-white rounded-full shadow flex items-center justify-center">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -503,10 +527,10 @@ export default function Home() {
             </Link>
           )}
 
-          {/* Item: Dashboard Franchisor (hanya untuk role franchisor) */}
+          {/* Dashboard Franchisor (hanya jika role === 'franchisor') */}
           {role === 'franchisor' && (
             <Link href="/franchisor/dashboard" passHref>
-              <a className="flex-shrink-0 flex flex-col items-center">
+              <a className="menu-item flex-shrink-0 flex flex-col items-center">
                 <div className="w-16 h-16 bg-white rounded-full shadow flex items-center justify-center">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -519,7 +543,8 @@ export default function Home() {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M12 11V5m0 6l-4-4m4 4l4-4M4 20h16"
+                      d="M12 11V5m0 
+                      6l-4-4m4 4l4-4M4 20h16"
                     />
                   </svg>
                 </div>
@@ -530,10 +555,10 @@ export default function Home() {
             </Link>
           )}
 
-          {/* Item: Login (jika belum ada session) */}
+          {/* Login (jika belum ada session) */}
           {!session && (
             <Link href="/login" passHref>
-              <a className="flex-shrink-0 flex flex-col items-center">
+              <a className="menu-item flex-shrink-0 flex flex-col items-center">
                 <div className="w-16 h-16 bg-white rounded-full shadow flex items-center justify-center">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -546,7 +571,8 @@ export default function Home() {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M5 12h14m-7-7l7 7-7 7"
+                      d="M5 12h14m-7-7l7 7-7
+                      7"
                     />
                   </svg>
                 </div>
@@ -599,7 +625,7 @@ export default function Home() {
         )}
       </section>
 
-      {/* ========== Footer ========== */}
+      {/* ========== Footer (opsional) ========== */}
       <footer className="mt-20 bg-gray-800 text-white py-12">
         <div className="container mx-auto px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Kolom Tentang */}
@@ -639,27 +665,69 @@ export default function Home() {
               {/* Facebook */}
               <a href="#" className="hover:text-gray-400">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M22 12c0-5.522-4.478-10-10-10S2 6.478 2 12c0 4.991 3.656 9.128 8.438 9.879v-6.99H7.898v-2.889h2.54V9.845c0-2.507 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.463H15.04c-1.263 0-1.658.78-1.658 1.577v1.897h2.828l-.453 2.889h-2.375v6.99C18.344 21.128 22 16.991 22 12z" />
+                  <path d="M22 12c0-5.522-4.478-10-10-10S2 6.478 2 12c0 4.991 3.656 9.128 8.438 9.879
+                          v-6.99H7.898v-2.889h2.54V9.845c0-2.507 1.492-3.89 3.777-3.89 1.094 0 
+                          2.238.195 2.238.195v2.463H15.04c-1.263 0-1.658.78-1.658 
+                          1.577v1.897h2.828l-.453 2.889h-2.375v6.99C18.344 21.128 22 
+                          16.991 22 12z" />
                 </svg>
               </a>
               {/* Twitter */}
               <a href="#" className="hover:text-gray-400">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M23.954 4.569c-.885.389-1.83.654-2.825.775a4.936 4.936 0 002.163-2.724 9.868 9.868 0 01-3.127 1.195 4.92 4.92 0 00-8.379 4.482A13.955 13.955 0 011.671 3.149a4.822 4.822 0 001.523 6.56 4.902 4.902 0 01-2.229-.616c-.054 2.28 1.581 4.415 3.949 4.89a4.935 4.935 0 01-2.224.085 4.928 4.928 0 004.604 3.417A9.867 9.867 0 010 19.54a13.9 13.9 0 007.548 2.212c9.058 0 14.01-7.507 14.01-14.01 0-.213 0-.425-.015-.637A10.012 10.012 0 0024 4.59z" />
+                  <path d="M23.954 4.569c-.885.389-1.83.654-2.825.775a4.936 
+                          4.936 0 002.163-2.724 9.868 
+                          9.868 0 01-3.127 1.195 4.92 
+                          4.92 0 00-8.379 4.482A13.955 
+                          13.955 0 011.671 3.149a4.822 
+                          4.822 0 001.523 6.56 4.902 
+                          4.902 0 01-2.229-.616c-.054 
+                          2.28 1.581 4.415 3.949 4.89a4.935 
+                          4.935 0 01-2.224.085 4.928 
+                          4.928 0 004.604 3.417A9.867 
+                          9.867 0 010 19.54a13.9 13.9 0 
+                          007.548 2.212c9.058 0 14.01-7.507 
+                          14.01-14.01 0-.213 0-.425-.015-.637A10.012 
+                          10.012 0 0024 4.59z" />
                 </svg>
               </a>
               {/* Instagram */}
               <a href="#" className="hover:text-gray-400">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2.163c3.204 0 3.584.012 4.849.07 1.366.062 2.633.313 3.608 1.289.974.975 1.227 2.243 1.289 3.608.058 1.265.069 1.646.069 4.848 0 3.205-.011 3.584-.069 4.849-.062 1.366-.315 2.633-1.289 3.608-.975.974-2.242 1.227-3.608 1.289-1.265.058-1.645.07-4.849.07-3.204 0-3.584-.012-4.849-.07-1.366-.062-2.633-.315-3.608-1.289-.974-.975-1.227-2.242-1.289-3.608-.058-1.265-.07-1.645-.07-4.849 0-3.205.012-3.584.07-4.849.062-1.366.315-2.633 1.289-3.608.975-.974 2.242-1.227 3.608-1.289 1.265-.058 1.645-.07 4.849-.07M12 0C8.741 0 8.332.014 7.052.072 5.78.13 4.602.346 3.603 1.345 2.605 2.343 2.39 3.52 2.332 4.792.274 6.074.26 6.483.26 12s.014 5.926.072 7.208c.058 1.272.273 2.449 1.271 3.447.998.999 2.175 1.215 3.447 1.273 1.282.058 1.691.072 7.217.072s5.935-.014 7.217-.072c1.272-.058 2.449-.274 3.447-1.273.998-.998 1.214-2.175 1.272-3.447.058-1.282.072-1.691.072-7.217s-.014-5.935-.072-7.217c-.058-1.272-.274-2.449-1.273-3.447C19.65.346 18.473.13 17.201.072 15.919.014 15.51 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zm0 10.162a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 11-2.88 0 1.44 1.44 0 012.88 0z" />
+                  <path d="M12 2.163c3.204 0 3.584.012 4.849.07 1.366.062 2.633.313 
+                          3.608 1.289.974.975 1.227 2.243 1.289 
+                          3.608.058 1.265.069 1.646.069 4.848 0 
+                          3.205-.011 3.584-.069 
+                          4.849-.062 1.366-.315 2.633-1.289 
+                          3.608-.975.974-2.242 1.227-3.608 
+                          1.289-1.265.058-1.645.07-4.849.07-3.204 
+                          0-3.584-.012-4.849-.07-1.366-.062-2.633-.315-3.608-1.289-.974-.975-1.227-2.242-1.289-3.608-.058-1.265-.07-1.645-.07-4.849 
+                          0-3.205.012-3.584.07-4.849.062-1.366.315-2.633 
+                          1.289-3.608.975-.974 2.242-1.227 3.608-1.289 
+                          1.265-.058 1.645-.07 4.849-.07M12 0C8.741 0 8.332.014 
+                          7.052.072 5.78.13 4.602.346 3.603 
+                          1.345 2.605 2.343 2.39 3.52 2.332 4.792.274 
+                          6.074.26 6.483.26 12s.014 
+                          5.926.072 7.208c.058 
+                          1.272.273 2.449 1.271 
+                          3.447.998.999 2.175 1.215 3.447 
+                          1.273 1.282.058 1.691.072 7.217.072s5.935-.014 
+                          7.217-.072c1.272-.058 2.449-.274 
+                          3.447-1.273.998-.998 1.214-2.175 
+                          1.272-3.447.058-1.282.072-1.691.072-7.217s-.014-5.935-.072-7.217c-.058-1.272-.274-2.449-1.273-3.447C19.65.346 18.473.13 
+                          17.201.072 15.919.014 15.51 0 12 0zm0 
+                          5.838a6.162 6.162 0 100 12.324 6.162 
+                          6.162 0 000-12.324zm0 10.162a4 4 
+                          0 110-8 4 4 0 010 8zm6.406-11.845a1.44 
+                          1.44 0 11-2.88 0 1.44 1.44 0 012.88 0z" />
                 </svg>
               </a>
             </div>
           </div>
-        </div>
 
-        <div className="mt-8 text-center text-sm text-gray-400">
-          &copy; 2025 FranchiseHub. Semua hak dilindungi.
+          <div className="mt-8 text-center text-sm text-gray-400">
+            &copy; 2025 FranchiseHub. Semua hak dilindungi.
+          </div>
         </div>
       </footer>
     </div>
