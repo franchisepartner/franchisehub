@@ -37,12 +37,12 @@ export default function NewListing() {
     fetchUser();
   }, []);
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type, checked, files } = e.target;
     if (type === 'checkbox') {
       setForm((prev) => ({ ...prev, [name]: checked }));
     } else if (type === 'file') {
-      setForm((prev) => ({ ...prev, [name]: files[0] }));
+      setForm((prev) => ({ ...prev, [name]: files![0] }));
     } else {
       setForm((prev) => ({ ...prev, [name]: value }));
     }
