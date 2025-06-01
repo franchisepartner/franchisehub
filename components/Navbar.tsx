@@ -13,16 +13,23 @@ export default function Navbar() {
   const [role, setRole] = useState<string>('Franchisee');
   const [menuOpen, setMenuOpen] = useState(false);
 
+  // Deteksi apakah sedang di halaman utama ("/")
+  const isHomePage = router.pathname === '/';
+
   // Ambil session & role user dari Supabase
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
-      if (data.session) fetchUserRole(data.session.user.id);
+      if (data.session) {
+        fetchUserRole(data.session.user.id);
+      }
     });
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
-      if (session) fetchUserRole(session.user.id);
+      if (session) {
+        fetchUserRole(session.user.id);
+      }
     });
 
     return () => {
@@ -42,47 +49,32 @@ export default function Navbar() {
     }
   };
 
+  // Siapa nama yang akan disapa
   const userGreeting = session
     ? `${session.user?.user_metadata?.full_name || 'User'}_${role}`
     : 'Calon Franchisee';
 
-  // Hanya tampilkan kolom pencarian jika bukan halaman utama ("/")
-  const isHomePage = router.pathname === '/';
-
   return (
     <>
-      <nav className="w-full bg-white shadow-md px-4 py-3 flex flex-wrap items-center justify-between gap-2 relative z-50">
-        {/* ------------ Logo di pojok kiri (ukuran kecil) ------------ */}
-        <div className="flex items-center">
+      <nav className="w-full bg-white shadow-md px-4 py-3 flex items-center justify-between relative z-50">
+        {/* =========== KIRI: Logo (diperbesar menjadi 44×44) =========== */}
+        <div className="flex-shrink-0">
           <Link href="/" passHref>
-            <a className="flex-shrink-0 flex items-center">
-              {/* 
-                Gunakan nama file logo persis seperti di folder public/,
-                misalnya: 22C6DD46-5682-4FDD-998B-710D24A74856.png
-              */}
+            <a className="flex items-center">
               <Image
                 src="/22C6DD46-5682-4FDD-998B-710D24A74856.png"
                 alt="FranchiseHub Logo"
-                width={40}     // Lebar 40px
-                height={40}    // Tinggi 40px
+                width={44}
+                height={44}
                 className="object-contain"
               />
             </a>
           </Link>
         </div>
 
-        {/* ------------ Tombol Burger Menu (hanya di mobile) ------------ */}
-        <button
-          onClick={() => setMenuOpen(true)}
-          className="text-2xl lg:hidden"
-          aria-label="Open menu"
-        >
-          ☰
-        </button>
-
-        {/* ------------ Kolom Pencarian (hanya jika bukan homepage) ------------ */}
+        {/* =========== TENGAH: Kolom Pencarian (hanya jika bukan homepage) =========== */}
         {!isHomePage && (
-          <div className="flex-1 px-4 lg:px-8">
+          <div className="flex-1 mx-6 lg:mx-12">
             <input
               type="text"
               placeholder="Cari franchise..."
@@ -91,24 +83,23 @@ export default function Navbar() {
           </div>
         )}
 
-        {/* ------------ Salam Pengguna & Logout ------------ */}
-        <div className="flex items-center space-x-4 text-sm">
-          <p className="italic text-gray-500">Halo, {userGreeting}!</p>
-          {session && (
-            <button
-              onClick={async () => {
-                await supabase.auth.signOut();
-                router.push('/');
-              }}
-              className="text-red-500 hover:underline"
-            >
-              Logout
-            </button>
-          )}
+        {/* =========== KANAN: Salam pengguna + Burger Menu =========== */}
+        <div className="flex items-center space-x-4">
+          {/* Salam user */}
+          <p className="italic text-gray-500 text-sm">Halo, {userGreeting}!</p>
+
+          {/* Tombol Burger Menu */}
+          <button
+            onClick={() => setMenuOpen(true)}
+            className="text-2xl"
+            aria-label="Buka menu"
+          >
+            ☰
+          </button>
         </div>
       </nav>
 
-      {/* ------------ Komponen BurgerMenu (slide-in menu) ------------ */}
+      {/* =========== Komponen BurgerMenu (slide-in) =========== */}
       <BurgerMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
     </>
   );
