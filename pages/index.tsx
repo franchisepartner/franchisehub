@@ -31,7 +31,6 @@ export default function Home() {
       if (error) {
         console.error('Error fetching franchises:', error);
       } else if (data) {
-        // Ubah setiap logo_url menjadi publicUrl dari Supabase Storage
         const franchisesWithImages = data.map((franchise) => ({
           ...franchise,
           logo_url: supabase
@@ -51,11 +50,11 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* ============= Hero Section ============= */}
+      {/* Hero Section */}
       <section className="relative h-[24rem] w-full overflow-hidden">
         {/* Banner Image */}
         <Image
-          src="/banner-franchise.jpg"           {/* Pastikan banner-franchise.jpg ada di folder public */}
+          src="/banner-franchise.jpg"
           alt="Banner Franchise"
           fill
           objectFit="cover"
@@ -65,7 +64,7 @@ export default function Home() {
         {/* Overlay Search Card */}
         <div className="absolute inset-x-0 bottom-0 transform translate-y-1/2 px-6 lg:px-8">
           <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
-            {/* Tabs: Dijual / Disewa / Properti Baru */}
+            {/* Tabs */}
             <div className="flex">
               <button
                 onClick={() => setTab('dijual')}
@@ -125,15 +124,15 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Spacer agar konten di bawah tidak tertutup */}
+      {/* Spacer */}
       <div className="h-32"></div>
 
-      {/* ============= Icon Shortcuts Section ============= */}
+      {/* Icon Shortcuts Section */}
       <section className="container mx-auto px-6 lg:px-8 mt-12">
         <h2 className="sr-only">Menu Utama</h2>
         <div className="overflow-x-auto">
           <div className="inline-flex space-x-6">
-            {/* Contoh Icon: Notifikasiku */}
+            {/* Notifikasiku */}
             <Link href="#" className="flex flex-col items-center min-w-[5rem]">
               <div className="bg-white p-4 rounded-full shadow-md">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
@@ -222,7 +221,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ============= Daftar Franchise (Grid) ============= */}
+      {/* Daftar Franchise */}
       <section className="container mx-auto px-6 lg:px-8 mt-16 mb-16">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Daftar Franchise</h2>
 
@@ -233,7 +232,7 @@ export default function Home() {
             {franchises.map((fr) => (
               <Link key={fr.id} href={`/franchise/${fr.slug}`} passHref>
                 <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden cursor-pointer">
-                  {/* Gambar Logo/Thumbnail */}
+                  {/* Thumbnail */}
                   <div className="relative h-48">
                     <img
                       src={fr.logo_url}
