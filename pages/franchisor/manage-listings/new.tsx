@@ -95,33 +95,30 @@ export default function NewFranchiseListing() {
     }
   }
 
+  if (submitted) {
+    return (
+      <div className="max-w-xl mx-auto p-6">
+        <h1 className="text-2xl font-bold mb-5">Listing Berhasil Ditambahkan!</h1>
+        <button
+          className="bg-green-600 text-white px-6 py-2 rounded"
+          onClick={() => router.push('/franchisor/manage-listings')}
+        >
+          Lihat Franchise Anda
+        </button>
+      </div>
+    )
+  }
+
   return (
     <div className="max-w-xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-5">Tambah Listing Franchise Baru</h1>
 
-      {submitted ? (
-        <>
-          <p className="mb-4 text-green-600 font-semibold">Listing Berhasil Ditambahkan!</p>
-          <button
-            className="bg-green-600 text-white px-6 py-2 rounded"
-            onClick={() => router.push('/franchisor/manage-listings')}
-          >
-            Lihat Franchise Anda
-          </button>
-        </>
-      ) : (
-        <>
-          <input className="w-full border p-2 mb-2" placeholder="Nama Franchise" value={name} onChange={(e) => setName(e.target.value)} />
-          <textarea className="w-full border p-2 mb-2" rows={2} placeholder="Deskripsi Franchise" value={description} onChange={(e) => setDescription(e.target.value)} />
-          <input className="w-full border p-2 mb-2" type="number" placeholder="Investasi Minimum (Rp)" value={investment} onChange={(e) => setInvestment(e.target.value)} />
-
-          {/* Form inputs lainnya tetap sama */}
-
-          <button className="bg-blue-600 text-white px-6 py-2 rounded" disabled={loading} onClick={handleSubmit}>
-            {loading ? 'Mengirim...' : 'Tambah Listing'}
-          </button>
-        </>
-      )}
+      <input className="w-full border p-2 mb-2" placeholder="Nama Franchise" value={name} onChange={(e) => setName(e.target.value)} />
+      <textarea className="w-full border p-2 mb-2" rows={2} placeholder="Deskripsi Franchise" value={description} onChange={(e) => setDescription(e.target.value)} />
+      <input className="w-full border p-2 mb-2" type="number" placeholder="Investasi Minimum (Rp)" value={investment} onChange={(e) => setInvestment(e.target.value)} />
+      <button className="bg-blue-600 text-white px-6 py-2 rounded" disabled={loading} onClick={handleSubmit}>
+        {loading ? 'Mengirim...' : 'Tambah Listing'}
+      </button>
     </div>
   )
 }
