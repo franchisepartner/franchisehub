@@ -74,7 +74,7 @@ const Home: NextPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/** ========== HEADER (SINGLE NAVBAR) ========== */}
+      {/* ========== HEADER (SINGLE NAVBAR) ========== */}
       <header className="bg-white shadow-sm">
         <div className="container mx-auto flex items-center justify-between py-4 px-6 lg:px-8">
           <div className="flex items-center space-x-4">
@@ -117,11 +117,11 @@ const Home: NextPage = () => {
         </div>
       </header>
 
-      {/** ========== HERO SECTION ========== */}
+      {/* ========== HERO SECTION ========== */}
       <section className="relative bg-gray-100">
         <div className="h-96 w-full overflow-hidden">
           <Image
-            src="/banner-franchise.jpg"    {/* Pastikan banner-franchise.jpg ada di folder public */}
+            src="/banner-franchise.jpg"
             alt="Banner Franchise"
             layout="fill"
             objectFit="cover"
@@ -130,7 +130,7 @@ const Home: NextPage = () => {
         </div>
         <div className="absolute inset-x-0 bottom-0 transform translate-y-1/2 px-6 lg:px-8">
           <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
-            {/** Tabs: Dijual / Disewa / Properti Baru */}
+            {/* Tabs: Dijual / Disewa / Properti Baru */}
             <div className="flex">
               <button
                 onClick={() => setTab('dijual')}
@@ -163,7 +163,7 @@ const Home: NextPage = () => {
                 Properti Baru
               </button>
             </div>
-            {/** Form Pencarian */}
+            {/* Form Pencarian */}
             <div className="p-6">
               <form className="flex space-x-4">
                 <input
@@ -189,111 +189,138 @@ const Home: NextPage = () => {
         </div>
       </section>
 
-      {/** Spacer agar konten tidak tertutup hero */}
+      {/* Spacer agar konten tidak tertutup hero */}
       <div className="h-24"></div>
 
-      {/** ========== ICON SHORTCUTS SECTION ========== */}
+      {/* ========== ICON SHORTCUTS SECTION ========== */}
       <section className="container mx-auto px-6 lg:px-8 mt-12">
         <div className="overflow-x-auto no-scrollbar">
           <div className="inline-flex space-x-6">
             {[
-              { label: 'Cari Agen', icon: (
+              {
+                label: 'Cari Agen',
+                icon: (
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 2a5 5 0 00-5 5v1H5a2 2 0 00-2 2v2h18v-2a2 2 0 00-2-2h-2V7a5 5 0 00-5-5z" />
                     <path fillRule="evenodd" d="M4 13v2a6 6 0 006 6h4a6 6 0 006-6v-2H4zm6 1a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1z" clipRule="evenodd" />
                   </svg>
-                )
+                ),
               },
-              { label: 'Iklankan Franchise', icon: (
+              {
+                label: 'Iklankan Franchise',
+                icon: (
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-600" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M19 13H5v-2h14v2zm0-6H5v2h14V7zm0 10H5v2h14v-2z" />
                   </svg>
-                )
+                ),
               },
-              { label: 'Jual Franchisemu', icon: (
+              {
+                label: 'Jual Franchisemu',
+                icon: (
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-orange-600" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M3 21h18V3H3v18zM5 5h14v14H5V5z" />
                     <path d="M9 9h6v2H9V9zm0 4h6v2H9v-2z" />
                   </svg>
-                )
+                ),
               },
-              { label: 'Cari Franchise', icon: (
+              {
+                label: 'Cari Franchise',
+                icon: (
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-red-600" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zM9.5 14C7.02 14 5 11.98 5 9.5S7.02 5 9.5 5 14 7.02 14 9.5 11.98 14 9.5 14z" />
                   </svg>
-                )
+                ),
               },
-              { label: 'Simulasi Investasi', icon: (
+              {
+                label: 'Simulasi Investasi',
+                icon: (
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-purple-600" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zM5 9V6.19l7-3.11 7 3.11V9c0 4.44-2.79 8.85-7 9.88C7.79 17.85 5 13.44 5 9z" />
                     <path d="M11 12h2v5h-2zm0-4h2v2h-2z" />
                   </svg>
-                )
+                ),
               },
-              { label: 'Pengumuman Administrator', icon: (
+              {
+                label: 'Pengumuman Administrator',
+                icon: (
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-yellow-600" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 2a10 10 0 00-10 10h2a8 8 0 1116 0h2a10 10 0 00-10-10zM11 14h2v2h-2zm0-8h2v6h-2z" />
                   </svg>
-                )
+                ),
               },
-              { label: 'Notifikasiku', icon: (
+              {
+                label: 'Notifikasiku',
+                icon: (
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 1a7 7 0 00-7 7v5.586l-1.707 1.707A1 1 0 004 17h16a1 1 0 00.707-1.707L19 13.586V8a7 7 0 00-7-7zm0 20a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
                   </svg>
-                )
+                ),
               },
-              { label: 'Favoritku', icon: (
+              {
+                label: 'Favoritku',
+                icon: (
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-red-600" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5A5.5 5.5 0 017.5 3a5.452 5.452 0 014.5 2.09A5.452 5.452 0 0116.5 3 5.5 5.5 0 0122 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                   </svg>
-                )
+                ),
               },
-              { label: 'Forum Global', icon: (
+              {
+                label: 'Forum Global',
+                icon: (
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-600" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 2a10 10 0 00-10 10c0 5.523 4.477 10 10 10 1.767 0 3.42-.459 4.842-1.261L22 22l-1.261-5.158A9.953 9.953 0 0022 12c0-5.523-4.477-10-10-10zm-1 11H7l4-4 4 4h-4v4h-2v-4z" />
                   </svg>
-                )
+                ),
               },
-              { label: 'Blog Global', icon: (
+              {
+                label: 'Blog Global',
+                icon: (
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-purple-600" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2zm14 2H5v14h14V5zm-9 11v-1h6v1h-6zm0-3v-1h6v1h-6zm0-3v-1h6v1h-6z" />
                   </svg>
-                )
+                ),
               },
-              { label: 'Pusat Bantuan', icon: (
+              {
+                label: 'Pusat Bantuan',
+                icon: (
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M11 18h2v-2h-2v2zm0-4h2v-2h-2v2z" />
                     <path d="M12 1C6.48 1 2 5.48 2 11s4.48 10 10 10c1.93 0 3.73-.65 5.18-1.74L22 22l-1.46-5.42C20.59 14.03 22 12.06 22 10c0-5.52-4.48-9-10-9zm0 17c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z" />
                   </svg>
-                )
+                ),
               },
-              { label: 'Syarat & Ketentuan', icon: (
+              {
+                label: 'Syarat & Ketentuan',
+                icon: (
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-600" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 2a9.981 9.981 0 00-7.071 2.929A9.981 9.981 0 002 12c0 2.654 1.036 5.117 2.929 7.071A9.981 9.981 0 0012 22a9.981 9.981 0 007.071-2.929A9.981 9.981 0 0022 12c0-2.654-1.036-5.117-2.929-7.071A9.981 9.981 0 0012 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
                   </svg>
-                )
+                ),
               },
-              { label: 'Kebijakan Privasi', icon: (
+              {
+                label: 'Kebijakan Pri
+vasi',
+                icon: (
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-600" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 2L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 19c-3.86-1.12-7-4.86-7-9V6.19l7-3.11 7 3.11V11c0 4.14-3.14 7.88-7 9z" />
                     <path d="M12 8a4 4 0 100 8 4 4 0 000-8zm0 6a2 2 0 110-4 2 2 0 010 4z" />
                   </svg>
-                )
+                ),
               },
-              { label: 'Jadi Franchisor', icon: (
+              {
+                label: 'Jadi Franchisor',
+                icon: (
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-600" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M4 4h16v2H4z" />
                     <path d="M6 7h12v13H6z" />
                     <path d="M9 10v6h6v-6H9z" />
                   </svg>
-                )
+                ),
               },
             ].map((item, idx) => (
               <div key={idx} className="flex flex-col items-center mx-2">
                 <div className="bg-white p-4 rounded-full shadow-md">
-                  <button>
-                    {item.icon}
-                  </button>
+                  <button>{item.icon}</button>
                 </div>
                 <span className="mt-2 text-xs font-medium text-gray-700 whitespace-nowrap">
                   {item.label}
@@ -304,7 +331,7 @@ const Home: NextPage = () => {
         </div>
       </section>
 
-      {/** ========== DAFTAR FRANCHISE (Grid) ========== */}
+      {/* ========== DAFTAR FRANCHISE (Grid) ========== */}
       <section className="container mx-auto px-6 lg:px-8 mt-16">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Daftar Franchise</h2>
 
@@ -315,7 +342,7 @@ const Home: NextPage = () => {
             {franchises.map((fr) => (
               <Link key={fr.id} href={`/franchise/${fr.slug}`} passHref>
                 <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden cursor-pointer">
-                  {/** Gambar Logo/Thumbnail */}
+                  {/* Gambar Logo/Thumbnail */}
                   <div className="relative h-48">
                     <img
                       src={fr.logo_url}
@@ -330,9 +357,7 @@ const Home: NextPage = () => {
                     <h3 className="text-lg font-semibold text-gray-800">
                       {fr.franchise_name}
                     </h3>
-                    <p className="mt-1 text-sm text-gray-500">
-                      {fr.location}
-                    </p>
+                    <p className="mt-1 text-sm text-gray-500">{fr.location}</p>
                     <p className="mt-2 text-sm text-gray-700">
                       Investasi Mulai: Rp {fr.investment_min.toLocaleString('id-ID')}
                     </p>
@@ -344,10 +369,10 @@ const Home: NextPage = () => {
         )}
       </section>
 
-      {/** ========== FOOTER ========== */}
+      {/* ========== FOOTER ========== */}
       <footer className="mt-20 bg-gray-800 text-white py-12">
         <div className="container mx-auto px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/** Kolom Tentang */}
+          {/* Kolom Tentang */}
           <div>
             <h4 className="font-semibold mb-4">Tentang FranchiseHub</h4>
             <p className="text-sm text-gray-300">
@@ -355,7 +380,7 @@ const Home: NextPage = () => {
               Kami memudahkan franchisor dan franchisee bertemu dalam satu ekosistem yang transparan.
             </p>
           </div>
-          {/** Kolom Menu Cepat */}
+          {/* Kolom Menu Cepat */}
           <div>
             <h4 className="font-semibold mb-4">Menu Cepat</h4>
             <ul className="space-y-2 text-sm text-gray-300">
@@ -373,7 +398,7 @@ const Home: NextPage = () => {
               </li>
             </ul>
           </div>
-          {/** Kolom Kontak */}
+          {/* Kolom Kontak */}
           <div>
             <h4 className="font-semibold mb-4">Kontak Kami</h4>
             <p className="text-sm text-gray-300">Email: support@franchisehub.co.id</p>
