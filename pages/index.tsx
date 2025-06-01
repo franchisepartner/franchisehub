@@ -150,7 +150,7 @@ const Home: NextPage = () => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // 1) Ambil data franchise dari Supabase
+    // Ambil data franchise dari Supabase
     const fetchFranchises = async () => {
       const { data, error } = await supabase
         .from('franchise_listings')
@@ -175,7 +175,7 @@ const Home: NextPage = () => {
     };
     fetchFranchises();
 
-    // Tidak ada efek infinite-scroll di sini
+    // Tidak ada auto-scroll di sini
   }, []);
 
   return (
@@ -185,15 +185,16 @@ const Home: NextPage = () => {
       {/* ===================================== */}
       <section className="relative bg-gray-100">
         <div className="h-96 w-full overflow-hidden relative">
+          {/* Pastikan "banner-franchise.jpg" ada di folder public */}
           <img
-            src="/banner-franchise.jpg"       {/* Pastikan file ada di folder public */}
+            src="/banner-franchise.jpg"
             alt="Banner Franchise"
             className="object-cover w-full h-full brightness-75"
           />
         </div>
       </section>
 
-      {/* Spacer agar konten berikutnya turun */}
+      {/* Spacer agar konten tidak tertutup */}
       <div className="h-24"></div>
 
       {/* ===================================== */}
@@ -260,13 +261,12 @@ const Home: NextPage = () => {
       {/* ===================================== */}
       {/*       Menu Utama (Manual Scroll)      */}
       {/* ===================================== */}
-      <section className="py-4 overflow-x-hidden">
+      <section className="py-4">
         <div
           ref={scrollContainerRef}
           className="flex space-x-8 whitespace-nowrap select-none scroll-smooth no-scrollbar"
           style={{ overflowX: 'auto' }}
         >
-          {/* Menampilkan sekali saja (tanpa duplikasi) */}
           {menuItems.map((item, idx) => (
             <Link key={idx} href={item.href} passHref>
               <a>
@@ -341,7 +341,7 @@ const Home: NextPage = () => {
         }
         .no-scrollbar {
           -ms-overflow-style: none; /* IE and Edge */
-          scrollbar-width: none;    /* Firefox */
+          scrollbar-width: none; /* Firefox */
         }
       `}</style>
     </div>
