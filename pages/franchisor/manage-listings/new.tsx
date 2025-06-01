@@ -100,18 +100,26 @@ export default function NewListing() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Tambah Listing Franchise</h1>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input required name="franchise_name" value={form.franchise_name} onChange={handleChange} placeholder="Nama Franchise" className="input" />
-        <textarea required name="description" value={form.description} onChange={handleChange} placeholder="Deskripsi" className="textarea" />
-        <input required name="category" value={form.category} onChange={handleChange} placeholder="Kategori" className="input" />
-        <input required type="number" name="investment_min" value={form.investment_min} onChange={handleChange} placeholder="Investasi Minimal" className="input" />
-        <input required name="location" value={form.location} onChange={handleChange} placeholder="Lokasi" className="input" />
+    <div className="max-w-3xl mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-6">Tambah Listing Franchise</h1>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input required name="franchise_name" value={form.franchise_name} onChange={handleChange} placeholder="Nama Franchise" className="input w-full" />
+          <input required name="category" value={form.category} onChange={handleChange} placeholder="Kategori" className="input w-full" />
+          <input required type="number" name="investment_min" value={form.investment_min} onChange={handleChange} placeholder="Investasi Minimal" className="input w-full" />
+          <input required name="location" value={form.location} onChange={handleChange} placeholder="Lokasi" className="input w-full" />
+          <input required name="whatsapp_contact" value={form.whatsapp_contact} onChange={handleChange} placeholder="No WhatsApp" className="input w-full" />
+          <input required name="email_contact" value={form.email_contact} onChange={handleChange} placeholder="Email Kontak" className="input w-full" />
+          <input name="website_url" value={form.website_url} onChange={handleChange} placeholder="Website (opsional)" className="input w-full" />
+          <input name="google_maps_url" value={form.google_maps_url} onChange={handleChange} placeholder="Google Maps URL (opsional)" className="input w-full" />
+          <input name="tags" value={form.tags} onChange={handleChange} placeholder="Tag (pisahkan dengan koma)" className="input w-full" />
+        </div>
+
+        <textarea required name="description" value={form.description} onChange={handleChange} placeholder="Deskripsi" className="textarea w-full" rows={4} />
 
         <div>
-          <label className="block font-semibold">Mode Operasional</label>
-          <select required name="operation_mode" value={form.operation_mode} onChange={handleChange} className="select">
+          <label className="block font-semibold mb-1">Mode Operasional</label>
+          <select required name="operation_mode" value={form.operation_mode} onChange={handleChange} className="select w-full">
             <option value="">Pilih...</option>
             <option value="autopilot">Autopilot</option>
             <option value="semi">Semi Autopilot</option>
@@ -119,30 +127,28 @@ export default function NewListing() {
           <p className="text-sm text-gray-500 mt-1">Autopilot berarti mitra tidak perlu ikut terlibat langsung dalam operasional harian. Semi-autopilot berarti mitra tetap punya peran namun sebagian operasional dibantu tim pusat.</p>
         </div>
 
-        <input required name="whatsapp_contact" value={form.whatsapp_contact} onChange={handleChange} placeholder="No WhatsApp" className="input" />
-        <input required name="email_contact" value={form.email_contact} onChange={handleChange} placeholder="Email Kontak" className="input" />
-        <input name="website_url" value={form.website_url} onChange={handleChange} placeholder="Website (opsional)" className="input" />
-        <input name="google_maps_url" value={form.google_maps_url} onChange={handleChange} placeholder="Google Maps URL (opsional)" className="input" />
-
-        <div className="flex gap-4">
-          <label><input type="checkbox" name="dokumen_hukum_sudah_punya" checked={form.dokumen_hukum_sudah_punya} onChange={handleChange} /> Sudah punya dokumen hukum</label>
-          <label><input type="checkbox" name="dokumen_hukum_akan_diurus" checked={form.dokumen_hukum_akan_diurus} onChange={handleChange} /> Akan diurus</label>
+        <div className="flex flex-col md:flex-row gap-6">
+          <label className="flex items-center gap-2">
+            <input type="checkbox" name="dokumen_hukum_sudah_punya" checked={form.dokumen_hukum_sudah_punya} onChange={handleChange} /> Sudah punya dokumen hukum
+          </label>
+          <label className="flex items-center gap-2">
+            <input type="checkbox" name="dokumen_hukum_akan_diurus" checked={form.dokumen_hukum_akan_diurus} onChange={handleChange} /> Akan diurus
+          </label>
         </div>
 
-        <textarea name="notes" value={form.notes} onChange={handleChange} placeholder="Catatan Tambahan (opsional)" className="textarea" />
-        <input name="tags" value={form.tags} onChange={handleChange} placeholder="Tag (pisahkan dengan koma)" className="input" />
+        <textarea name="notes" value={form.notes} onChange={handleChange} placeholder="Catatan Tambahan (opsional)" className="textarea w-full" rows={3} />
 
-        <div>
-          <label className="block">Upload Logo (wajib)</label>
-          <input required type="file" name="logo_file" onChange={handleChange} />
+        <div className="space-y-2">
+          <label className="block font-semibold">Upload Logo (wajib)</label>
+          <input required type="file" name="logo_file" onChange={handleChange} className="file-input file-input-bordered w-full" />
         </div>
 
-        <div>
-          <label className="block">Upload Cover (opsional)</label>
-          <input type="file" name="cover_file" onChange={handleChange} />
+        <div className="space-y-2">
+          <label className="block font-semibold">Upload Cover (opsional)</label>
+          <input type="file" name="cover_file" onChange={handleChange} className="file-input file-input-bordered w-full" />
         </div>
 
-        <button type="submit" disabled={loading} className="btn btn-primary">
+        <button type="submit" disabled={loading} className="btn btn-primary w-full">
           {loading ? 'Menyimpan...' : 'Tambah Listing'}
         </button>
       </form>
