@@ -74,7 +74,7 @@ const Home: NextPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* ========== HEADER (SINGLE NAVBAR) ========== */}
+      {/* ========= HEADER (SINGLE NAVBAR) ========= */}
       <header className="bg-white shadow-sm">
         <div className="container mx-auto flex items-center justify-between py-4 px-6 lg:px-8">
           <div className="flex items-center space-x-4">
@@ -117,7 +117,7 @@ const Home: NextPage = () => {
         </div>
       </header>
 
-      {/* ========== HERO SECTION ========== */}
+      {/* ========= HERO SECTION ========= */}
       <section className="relative bg-gray-100">
         <div className="h-96 w-full overflow-hidden">
           <Image
@@ -190,9 +190,9 @@ const Home: NextPage = () => {
       </section>
 
       {/* Spacer agar konten tidak tertutup hero */}
-      <div className="h-24"></div>
+      <div className="h-24" />
 
-      {/* ========== ICON SHORTCUTS SECTION ========== */}
+      {/* ========= ICON SHORTCUTS SECTION ========= */}
       <section className="container mx-auto px-6 lg:px-8 mt-12">
         <div className="overflow-x-auto no-scrollbar">
           <div className="inline-flex space-x-6">
@@ -330,7 +330,7 @@ const Home: NextPage = () => {
         </div>
       </section>
 
-      {/* ========== DAFTAR FRANCHISE (Grid) ========== */}
+      {/* ========= DAFTAR FRANCHISE (Grid) ========= */}
       <section className="container mx-auto px-6 lg:px-8 mt-16">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Daftar Franchise</h2>
 
@@ -368,14 +368,14 @@ const Home: NextPage = () => {
         )}
       </section>
 
-      {/* ========== FOOTER ========== */}
+      {/* ========= FOOTER ========= */}
       <footer className="mt-20 bg-gray-800 text-white py-12">
         <div className="container mx-auto px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Kolom Tentang */}
           <div>
             <h4 className="font-semibold mb-4">Tentang FranchiseHub</h4>
             <p className="text-sm text-gray-300">
-              FranchiseHub adalah platform terdepan untuk menemukan dan mengelola peluang franchise. 
+              FranchiseHub adalah platform terdepan untuk menemukan dan mengelola peluang franchise.
               Kami memudahkan franchisor dan franchisee bertemu dalam satu ekosistem yang transparan.
             </p>
           </div>
@@ -418,4 +418,18 @@ const Home: NextPage = () => {
               {/* Instagram */}
               <a href="#" className="hover:text-gray-400">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2.163c3.204 0 3.584.012 4.849.07 1.366.062 2.633.313 3.608 1.289.974.975 1.227 2.243 1.289 3.608.058 1.265.069 1.646.069 4.848 0 3.205-.011 3.584-.069 4.849-.062 1.366-.315 2.633-1.289 3.608-.975.974-2.242 1.227-3.608 1.289-1.265.058-1.645.07-4.849.07-3.204 0-3.584-.012-4.849-.07-1.366-.062-2.633-.315-3.608-1.289-.974-.975-1.227-2.242-1
+                  <path d="M12 2.163c3.204 0 3.584.012 4.849.07 1.366.062 2.633.313 3.608 1.289.974.975 1.227 2.243 1.289 3.608.058 1.265.069 1.646.069 4.848 0 3.205-.011 3.584-.069 4.849-.062 1.366-.315 2.633-1.289 3.608-.975.974-2.242 1.227-3.608 1.289-1.265.058-1.645.07-4.849.07-3.204 0-3.584-.012-4.849-.07-1.366-.062-2.633-.315-3.608-1.289-.974-.975-1.227-2.242-1.289-3.608-.058-1.265-.07-1.645-.07-4.849 0-3.205.012-3.584.07-4.849.062-1.366.315-2.633 1.289-3.608.975-.974 2.242-1.227 3.608-1.289 1.265-.058 1.645-.07 4.849-.07M12 0C8.741 0 8.332.014 7.052.072 5.78.13 4.602.346 3.603 1.345 2.605 2.343 2.39 3.52 2.332 4.792.274 6.074.26 6.483.26 12s.014 5.926.072 7.208c.058 1.272.273 2.449 1.271 3.447.998.999 2.175 1.215 3.447 1.273 1.282.058 1.691.072 7.217.072s5.935-.014 7.217-.072c1.272-.058 2.449-.274 3.447-1.273.998-.998 1.214-2.175 1.272-3.447.058-1.282.072-1.691.072-7.217s-.014-5.935-.072-7.217c-.058-1.272-.274-2.449-1.273-3.447C19.65.346 18.473.13 17.201.072 15.919.014 15.51 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zm0 10.162a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 11-2.88 0 1.44 1.44 0 012.88 0z" />
+                </svg>
+              </a>
+            </div>
+          </div>
+        </div>
+        <div className="mt-8 text-center text-sm text-gray-400">
+          &copy; 2025 FranchiseHub. Semua hak dilindungi.
+        </div>
+      </footer>
+    </div>
+  );
+};
+
+export default Home;
