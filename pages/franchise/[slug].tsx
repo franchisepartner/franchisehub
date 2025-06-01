@@ -43,11 +43,11 @@ export default function FranchiseDetail() {
       } else {
         const logoPublicUrl = supabase.storage
           .from('listing-images')
-          .getPublicUrl(data.logo_url).data.publicUrl;
+          .getPublicUrl(`logo/${data.logo_url}`).data.publicUrl;
 
         const coverPublicUrl = supabase.storage
           .from('listing-images')
-          .getPublicUrl(data.cover_url).data.publicUrl;
+          .getPublicUrl(`cover/${data.cover_url}`).data.publicUrl;
 
         setFranchise({ ...data, logo_url: logoPublicUrl, cover_url: coverPublicUrl });
       }
