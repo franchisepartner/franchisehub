@@ -1,9 +1,11 @@
 // File: pages/index.tsx
 
-import { useEffect, useRef, useState } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
+import type { NextPage } from 'next';
+import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import Image from 'next/image';
+import Link from 'next/link';
+import Header from '../components/Header';
 
 interface Franchise {
   id: string;
@@ -16,54 +18,30 @@ interface Franchise {
   slug: string;
 }
 
-export default function Home() {
-  // Daftar franchise
+const Home: NextPage = () => {
   const [franchises, setFranchises] = useState<Franchise[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // Tab pencarian: dijual / disewa / properti baru
   const [tab, setTab] = useState<'dijual' | 'disewa' | 'baru'>('dijual');
+  const [greetingName, setGreetingName] = useState<string | null>(null);
 
-  // Session dan role user
-  const [session, setSession] = useState<any>(null);
-  const [role, setRole] = useState<string>('');
-
-  // Ref untuk container Menu Utama (untuk auto‐scroll)
-  const menuRef = useRef<HTMLDivElement | null>(null);
-
-  // 1) Ambil session dan pasang listener auth-state-change
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-    });
-    supabase.auth.onAuthStateChange((_event, newSession) => {
-      setSession(newSession);
-    });
-  }, []);
-
-  // 2) Jika session ada, ambil role dari tabel profiles
-  useEffect(() => {
-    if (!session || !session.user) {
-      setRole('');
-      return;
-    }
-    async function fetchRole() {
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', session.user.id)
-        .single();
-      if (!error && profile) {
-        setRole(profile.role);
+    // Ambil nama user untuk salam (jika ada)
+    const user = supabase.auth.user();
+    if (user) {
+      const fullName = user.user_metadata?.full_name;
+      const role = user.user_metadata?.role;
+      if (fullName && role) {
+        setGreetingName(`${fullName}_${role}`);
+      } else if (fullName) {
+        setGreetingName(fullName);
       } else {
-        setRole('');
+        setGreetingName(user.email);
       }
     }
-    fetchRole();
-  }, [session]);
+  }, []);
 
-  // 3) Fetch daftar franchise dan convert logo_url→publicUrl
   useEffect(() => {
+    // Fetch daftar franchise
     const fetchFranchises = async () => {
       const { data, error } = await supabase
         .from('franchise_listings')
@@ -73,16 +51,16 @@ export default function Home() {
       if (error) {
         console.error('Error fetching franchises:', error);
       } else if (data) {
-        const withImages = data.map((fr) => ({
-          ...fr,
+        const franchisesWithImages = data.map((franchise) => ({
+          ...franchise,
           logo_url: supabase
             .storage
             .from('listing-images')
-            .getPublicUrl(fr.logo_url)
+            .getPublicUrl(franchise.logo_url)
             .data
             .publicUrl!,
         }));
-        setFranchises(withImages);
+        setFranchises(franchisesWithImages);
       }
       setLoading(false);
     };
@@ -90,132 +68,32 @@ export default function Home() {
     fetchFranchises();
   }, []);
 
-  // 4) Auto‐scroll -> Menu Utama (infinite loop)
-  useEffect(() => {
-    const container = menuRef.current;
-    if (!container) return;
-
-    let scrollInterval: ReturnType<typeof setInterval>;
-
-    const startAutoScroll = () => {
-      const items = container.querySelectorAll<HTMLAnchorElement>('.menu-item');
-      if (items.length === 0) return;
-
-      const style = getComputedStyle(items[0]);
-      // Lebar satu item + margin‐kanan (jika ada)
-      const itemWidth = items[0].offsetWidth + parseInt(style.marginRight || '0');
-
-      scrollInterval = setInterval(() => {
-        if (!container) return;
-
-        const maxScrollLeft = container.scrollWidth - container.clientWidth;
-        // Jika sudah mendekati ujung kanan, kembali ke awal
-        if (container.scrollLeft + itemWidth >= maxScrollLeft + 1) {
-          container.scrollTo({ left: 0, behavior: 'smooth' });
-        } else {
-          container.scrollBy({ left: itemWidth, behavior: 'smooth' });
-        }
-      }, 2500);
-    };
-
-    startAutoScroll();
-    return () => clearInterval(scrollInterval);
-  }, []);
-
-  // 5) Handle logout
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    // Setelah logout, refresh halaman atau redirect ke landing page
-    window.location.href = '/';
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
-      {/*
-        ==============================
-        HEADER (HANYA SATU BAR PUTIH)
-        ==============================
-      */}
-      <header className="bg-white shadow-sm">
-        <div className="container mx-auto flex items-center justify-between py-4 px-6 lg:px-8">
-          {/* Logo / Judul */}
-          <div className="flex items-center space-x-2">
-            <Image
-              src="/logo-franchisehub.svg"   // simpan logo Anda di /public/logo-franchisehub.svg
-              alt="FranchiseHub"
-              width={140}
-              height={32}
-              className="object-contain"
-            />
-          </div>
+      {/* Hanya satu Header (tidak menggandakan navbar) */}
+      <Header greetingName={greetingName} />
 
-          {/* Search Bar (Desktop & Mobile) */}
-          <div className="flex-1 px-6">
-            <input
-              type="text"
-              placeholder="Cari franchise..."
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
-          </div>
-
-          {/* Salam / Akun / Logout */}
-          <div className="flex items-center space-x-4">
-            {session?.user && (
-              <span className="text-sm text-gray-600 italic">
-                Halo, {session.user.user_metadata.full_name || 'User'}{role ? `_${role}` : ''}!
-              </span>
-            )}
-            {session ? (
-              <button
-                onClick={handleLogout}
-                className="text-sm text-red-600 hover:underline"
-              >
-                Logout
-              </button>
-            ) : (
-              <Link
-                href="/login"
-                className="text-sm text-blue-600 hover:underline"
-              >
-                Login
-              </Link>
-            )}
-            {/* Hamburger (hanya mobile) */}
-            <button className="lg:hidden">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/*
-        =======================================
-        HERO SECTION (+ Kotak Pencarian Tabs)
-        =======================================
-      */}
+      {/* Hero Section */}
       <section className="relative bg-gray-100">
-        {/* Banner (pastikan /public/banner-franchise.jpg ada) */}
         <div className="h-96 w-full overflow-hidden">
           <Image
-            src="/banner-franchise.jpg"
+            src="/banner-franchise.jpg"               // Ganti dengan path banner yang Anda miliki di folder public
             alt="Banner Franchise"
             layout="fill"
             objectFit="cover"
             className="brightness-75"
           />
         </div>
-
-        {/* Kotak pencarian (tabs) */}
         <div className="absolute inset-x-0 bottom-0 transform translate-y-1/2 px-6 lg:px-8">
           <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
-            {/* Tabs */}
+            {/* Tabs Pencarian */}
             <div className="flex">
               <button
                 onClick={() => setTab('dijual')}
                 className={`flex-1 py-3 text-center font-medium ${
-                  tab === 'dijual' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
+                  tab === 'dijual'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white text-gray-600 hover:bg-gray-50'
                 }`}
               >
                 Dijual
@@ -223,7 +101,9 @@ export default function Home() {
               <button
                 onClick={() => setTab('disewa')}
                 className={`flex-1 py-3 text-center font-medium ${
-                  tab === 'disewa' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
+                  tab === 'disewa'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white text-gray-600 hover:bg-gray-50'
                 }`}
               >
                 Disewa
@@ -231,14 +111,14 @@ export default function Home() {
               <button
                 onClick={() => setTab('baru')}
                 className={`flex-1 py-3 text-center font-medium ${
-                  tab === 'baru' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
+                  tab === 'baru'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white text-gray-600 hover:bg-gray-50'
                 }`}
               >
                 Properti Baru
               </button>
             </div>
-
-            {/* Form Pencarian */}
             <div className="p-6">
               <form className="flex space-x-4">
                 <input
@@ -264,283 +144,121 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Spacer agar konten di bawah tidak tertutup hero */}
+      {/* Tambahan spacing untuk memastikan konten tidak tertutup */}
       <div className="h-24"></div>
 
-      {/*
-        ===========================
-        MENU UTAMA (SCROLL HORIZONTAL)
-        ===========================
-      */}
+      {/* Icon Shortcuts Section */}
       <section className="container mx-auto px-6 lg:px-8 mt-12">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Menu Utama</h2>
-
-        <div
-          ref={menuRef}
-          className="flex space-x-6 overflow-x-auto scroll-smooth hide-scrollbar pb-2"
-        >
-          {/* 1) Notifikasiku */}
-          <Link href="/notifikasi" passHref>
-            <a className="menu-item flex-shrink-0 flex flex-col items-center">
-              <div className="w-16 h-16 bg-white rounded-full shadow flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 17h5l-1.405-1.405A2.032 
-                       2.032 0 0118 14.158V11a6.002 
-                       6.002 0 00-4-5.659V5a2 2 0 
-                       10-4 0v.341C8.67 6.165 8 
-                       7.388 8 8.75v5.408c0 .538-.214 
-                       1.055-.595 1.436L6 17h9z"
-                  />
-                </svg>
-              </div>
-              <span className="mt-1 text-xs text-gray-700 text-center">
-                Notifikasiku
-              </span>
-            </a>
-          </Link>
-
-          {/* 2) Favoritku */}
-          <Link href="/favorit" passHref>
-            <a className="menu-item flex-shrink-0 flex flex-col items-center">
-              <div className="w-16 h-16 bg-white rounded-full shadow flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <span className="mt-1 text-xs text-gray-700 text-center">
-                Favoritku
-              </span>
-            </a>
-          </Link>
-
-          {/* 3) Forum Global */}
-          <Link href="/forum" passHref>
-            <a className="menu-item flex-shrink-0 flex flex-col items-center">
-              <div className="w-16 h-16 bg-white rounded-full shadow flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 10h.01M12 10h.01M16 
-                       10h.01M21 21l-6-6m-4 0a8 8 0 
-                       10-8-8 8 8 0 008 8z"
-                  />
-                </svg>
-              </div>
-              <span className="mt-1 text-xs text-gray-700 text-center">
-                Forum Global
-              </span>
-            </a>
-          </Link>
-
-          {/* 4) Blog Global */}
-          <Link href="/blog" passHref>
-            <a className="menu-item flex-shrink-0 flex flex-col items-center">
-              <div className="w-16 h-16 bg-white rounded-full shadow flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8c-1.657 0-3 1.343-3 
-                       3v3h6v-3c0-1.657-1.343-3-3-3z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 21h14a2 2 0 002-2v-3a7 
-                       7 0 00-7-7H5a2 2 0 00-2 2v8a2 
-                       2 0 002 2z"
-                  />
-                </svg>
-              </div>
-              <span className="mt-1 text-xs text-gray-700 text-center">
-                Blog Global
-              </span>
-            </a>
-          </Link>
-
-          {/* 5) Pusat Bantuan */}
-          <Link href="/help" passHref>
-            <a className="menu-item flex-shrink-0 flex flex-col items-center">
-              <div className="w-16 h-16 bg-white rounded-full shadow flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M18 10c0 3.866-3.582 
-                       7-8 7-4.418 0-8-3.134-8-7 
-                       0-3.866 3.582-7 8-7 4.418 
-                       0 8 3.134 8 7z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 14v2m0-8v2"
-                  />
-                </svg>
-              </div>
-              <span className="mt-1 text-xs text-gray-700 text-center">
-                Pusat Bantuan
-              </span>
-            </a>
-          </Link>
-
-          {/* 6) Syarat & Ketentuan */}
-          <Link href="/terms" passHref>
-            <a className="menu-item flex-shrink-0 flex flex-col items-center">
-              <div className="w-16 h-16 bg-white rounded-full shadow flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8c-4 0-8 2-8 6 0 4 4 
-                       6 8 6s8-2 8-6c0-4-4-6-8-6z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 12v.01"
-                  />
-                </svg>
-              </div>
-              <span className="mt-1 text-xs text-gray-700 text-center">
-                Syarat & Ketentuan
-              </span>
-            </a>
-          </Link>
-
-          {/* 7) Kebijakan Privasi */}
-          <Link href="/privacy" passHref>
-            <a className="menu-item flex-shrink-0 flex flex-col items-center">
-              <div className="w-16 h-16 bg-white rounded-full shadow flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 11c0-3.866.686-7 3-7s3 
-                       3.134 3 7c0 3.866-3 5-3 5s-3-1.134-3-5z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 3v8"
-                  />
-                </svg>
-              </div>
-              <span className="mt-1 text-xs text-gray-700 text-center">
-                Kebijakan Privasi
-              </span>
-            </a>
-          </Link>
-
-          {/* 8) Jadi Franchisor (jika sudah login) */}
-          {session && (
-            <Link href="/franchisor" passHref>
-              <a className="menu-item flex-shrink-0 flex flex-col items-center">
-                <div className="w-16 h-16 bg-white rounded-full shadow flex items-center justify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M16 7a4 4 0 00-8 0v2H6a2 2 0 
-                         00-2 2v8h16v-8a2 2 0 00-2-2h-2V7z"
-                    />
+        <div className="overflow-x-auto no-scrollbar">
+          <div className="inline-flex space-x-6">
+            {[
+              { label: 'Cari Agen', color: 'text-blue-600', icon: (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2a5 5 0 00-5 5v1H5a2 2 0 00-2 2v2h18v-2a2 2 0 00-2-2h-2V7a5 5 0 00-5-5z" />
+                    <path fillRule="evenodd" d="M4 13v2a6 6 0 006 6h4a6 6 0 006-6v-2H4zm6 1a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1z" clipRule="evenodd" />
                   </svg>
-                </div>
-                <span className="mt-1 text-xs text-gray-700 text-center">
-                  Jadi Franchisor
-                </span>
-              </a>
-            </Link>
-          )}
-
-          {/* 9) Dashboard Admin (jika role Administrator) */}
-          {role === 'Administrator' && (
-            <Link href="/admin" passHref>
-              <a className="menu-item flex-shrink-0 flex flex-col items-center">
-                <div className="w-16 h-16 bg-white rounded-full shadow flex items-center justify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 10h18M3 14h18M3 6h18M3 18h18M7 
-                         6v12"
-                    />
+                )
+              },
+              { label: 'Iklankan Franchise', color: 'text-green-600', icon: (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19 13H5v-2h14v2zm0-6H5v2h14V7zm0 10H5v2h14v-2z" />
                   </svg>
-                </div>
-                <span className="mt-1 text-xs text-gray-700 text-center">
-                  Dashboard Admin
-                </span>
-              </a>
-            </Link>
-          )}
-
-          {/* 10) Dashboard Franchisor (jika role franchisor) */}
-          {role === 'franchisor' && (
-            <Link href="/franchisor/dashboard" passHref>
-              <a className="menu-item flex-shrink-0 flex flex-col items-center">
-                <div className="w-16 h-16 bg-white rounded-full shadow flex items-center justify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 11V5m0 
-                         6l-4-4m4 4l4-4M4 20h16"
-                    />
+                )
+              },
+              { label: 'Jual Franchisemu', color: 'text-orange-600', icon: (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M3 21h18V3H3v18zM5 5h14v14H5V5z" />
+                    <path d="M9 9h6v2H9V9zm0 4h6v2H9v-2z" />
                   </svg>
-                </div>
-                <span className="mt-1 text-xs text-gray-700 text-center">
-                  Dashboard Franchisor
-                </span>
-              </a>
-            </Link>
-          )}
-
-          {/* 11) Login (jika belum login) */}
-          {!session && (
-            <Link href="/login" passHref>
-              <a className="menu-item flex-shrink-0 flex flex-col items-center">
-                <div className="w-16 h-16 bg-white rounded-full shadow flex items-center justify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 12h14m-7-7l7 
-                         7-7 7"
-                    />
+                )
+              },
+              { label: 'Cari Franchise', color: 'text-red-600', icon: (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zM9.5 14C7.02 14 5 11.98 5 9.5S7.02 5 9.5 5 14 7.02 14 9.5 11.98 14 9.5 14z" />
                   </svg>
+                )
+              },
+              { label: 'Simulasi Investasi', color: 'text-purple-600', icon: (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zM5 9V6.19l7-3.11 7 3.11V9c0 4.44-2.79 8.85-7 9.88C7.79 17.85 5 13.44 5 9z" />
+                    <path d="M11 12h2v5h-2zm0-4h2v2h-2z" />
+                  </svg>
+                )
+              },
+              { label: 'Pengumuman Administrator', color: 'text-yellow-600', icon: (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2a10 10 0 00-10 10h2a8 8 0 1116 0h2a10 10 0 00-10-10zM11 14h2v2h-2zm0-8h2v6h-2z" />
+                  </svg>
+                )
+              },
+              { label: 'Notifikasiku', color: 'text-blue-600', icon: (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 1a7 7 0 00-7 7v5.586l-1.707 1.707A1 1 0 004 17h16a1 1 0 00.707-1.707L19 13.586V8a7 7 0 00-7-7zm0 20a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
+                  </svg>
+                )
+              },
+              { label: 'Favoritku', color: 'text-red-600', icon: (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5A5.5 5.5 0 017.5 3a5.452 5.452 0 014.5 2.09A5.452 5.452 0 0116.5 3 5.5 5.5 0 0122 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                  </svg>
+                )
+              },
+              { label: 'Forum Global', color: 'text-green-600', icon: (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2a10 10 0 00-10 10c0 5.523 4.477 10 10 10 1.767 0 3.42-.459 4.842-1.261L22 22l-1.261-5.158A9.953 9.953 0 0022 12c0-5.523-4.477-10-10-10zm-1 11H7l4-4 4 4h-4v4h-2v-4z" />
+                  </svg>
+                )
+              },
+              { label: 'Blog Global', color: 'text-purple-600', icon: (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2zm14 2H5v14h14V5zm-9 11v-1h6v1h-6zm0-3v-1h6v1h-6zm0-3v-1h6v1h-6z" />
+                  </svg>
+                )
+              },
+              { label: 'Pusat Bantuan', color: 'text-blue-600', icon: (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M11 18h2v-2h-2v2zm1-16C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm1 15h-2v-2h2v2zm1.07-7.75l-.9.92C12.45 10.9 12 11.5 12 13h2c0-1 .45-1.5 1.07-2.08l1.2-1.22C16.43 8.14 16 7.5 16 6.5 16 5.12 14.88 4 13.5 4S11 5.12 11 6.5H9C9 4.29 10.79 2.5 13 2.5S17 4.29 17 6.5c0 1.5-.57 2.33-1.93 3.75z" />
+                  </svg>
+                )
+              },
+              { label: 'Syarat & Ketentuan', color: 'text-gray-600', icon: (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2a9.981 9.981 0 00-7.071 2.929 9.981 9.981 0 000 14.142A9.981 9.981 0 0012 22a9.981 9.981 0 007.071-2.929 9.981 9.981 0 000-14.142A9.981 9.981 0 0012 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+                  </svg>
+                )
+              },
+              { label: 'Kebijakan Privasi', color: 'text-gray-600', icon: (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 19c-3.86-1.12-7-4.86-7-9V6.19l7-3.11 7 3.11V11c0 4.14-3.14 7.88-7 9z" />
+                    <path d="M12 8a4 4 0 100 8 4 4 0 000-8zm0 6a2 2 0 110-4 2 2 0 010 4z" />
+                  </svg>
+                )
+              },
+              { label: 'Jadi Franchisor', color: 'text-green-600', icon: (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M4 4h16v2H4z" />
+                    <path d="M6 7h12v13H6z" />
+                    <path d="M9 10v6h6v-6H9z" />
+                  </svg>
+                )
+              },
+            ].map((item, idx) => (
+              <div key={idx} className="flex flex-col items-center mx-2">
+                <div className="bg-white p-4 rounded-full shadow-md">
+                  <button>
+                    {item.icon}
+                  </button>
                 </div>
-                <span className="mt-1 text-xs text-gray-700 text-center">
-                  Login
+                <span className="mt-2 text-xs font-medium text-gray-700 whitespace-nowrap">
+                  {item.label}
                 </span>
-              </a>
-            </Link>
-          )}
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/*
-        ====================================
-        DAFTAR FRANCHISE (GRID 3 KOL)  
-        ====================================
-      */}
+      {/* Daftar Franchise (Grid) */}
       <section className="container mx-auto px-6 lg:px-8 mt-16">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Daftar Franchise</h2>
 
@@ -551,7 +269,6 @@ export default function Home() {
             {franchises.map((fr) => (
               <Link key={fr.id} href={`/franchise/${fr.slug}`} passHref>
                 <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden cursor-pointer">
-                  {/* Thumbnail & Kategori */}
                   <div className="relative h-48">
                     <img
                       src={fr.logo_url}
@@ -580,126 +297,54 @@ export default function Home() {
         )}
       </section>
 
-      {/*
-        ===========================
-        FOOTER
-        ===========================
-      */}
+      {/* Footer (opsional) */}
       <footer className="mt-20 bg-gray-800 text-white py-12">
         <div className="container mx-auto px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Kolom Tentang */}
           <div>
             <h4 className="font-semibold mb-4">Tentang FranchiseHub</h4>
             <p className="text-sm text-gray-300">
-              FranchiseHub adalah platform terdepan untuk menemukan dan mengelola peluang franchise.  
+              FranchiseHub adalah platform terdepan untuk menemukan dan mengelola peluang franchise. 
               Kami memudahkan franchisor dan franchisee bertemu dalam satu ekosistem yang transparan.
             </p>
           </div>
-
-          {/* Kolom Menu Cepat */}
           <div>
             <h4 className="font-semibold mb-4">Menu Cepat</h4>
             <ul className="space-y-2 text-sm text-gray-300">
-              <li>
-                <Link href="#" className="hover:underline">
-                  Cari Agen
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="hover:underline">
-                  Iklankan Franchise
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="hover:underline">
-                  Jual Franchise
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="hover:underline">
-                  Simulasi Investasi
-                </Link>
-              </li>
+              <li><Link href="#" className="hover:underline">Cari Agen</Link></li>
+              <li><Link href="#" className="hover:underline">Iklankan Franchise</Link></li>
+              <li><Link href="#" className="hover:underline">Jual Franchise</Link></li>
+              <li><Link href="#" className="hover:underline">Simulasi Investasi</Link></li>
             </ul>
           </div>
-
-          {/* Kolom Kontak */}
           <div>
             <h4 className="font-semibold mb-4">Kontak Kami</h4>
             <p className="text-sm text-gray-300">Email: support@franchisehub.co.id</p>
             <p className="text-sm text-gray-300">Telepon: +62 812 3456 7890</p>
             <div className="mt-4 flex space-x-4">
-              {/* Facebook */}
               <a href="#" className="hover:text-gray-400">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M22 12c0-5.522-4.478-10-10-10S2 6.478 
-                         2 12c0 4.991 3.656 9.128 8.438 9.879v-6.99
-                         H7.898v-2.889h2.54V9.845c0-2.507 
-                         1.492-3.89 3.777-3.89 1.094 0 2.238.195 
-                         2.238.195v2.463H15.04c-1.263 0-1.658.78
-                         -1.658 1.577v1.897h2.828l-.453 
-                         2.889h-2.375v6.99C18.344 21.128 22 
-                         16.991 22 12z" />
+                  <path d="M22 12c0-5.522-4.478-10-10-10S2 6.478 2 12c0 4.991 3.656 9.128 8.438 9.879v-6.99H7.898v-2.889h2.54V9.845c0-2.507 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.463H15.04c-1.263 0-1.658.78-1.658 1.577v1.897h2.828l-.453 2.889h-2.375v6.99C18.344 21.128 22 16.991 22 12z" />
                 </svg>
               </a>
-              {/* Twitter */}
               <a href="#" className="hover:text-gray-400">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M23.954 4.569c-.885.389-1.83.654-2.825.775
-                         a4.936 4.936 0 002.163-2.724 9.868 
-                         9.868 0 01-3.127 1.195 4.92 4.92 0 00-8.379 
-                         4.482A13.955 13.955 0 011.671 3.149a4.822 
-                         4.822 0 001.523 6.56 4.902 4.902 0 01-2.229-.616
-                         c-.054 2.28 1.581 4.415 3.949 4.89a4.935 
-                         4.935 0 01-2.224.085 4.928 4.928 0 004.604 
-                         3.417A9.867 9.867 0 010 19.54a13.9 13.9 
-                         0 007.548 2.212c9.058 0 14.01-7.507 
-                         14.01-14.01 0-.213 0-.425-.015-.637A10.012 
-                         10.012 0 0024 4.59z" />
+                  <path d="M23.954 4.569c-.885.389-1.83.654-2.825.775a4.936 4.936 0 002.163-2.724 9.868 9.868 0 01-3.127 1.195 4.92 4.92 0 00-8.379 4.482A13.955 13.955 0 011.671 3.149a4.822 4.822 0 001.523 6.56 4.902 4.902 0 01-2.229-.616c-.054 2.28 1.581 4.415 3.949 4.89a4.935 4.935 0 01-2.224.085 4.928 4.928 0 004.604 3.417A9.867 9.867 0 010 19.54a13.9 13.9 0 007.548 2.212c9.058 0 14.01-7.507 14.01-14.01 0-.213 0-.425-.015-.637A10.012 10.012 0 0024 4.59z" />
                 </svg>
               </a>
-              {/* Instagram */}
               <a href="#" className="hover:text-gray-400">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2.163c3.204 0 3.584.012 4.849.07 
-                         1.366.062 2.633.313 3.608 1.289.974.975 
-                         1.227 2.243 1.289 3.608.058 1.265.069 
-                         1.646.069 4.848 0 3.205-.011 3.584-.069 
-                         4.849-.062 1.366-.315 2.633-1.289 3.608
-                         -.975.974-2.242 1.227-3.608 1.289-1.265
-                         .058-1.645.07-4.849.07-3.204 0-3.584
-                         -.012-4.849-.07-1.366-.062-2.633-.315
-                         -3.608-1.289-.974-.975-1.227-2.242
-                         -1.289-3.608-.058-1.265-.07-1.645
-                         -.07-4.849 0-3.205.012-3.584.07-4.849
-                         .062-1.366.315-2.633 1.289-3.608
-                         .975-.974 2.242-1.227 3.608-1.289
-                         1.265-.058 1.645-.07 4.849-.07M12 0
-                         C8.741 0 8.332.014 7.052.072 5.78.13 
-                         4.602.346 3.603 1.345 2.605 2.343 
-                         2.39 3.52 2.332 4.792  .274 6.074 
-                         .26 6.483.26 12s.014 5.926.072 7.208
-                         c.058 1.272.273 2.449 1.271 3.447
-                         .998.999 2.175 1.215 3.447 1.273 
-                         1.282.058 1.691.072 7.217.072s5.935
-                         -.014 7.217-.072c1.272-.058 2.449
-                         -.274 3.447-1.273 .998-.998 1.214
-                         -2.175 1.272-3.447.058-1.282.072
-                         -1.691.072-7.217s-.014-5.935-.072
-                         -7.217c-.058-1.272-.274-2.449
-                         -1.273-3.447C19.65.346 18.473.13
-                         17.201.072 15.919.014 15.51 0 
-                         12 0zm0 5.838a6.162 6.162 0 100 
-                         12.324 6.162 6.162 0 000-12.324zm0 
-                         10.162a4 4 0 110-8 4 4 0 010 8zm6.406
-                         -11.845a1.44 1.44 0 11-2.88 0 1.44 1.44 
-                         0 012.88 0z" />
+                  <path d="M12 2.163c3.204 0 3.584.012 4.849.07 1.366.062 2.633.313 3.608 1.289.974.975 1.227 2.243 1.289 3.608.058 1.265.069 1.646.069 4.848 0 3.205-.011 3.584-.069 4.849-.062 1.366-.315 2.633-1.289 3.608-.975.974-2.242 1.227-3.608 1.289-1.265.058-1.645.07-4.849.07-3.204 0-3.584-.012-4.849-.07-1.366-.062-2.633-.315-3.608-1.289-.974-.975-1.227-2.242-1.289-3.608-.058-1.265-.07-1.645-.07-4.849 0-3.205.012-3.584.07-4.849.062-1.366.315-2.633 1.289-3.608.975-.974 2.242-1.227 3.608-1.289 1.265-.058 1.645-.07 4.849-.07M12 0C8.741 0 8.332.014 7.052.072 5.78.13 4.602.346 3.603 1.345 2.605 2.343 2.39 3.52 2.332 4.792.274 6.074.26 6.483.26 12s.014 5.926.072 7.208c.058 1.272.273 2.449 1.271 3.447.998.999 2.175 1.215 3.447 1.273 1.282.058 1.691.072 7.217.072s5.935-.014 7.217-.072c1.272-.058 2.449-.274 3.447-1.273.998-.998 1.214-2.175 1.272-3.447.058-1.282.072-1.691.072-7.217s-.014-5.935-.072-7.217c-.058-1.272-.274-2.449-1.273-3.447C19.65.346 18.473.13 17.201.072 15.919.014 15.51 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zm0 10.162a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 11-2.88 0 1.44 1.44 0 012.88 0z" />
                 </svg>
               </a>
             </div>
           </div>
         </div>
+        <div className="mt-8 text-center text-sm text-gray-400">
+          &copy; 2025 FranchiseHub. Semua hak dilindungi.
+        </div>
       </footer>
     </div>
   );
-}
+};
+
+export default Home;
