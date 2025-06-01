@@ -9,7 +9,7 @@ import { useRouter } from 'next/router';
 export default function Navbar() {
   const router = useRouter();
 
-  // Jika kita berada di halaman utama (pathname === '/'), jangan render apa-apa.
+  // Jika kita berada di halaman utama ("/"), kita tidak render apa‐apa.
   if (router.pathname === '/') {
     return null;
   }
@@ -19,16 +19,20 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    // Ambil session supabase
+    // Ambil session Supabase
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
-      if (data.session) fetchUserRole(data.session.user.id);
+      if (data.session) {
+        fetchUserRole(data.session.user.id);
+      }
     });
 
     // Listener perubahan auth
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
-      if (session) fetchUserRole(session.user.id);
+      if (session) {
+        fetchUserRole(session.user.id);
+      }
     });
 
     return () => listener?.subscription.unsubscribe();
@@ -53,24 +57,22 @@ export default function Navbar() {
   return (
     <>
       <nav className="w-full bg-white shadow-md px-4 py-3 flex flex-wrap items-center justify-between gap-2 relative z-50">
-        <div className="flex justify-between items-center w-full">
-          {/* Logo / Brand */}
+        {/* Baris pertama: Logo + Tombol Burger */}
+        <div className="flex justify-between items-center w-full lg:w-auto">
           <Link href="/" className="text-xl font-bold text-blue-600">
             FranchiseHub
           </Link>
-
-          {/* Tombol Burger untuk membuka menu full‐screen / offcanvas */}
           <button
             onClick={() => setMenuOpen(true)}
-            className="text-2xl"
+            className="text-2xl lg:hidden"
             aria-label="Open menu"
           >
             ☰
           </button>
         </div>
 
-        {/* Search bar */}
-        <div className="w-full mt-3 lg:mt-0">
+        {/* Search Bar */}
+        <div className="w-full lg:w-auto mt-3 lg:mt-0">
           <input
             type="text"
             placeholder="Cari franchise..."
@@ -78,12 +80,13 @@ export default function Navbar() {
           />
         </div>
 
-        {/* Salam pengguna di kanan bawah bar */}
-        <div className="w-full flex justify-end items-center text-sm mt-2 lg:mt-0">
+        {/* Salam pengguna */}
+        <div className="w-full lg:w-auto flex justify-end items-center text-sm mt-2 lg:mt-0">
           <p className="italic text-gray-500">Halo, {userGreeting}!</p>
         </div>
       </nav>
 
+      {/* Offcanvas / BurgerMenu */}
       <BurgerMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
     </>
   );
