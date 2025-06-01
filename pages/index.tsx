@@ -1,7 +1,7 @@
 // pages/index.tsx
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import Image from 'next/image';
+import Link from 'next/link';
 import { supabase } from '../lib/supabaseClient';
 
 interface Franchise {
@@ -18,6 +18,7 @@ interface Franchise {
 export default function Home() {
   const [franchises, setFranchises] = useState<Franchise[]>([]);
   const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState<'dijual' | 'disewa' | 'baru'>('dijual');
 
   useEffect(() => {
     const fetchFranchises = async () => {
@@ -29,15 +30,15 @@ export default function Home() {
       if (error) {
         console.error('Error fetching franchises:', error);
       } else if (data) {
-        // Konversi setiap logo_url menjadi public URL dari Supabase Storage
         const franchisesWithImages = data.map((franchise) => ({
           ...franchise,
-          logo_url: supabase
-            .storage
-            .from('listing-images')
-            .getPublicUrl(franchise.logo_url)
-            .data
-            .publicUrl!,
+          logo_url:
+            supabase
+              .storage
+              .from('listing-images')
+              .getPublicUrl(franchise.logo_url)
+              .data
+              .publicUrl!,
         }));
         setFranchises(franchisesWithImages);
       }
@@ -47,119 +48,61 @@ export default function Home() {
     fetchFranchises();
   }, []);
 
-  // Data daftar menu utama (ikon–ikon bundar)
-  const menuItems = [
-    {
-      label: 'Notifikasiku',
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M12 2a5 5 0 00-5 5v1H5a2 2 0 00-2 2v2h18v-2a2 2 0 00-2-2h-2V7a5 5 0 00-5-5z" />
-          <path fillRule="evenodd" d="M4 13v2a6 6 0 006 6h4a6 6 0 006-6v-2H4zm6 1a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1z" clipRule="evenodd" />
-        </svg>
-      ),
-    },
-    {
-      label: 'Favoritku',
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-red-600" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-        </svg>
-      ),
-    },
-    {
-      label: 'Forum Global',
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-600" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M12 2C6.48 2 2 5.58 2 10c0 2.4 1.31 4.57 3.5 6.05V22l4.69-3.13C11.11 18.43 11.55 18.45 12 18.45c5.52 0 10-3.58 10-8.45S17.52 2 12 2z" />
-        </svg>
-      ),
-    },
-    {
-      label: 'Blog Global',
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-purple-600" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M3 4v16h18V4H3zm16 14H5V6h14v12z" />
-          <path d="M7 8h10v2H7zm0 4h10v2H7zm0 4h6v2H7z" />
-        </svg>
-      ),
-    },
-    {
-      label: 'Pusat Bantuan',
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-indigo-600" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M12 1C5.925 1 1 5.925 1 12s4.925 11 11 11 11-4.925 11-11S18.075 1 12 1zm0 19a8 8 0 110-16 8 8 0 010 16z" />
-          <path d="M11 10h2v5h-2zm0-3h2v2h-2z" />
-        </svg>
-      ),
-    },
-    {
-      label: 'Syarat & Ketentuan',
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-700" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M7 20h10v-2H7v2zm0-4h10v-2H7v2zm0-4h7v-2H7v2zm0-4h7V6H7v2z" />
-        </svg>
-      ),
-    },
-    {
-      label: 'Kebijakan Privasi',
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-800" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zM5 9V6.19l7-3.11 7 3.11V9c0 4.44-2.79 8.85-7 9.88C7.79 17.85 5 13.44 5 9z" />
-          <path d="M11 12h2v5h-2zm0-4h2v2h-2z" />
-        </svg>
-      ),
-    },
-    {
-      label: 'Jadi Franchisor',
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-600" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M12 2C6.48 2 2 5.91 2 10.5S6.48 19 12 19s10-3.91 10-8.5S17.52 2 12 2zM9 14h6v-2H9v2zm0-4h6V8H9v2z" />
-        </svg>
-      ),
-    },
-  ];
-
   return (
-    <div className="pt-16">
-      {/* ======= BANNER ======= */}
-      <div className="relative h-96 w-full">
+    <div className="w-full">
+      {/* ========== Banner Section ========== */}
+      <div className="relative w-full h-[280px] sm:h-[320px] md:h-[400px] lg:h-[500px]">
         <Image
           src="/banner-franchise.jpg"
           alt="Banner Franchise"
-          layout="fill"
-          objectFit="cover"
-          className="brightness-75"
+          fill
+          className="object-cover brightness-75"
         />
-      </div>
-
-      {/* ======= SEARCH OVERLAY (seperti screenshot rumah123) ======= */}
-      <div className="absolute inset-x-0 bottom-0 transform -translate-y-1/2 px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
-          <div className="flex">
-            <button
-              className="flex-1 py-3 text-center font-medium text-white bg-blue-600"
-              type="button"
-            >
-              Dijual
-            </button>
-            <button
-              className="flex-1 py-3 text-center font-medium text-gray-600 bg-white hover:bg-gray-50"
-              type="button"
-            >
-              Disewa
-            </button>
-            <button
-              className="flex-1 py-3 text-center font-medium text-gray-600 bg-white hover:bg-gray-50"
-              type="button"
-            >
-              Properti Baru
-            </button>
-          </div>
-          <div className="p-6">
-            <form className="flex space-x-4">
+        {/* Overlay text atau heading (opsional) */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <h1 className="text-white text-2xl md:text-4xl font-semibold">Jual Beli Franchise Jadi Mudah</h1>
+        </div>
+        {/* Search form overlay */}
+        <div className="absolute bottom-0 inset-x-0 transform translate-y-1/2 px-4 sm:px-6 lg:px-8">
+          <div className="bg-white rounded-xl shadow-lg p-4 w-full max-w-3xl mx-auto">
+            {/* Tabs */}
+            <div className="flex">
+              <button
+                onClick={() => setTab('dijual')}
+                className={`flex-1 py-3 text-center font-medium rounded-t-xl ${
+                  tab === 'dijual' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                Dijual
+              </button>
+              <button
+                onClick={() => setTab('disewa')}
+                className={`flex-1 py-3 text-center font-medium rounded-t-xl ${
+                  tab === 'disewa' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                Disewa
+              </button>
+              <button
+                onClick={() => setTab('baru')}
+                className={`flex-1 py-3 text-center font-medium rounded-t-xl ${
+                  tab === 'baru' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                Properti Baru
+              </button>
+            </div>
+            {/* Form pencarian */}
+            <form className="mt-4 flex space-x-2">
               <input
                 type="text"
-                placeholder="Cari franchise untuk dijual..."
+                placeholder={
+                  tab === 'dijual'
+                    ? 'Cari franchise untuk dijual...'
+                    : tab === 'disewa'
+                    ? 'Cari franchise untuk disewa...'
+                    : 'Cari properti baru...'
+                }
                 className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
               <button
@@ -173,28 +116,72 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Spacer agar konten tidak tertutup oleh overlay */}
-      <div className="h-48"></div>
+      {/* Spacer agar tidak tertutup overlay */}
+      <div className="h-32 md:h-36"></div>
 
-      {/* ======= MENU UTAMA (Scroll Horizontal Manual) ======= */}
-      <section className="px-6 lg:px-8 mb-12">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">Menu Utama</h2>
-        <div className="flex space-x-6 overflow-x-auto pb-4">
-          {menuItems.map((item) => (
-            <div key={item.label} className="flex flex-col items-center flex-shrink-0">
-              <div className="bg-white p-4 rounded-full shadow-md">
+      {/* ========== Menu Utama (Scrollable horizontally) ========== */}
+      <section className="w-full overflow-x-auto whitespace-nowrap py-6 px-4 sm:px-6 lg:px-8">
+        {/** 
+         * Kelas `overflow-x-auto whitespace-nowrap` membuat konten dapat di-scroll horizontal,
+         * dan elemen-elemen di dalamnya dipaksa berjajar secara inline sehingga terbentuk bar horizontal.
+         */}
+        <div className="inline-flex space-x-6">
+          {[
+            { label: 'Notifikasiku', icon: (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path d="M12 22a2 2 0 002-2H10a2 2 0 002 2zm6-6V9a6 6 0 10-12 0v7l-2 2v1h16v-1l-2-2z"/>
+                </svg>
+              )},
+            { label: 'Favoritku', icon: (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path d="M5 15l7 7 7-7V5a2 2 0 00-2-2h-10a2 2 0 00-2 2v10z"/>
+                </svg>
+              )},
+            { label: 'Forum Global', icon: (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8s-9-3.582-9-8 4.03-8 9-8 9 3.582 9 8z"/>
+                </svg>
+              )},
+            { label: 'Blog Global', icon: (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+              )},
+            { label: 'Pusat Bantuan', icon: (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8s-9-3.582-9-8 4.03-8 9-8 9 3.582 9 8z"/>
+                </svg>
+              )},
+            { label: 'Syarat & Ketentuan', icon: (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path d="M5 5v14h14V5H5z"/>
+                  <path d="M9 9h6v6H9z"/>
+                </svg>
+              )},
+            { label: 'Kebijakan Privasi', icon: (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path d="M12 2L4 6v6c0 5.523 3.582 10 8 10s8-4.477 8-10V6l-8-4z"/>
+                </svg>
+              )},
+            { label: 'Jadi Franchisor', icon: (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path d="M12 8c-1.657 0-3 1.343-3 3 0 3 3 7 3 7s3-4 3-7c0-1.657-1.343-3-3-3z"/>
+                </svg>
+              )},
+            // …tambah item lainnya sesuai kebutuhan
+          ].map((item) => (
+            <div key={item.label} className="inline-flex flex-col items-center justify-center w-24">
+              <div className="bg-white rounded-full shadow-md p-4">
                 {item.icon}
               </div>
-              <span className="mt-2 text-sm text-gray-700 whitespace-nowrap">
-                {item.label}
-              </span>
+              <span className="text-xs text-gray-600 mt-1 text-center">{item.label}</span>
             </div>
           ))}
         </div>
       </section>
 
-      {/* ======= DAFTAR FRANCHISE (Grid) ======= */}
-      <section className="container mx-auto px-6 lg:px-8 mb-16">
+      {/* ========== Daftar Franchise (Grid) ========== */}
+      <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Daftar Franchise</h2>
         {loading ? (
           <p className="text-center text-gray-500">Memuat daftar franchise...</p>
@@ -228,6 +215,46 @@ export default function Home() {
           </div>
         )}
       </section>
+
+      {/* ========== Footer (opsional) ========== */}
+      <footer className="mt-16 bg-gray-800 text-white py-12">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div>
+            <h4 className="font-semibold mb-4">Tentang FranchiseHub</h4>
+            <p className="text-sm text-gray-300">
+              FranchiseHub adalah platform terdepan untuk menemukan dan mengelola peluang franchise.
+            </p>
+          </div>
+          <div>
+            <h4 className="font-semibold mb-4">Menu Cepat</h4>
+            <ul className="space-y-2 text-sm text-gray-300">
+              <li><a href="#" className="hover:underline">Cari Agen</a></li>
+              <li><a href="#" className="hover:underline">Iklankan Franchise</a></li>
+              <li><a href="#" className="hover:underline">Jual Franchise</a></li>
+              <li><a href="#" className="hover:underline">Simulasi Investasi</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-semibold mb-4">Kontak Kami</h4>
+            <p className="text-sm text-gray-300">Email: support@franchisehub.co.id</p>
+            <p className="text-sm text-gray-300">Telepon: +62 812 3456 7890</p>
+            <div className="mt-4 flex space-x-4">
+              <a href="#" className="hover:text-gray-400">
+                {/* Facebook icon */}
+              </a>
+              <a href="#" className="hover:text-gray-400">
+                {/* Twitter icon */}
+              </a>
+              <a href="#" className="hover:text-gray-400">
+                {/* Instagram icon */}
+              </a>
+            </div>
+          </div>
+        </div>
+        <div className="mt-8 text-center text-sm text-gray-400">
+          &copy; 2025 FranchiseHub. Semua hak dilindungi.
+        </div>
+      </footer>
     </div>
   );
 }
