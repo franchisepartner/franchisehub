@@ -50,6 +50,10 @@ export default function FranchiseDetail() {
           .getPublicUrl(`cover/${data.cover_url}`).data.publicUrl;
 
         setFranchise({ ...data, logo_url: logoPublicUrl, cover_url: coverPublicUrl });
+
+        // Tambahkan log berikut untuk melihat URL
+        console.log('Logo URL:', logoPublicUrl);
+        console.log('Cover URL:', coverPublicUrl);
       }
       setLoading(false);
     };
