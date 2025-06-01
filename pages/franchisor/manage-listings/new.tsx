@@ -58,50 +58,46 @@ export default function NewListing() {
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setLoading(true);
+  e.preventDefault();
+  setLoading(true);
 
-    try {
-      const logoPath = form.logo_file ? await uploadImage(form.logo_file, 'logo') : null;
-      const coverPath = form.cover_file ? await uploadImage(form.cover_file, 'cover') : null;
+  try {
+    const logoPath = form.logo_file ? await uploadImage(form.logo_file, 'logo') : null;
+    const coverPath = form.cover_file ? await uploadImage(form.cover_file, 'cover') : null;
 
-      const slug = form.franchise_name.toLowerCase().replace(/\s+/g, '-');
+    const slug = form.franchise_name.toLowerCase().replace(/\s+/g, '-');
 
-      const { error } = await supabase.from('franchise_listings').insert({
-        user_id: user?.id,
-        franchise_name: form.franchise_name,
-        description: form.description,
-        category: form.category,
-        investment_min: parseInt(form.investment_min),
-        location: form.location,
-        operation_mode: form.operation_mode,
-        whatsapp_contact: form.whatsapp_contact,
-        email_contact: form.email_contact,
-        website_url: form.website_url,
-        google_maps_url: form.google_maps_url,
-        dokumen_hukum_sudah_punya: form.dokumen_hukum_sudah_punya,
-        dokumen_hukum_akan_diurus: form.dokumen_hukum_akan_diurus,
-        notes: form.notes,
-        tags: form.tags,
-        slug,
-        logo_url: logoPath,
-        cover_url: coverPath,
-      });
+    const { error } = await supabase.from('franchise_listings').insert({
+      user_id: user?.id,
+      franchise_name: form.franchise_name,
+      description: form.description,
+      category: form.category,
+      investment_min: parseInt(form.investment_min),
+      location: form.location,
+      operation_mode: form.operation_mode,
+      whatsapp_contact: form.whatsapp_contact,
+      email_contact: form.email_contact,
+      website_url: form.website_url,
+      google_maps_url: form.google_maps_url,
+      dokumen_hukum_sudah_punya: form.dokumen_hukum_sudah_punya,
+      dokumen_hukum_akan_diurus: form.dokumen_hukum_akan_diurus,
+      notes: form.notes,
+      tags: form.tags,
+      slug,
+      logo_url: logoPath,
+      cover_url: coverPath,
+    });
 
-      if (error) throw error;
-      alert('Listing berhasil ditambahkan');
-      router.push('/franchisor/manage-listings');
-    } catch (err) {
-        console.error('Error saat menambahkan listing:', err);
-        if (err instanceof Error) {
-          alert(`Gagal menambahkan listing: ${err.message}`);
-        } else {
-          alert('Gagal menambahkan listing karena kesalahan yang tidak diketahui.');
-        }
-    } finally {
-      setLoading(false);
-    }
-  };
+    if (error) throw error;
+    alert('Listing berhasil ditambahkan');
+    router.push('/franchisor/manage-listings');
+  } catch (err: any) {
+    console.error('Error saat menambahkan listing:', err);
+    alert(`Gagal menambahkan listing. Detail Error: ${JSON.stringify(err)}`);
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="max-w-3xl mx-auto p-4">
