@@ -33,13 +33,13 @@ export default function Home() {
       if (error) {
         console.error('Error fetching franchises:', error);
       } else if (data) {
-        // Konversi setiap logo_url menjadi publicUrl dari Supabase Storage
-        const franchisesWithImages = data.map((franchise) => ({
-          ...franchise,
+        // Ubah setiap logo_url menjadi publicUrl dari Supabase Storage
+        const franchisesWithImages = data.map((fr) => ({
+          ...fr,
           logo_url: supabase
             .storage
             .from('listing-images')
-            .getPublicUrl(franchise.logo_url)
+            .getPublicUrl(fr.logo_url)
             .data.publicUrl!,
         }));
         setFranchises(franchisesWithImages);
@@ -52,11 +52,9 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* ====================
-          Banner Franchise (full‐width, tanpa bar putih di atas)
-      ==================== */}
+      {/* ======= Banner Franchise ======= */}
       <section className="relative w-full h-96">
-        {/* Pastikan file banner-franchise.jpg sudah Anda letakkan di folder public/ */}
+        {/* Pastikan banner‐franchise.jpg Anda taruh di folder public/ */}
         <Image
           src="/banner-franchise.jpg"
           alt="Banner Franchise"
@@ -68,9 +66,7 @@ export default function Home() {
       {/* Spacer agar kotak pencarian tidak menempel rapat ke banner */}
       <div className="h-12 lg:h-16"></div>
 
-      {/* ====================
-          Kotak Pencarian (Tabs + Input)
-      ==================== */}
+      {/* ======= Kotak Pencarian (Tabs + Input) ======= */}
       <section className="px-6 lg:px-8">
         <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
           {/* Tabs: Dijual / Disewa / Properti Baru */}
@@ -135,12 +131,9 @@ export default function Home() {
       {/* Spacer kecil */}
       <div className="h-12"></div>
 
-      {/* ====================
-          Menu Utama (Ikon bulat, horizontally scrollable)
-      ==================== */}
+      {/* ======= Menu Utama (Horizontally Scrollable) ======= */}
       <section className="px-6 lg:px-8">
         <h2 className="text-xl font-bold text-gray-800 mb-4">Menu Utama</h2>
-
         <div className="overflow-x-auto">
           <div className="flex space-x-6 pb-2">
             {[
@@ -323,9 +316,7 @@ export default function Home() {
       {/* Spacer kecil */}
       <div className="h-12"></div>
 
-      {/* ====================
-          Daftar Franchise (Grid)
-      ==================== */}
+      {/* ======= Daftar Franchise (Grid) ======= */}
       <section className="px-6 lg:px-8">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Daftar Franchise</h2>
 
