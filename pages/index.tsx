@@ -4,6 +4,12 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { supabase } from '../lib/supabaseClient';
 
+// ==== IMPORT SWIPER ====
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Autoplay, Navigation } from 'swiper';
+import 'swiper/css';
+import 'swiper/css/navigation';
+
 interface Franchise {
   id: string;
   franchise_name: string;
@@ -11,8 +17,8 @@ interface Franchise {
   category: string;
   investment_min: number;
   location: string;
-  logo_url: string; // Ini adalah URL publik gambar logo
-  slug: string;     // Kita akan pakai ini nanti untuk halaman detail
+  logo_url: string; // URL publik gambar logo dari Supabase Storage
+  slug: string;     // Digunakan untuk halaman detail franchise
 }
 
 export default function Home() {
@@ -22,7 +28,7 @@ export default function Home() {
 
   useEffect(() => {
     const fetchFranchises = async () => {
-      // Ambil data dari Supabase (tabel: franchise_listings)
+      // Ambil data list franchise dari Supabase
       const { data, error } = await supabase
         .from('franchise_listings')
         .select('id, franchise_name, description, category, investment_min, location, logo_url, slug')
@@ -31,7 +37,7 @@ export default function Home() {
       if (error) {
         console.error('Error fetching franchises:', error);
       } else if (data) {
-        // Ubah setiap franchise.logo_url menjadi public URL (Supabase Storage)
+        // Konversi setiap franchise.logo_url menjadi URL publik Supabase Storage
         const franchisesWithImages = data.map((franchise) => ({
           ...franchise,
           logo_url:
@@ -52,25 +58,56 @@ export default function Home() {
 
   return (
     <div className="w-full">
-      {/* ========== Banner Section ========== */}
-      <div className="relative w-full h-[280px] sm:h-[320px] md:h-[420px] lg:h-[540px]">
-        <Image
-          src="/banner-franchisehub.PNG"      // Pastikan file ada di public/banner-franchisehub.PNG
-          alt="Banner FranchiseHub"
-          fill
-          className="object-cover brightness-75"
-        />
+      {/* ========== Banner Carousel Section ========== */}
+      <div className="relative w-full h-[280px] sm:h-[320px] md:h-[420px] lg:h-[540px] overflow-hidden">
+        {/* Swiper Carousel */}
+        <Swiper
+          modules={[Autoplay, Navigation]}
+          autoplay={{ delay: 5000, disableOnInteraction: false }}
+          loop={true}
+          navigation
+          className="w-full h-full"
+        >
+          {/* Slide 1 */}
+          <SwiperSlide>
+            <Image
+              src="/banner-franchisehub.PNG"
+              alt="Banner FranchiseHub 1"
+              fill
+              className="object-cover"
+            />
+          </SwiperSlide>
 
-        {/*
-          Jika Anda ingin menambahkan teks overlay lagi nanti, 
-          Anda bisa tempatkan di sini. 
-          Sekarang kita tidak menampilkan teks, jadi bagian ini dihapus.
-        */}
+          {/* Slide 2 */}
+          <SwiperSlide>
+            <Image
+              src="/banner-franchisehub1.PNG"
+              alt="Banner FranchiseHub 2"
+              fill
+              className="object-cover"
+            />
+          </SwiperSlide>
 
-        {/* Search form overlay (menempel pada kurva banner) */}
+          {/* Slide 3 */}
+          <SwiperSlide>
+            <Image
+              src="/banner-franchisehub2.PNG"
+              alt="Banner FranchiseHub 3"
+              fill
+              className="object-cover"
+            />
+          </SwiperSlide>
+
+          {/* Tambahkan <SwiperSlide> lagi di sini jika ada slide tambahan */}
+        </Swiper>
+
+        {/* Curve putih di pojok kiri bawah (mengikuti contoh Rumah123) */}
+        <div className="absolute bottom-0 left-0 w-40 h-20 bg-white rounded-tl-full"></div>
+
+        {/* Search form overlay di bagian bawah banner */}
         <div className="absolute bottom-0 inset-x-0 transform translate-y-1/2 px-4 sm:px-6 lg:px-8">
           <div className="bg-white rounded-xl shadow-lg p-4 w-full max-w-3xl mx-auto">
-            {/* Tabs */}
+            {/* Tabs: Dijual / Disewa / Properti Baru */}
             <div className="flex">
               <button
                 onClick={() => setTab('dijual')}
