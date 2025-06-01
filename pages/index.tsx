@@ -21,7 +21,7 @@ const Home: NextPage = () => {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'dijual' | 'disewa' | 'baru'>('dijual');
 
-  // Contoh daftar menu utama
+  // Daftar menu‐utama (ikon + label + tautan)
   const menuItems = [
     {
       label: 'Notifikasiku',
@@ -103,12 +103,12 @@ const Home: NextPage = () => {
     },
   ];
 
-  // Ref untuk container menu utama
+  // Ref untuk container menu-utama
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number>();
 
   useEffect(() => {
-    // Fetch data franchise dari Supabase
+    // 1) Ambil data franchise dari Supabase
     const fetchFranchises = async () => {
       const { data, error } = await supabase
         .from('franchise_listings')
@@ -124,7 +124,8 @@ const Home: NextPage = () => {
             .storage
             .from('listing-images')
             .getPublicUrl(f.logo_url)
-            .data.publicUrl!,
+            .data
+            .publicUrl!,
         }));
         setFranchises(withImages);
       }
@@ -132,32 +133,32 @@ const Home: NextPage = () => {
     };
     fetchFranchises();
 
-    // ===== Infinite-scroll logic (automatic) =====
+    // 2) Infinite‐scroll logic untuk Menu Utama
     const container = scrollContainerRef.current;
     if (!container) return;
 
     let scrollPos = 0;
-    const speed = 0.5; // scrollLeft bertambah 0.5px per frame
+    const speed = 0.5; // bertambah 0.5px per frame
 
     const step = () => {
       if (!container) return;
       scrollPos += speed;
-      // Jika sudah mencapai setengah keseluruhan scrollWidth, reset ke 0
+
+      // Ketika sudah mencapai setengah panjang scrollWidth, reset ke 0
       if (scrollPos >= container.scrollWidth / 2) {
         scrollPos = 0;
       }
-      // Hanya otomatis scroll jika pengguna tidak sedang scroll secara manual
-      // (kita bisa mendeteksi apakah container.scrollLeft sudah diubah oleh user)
+
+      // Hanya auto-scroll bila cursor TIDAK sedang hover di atas container
       if (!container.matches(':hover')) {
-        // jika kursor tidak sedang hover, lanjut auto-scroll
         container.scrollLeft = scrollPos;
       }
+
       animationRef.current = requestAnimationFrame(step);
     };
 
     animationRef.current = requestAnimationFrame(step);
 
-    // Bersihkan ketika komponen unmount
     return () => {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
@@ -167,7 +168,9 @@ const Home: NextPage = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      {/* ========== Hero Banner ========== */}
+      {/* ===================================== */}
+      {/*        Hero Section (Banner)         */}
+      {/* ===================================== */}
       <section className="relative bg-gray-100">
         <div className="h-96 w-full overflow-hidden relative">
           <img
@@ -178,10 +181,12 @@ const Home: NextPage = () => {
         </div>
       </section>
 
-      {/* Spacer agar konten tidak overlap */}
+      {/* Spacer agar konten berikutnya turun */}
       <div className="h-24"></div>
 
-      {/* ========== Tabs Pencarian ========== */}
+      {/* ===================================== */}
+      {/*            Tabs Pencarian            */}
+      {/* ===================================== */}
       <div className="container mx-auto px-6 lg:px-8">
         <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-12">
           <div className="flex">
@@ -240,14 +245,16 @@ const Home: NextPage = () => {
         </div>
       </div>
 
-      {/* ========== Menu Utama (Infinite + Manual Scroll) ========== */}
-      <section className="py-4 overflow-x-auto">
+      {/* ===================================== */}
+      {/*       Menu Utama (Infinite Scroll)    */}
+      {/* ===================================== */}
+      <section className="py-4 overflow-x-hidden">
         <div
           ref={scrollContainerRef}
-          className="flex space-x-8 whitespace-nowrap select-none scroll-smooth"
+          className="flex space-x-8 whitespace-nowrap select-none scroll-smooth no-scrollbar"
           style={{ overflowX: 'auto' }}
         >
-          {/* Kita gandakan array menuItems agar loop-nya mulus */}
+          {/* Gandakan array agar loop terasa “tanpa batas” */}
           {[...menuItems, ...menuItems].map((item, idx) => (
             <Link key={idx} href={item.href} passHref>
               <a>
@@ -263,7 +270,9 @@ const Home: NextPage = () => {
         </div>
       </section>
 
-      {/* ========== Daftar Franchise ========== */}
+      {/* ===================================== */}
+      {/*            Daftar Franchise          */}
+      {/* ===================================== */}
       <section className="container mx-auto px-6 lg:px-8 mt-12">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Daftar Franchise</h2>
         {loading ? (
@@ -301,12 +310,28 @@ const Home: NextPage = () => {
         )}
       </section>
 
-      {/* ========== Footer ========== */}
+      {/* ===================================== */}
+      {/*                 Footer               */}
+      {/* ===================================== */}
       <footer className="mt-16 bg-gray-800 text-white py-8">
         <div className="container mx-auto px-6 text-center text-sm">
           &copy; 2025 FranchiseHub. Semua hak dilindungi.
         </div>
       </footer>
+
+      {/* ===================================== */}
+      {/*      CSS Global untuk sembunyikan     */}
+      {/*           scrollbar di menu-utama     */}
+      {/* ===================================== */}
+      <style jsx global>{`
+        .no-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .no-scrollbar {
+          -ms-overflow-style: none; /* IE and Edge */
+          scrollbar-width: none; /* Firefox */
+        }
+      `}</style>
     </div>
   );
 };
