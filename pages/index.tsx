@@ -178,11 +178,8 @@ export default function Home() {
                 <span>Logout</span>
               </button>
             ) : (
-              <Link
-                href="/login"
-                className="flex items-center space-x-2 hover:underline"
-              >
-                <a>
+              <Link href="/login" passHref>
+                <a className="flex items-center space-x-2 hover:underline">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="h-5 w-5 text-white"
@@ -280,13 +277,13 @@ export default function Home() {
       <div className="h-24"></div>
 
       {/* =====================================================
-          “Menu Utama” (semua link yang tadinya di hamburger)
+          “Menu Utama” (semua link yang ada di hamburger)
           ===================================================== */}
       <section className="container mx-auto px-6 lg:px-8 mt-12">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Menu Utama</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-8">
           {/* Pengumuman Administrator */}
-          <Link href="/announcement">
+          <Link href="/announcement" passHref>
             <a className="group flex flex-col items-center bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -307,7 +304,7 @@ export default function Home() {
           </Link>
 
           {/* Notifikasiku */}
-          <Link href="/notifikasi">
+          <Link href="/notifikasi" passHref>
             <a className="group flex flex-col items-center bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -328,7 +325,7 @@ export default function Home() {
           </Link>
 
           {/* Favoritku */}
-          <Link href="/favorit">
+          <Link href="/favorit" passHref>
             <a className="group flex flex-col items-center bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -349,7 +346,7 @@ export default function Home() {
           </Link>
 
           {/* Forum Global */}
-          <Link href="/forum">
+          <Link href="/forum" passHref>
             <a className="group flex flex-col items-center bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -370,7 +367,7 @@ export default function Home() {
           </Link>
 
           {/* Blog Global */}
-          <Link href="/blog">
+          <Link href="/blog" passHref>
             <a className="group flex flex-col items-center bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -397,7 +394,7 @@ export default function Home() {
           </Link>
 
           {/* Pusat Bantuan */}
-          <Link href="/help">
+          <Link href="/help" passHref>
             <a className="group flex flex-col items-center bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -424,7 +421,7 @@ export default function Home() {
           </Link>
 
           {/* Syarat & Ketentuan */}
-          <Link href="/terms">
+          <Link href="/terms" passHref>
             <a className="group flex flex-col items-center bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -451,7 +448,7 @@ export default function Home() {
           </Link>
 
           {/* Kebijakan Privasi */}
-          <Link href="/privacy">
+          <Link href="/privacy" passHref>
             <a className="group flex flex-col items-center bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -479,7 +476,7 @@ export default function Home() {
 
           {/* Dashboard Administrator (hanya untuk role “Administrator”) */}
           {role === 'Administrator' && (
-            <Link href="/admin">
+            <Link href="/admin" passHref>
               <a className="group flex flex-col items-center bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -502,7 +499,7 @@ export default function Home() {
 
           {/* Dashboard Franchisor (hanya untuk role “franchisor”) */}
           {role === 'franchisor' && (
-            <Link href="/franchisor/dashboard">
+            <Link href="/franchisor/dashboard" passHref>
               <a className="group flex flex-col items-center bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -525,7 +522,7 @@ export default function Home() {
 
           {/* Jadi Franchisor (untuk semua user yang sudah login) */}
           {session && (
-            <Link href="/franchisor">
+            <Link href="/franchisor" passHref>
               <a className="group flex flex-col items-center bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -548,7 +545,7 @@ export default function Home() {
 
           {/* Login (jika belum login) */}
           {!session && (
-            <Link href="/login">
+            <Link href="/login" passHref>
               <a className="group flex flex-col items-center bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -628,22 +625,22 @@ export default function Home() {
             <h4 className="font-semibold mb-4">Menu Cepat</h4>
             <ul className="space-y-2 text-sm text-gray-300">
               <li>
-                <Link href="#">
+                <Link href="#" passHref>
                   <a className="hover:underline">Cari Agen</a>
                 </Link>
               </li>
               <li>
-                <Link href="#">
+                <Link href="#" passHref>
                   <a className="hover:underline">Iklankan Franchise</a>
                 </Link>
               </li>
               <li>
-                <Link href="#">
+                <Link href="#" passHref>
                   <a className="hover:underline">Jual Franchise</a>
                 </Link>
               </li>
               <li>
-                <Link href="#">
+                <Link href="#" passHref>
                   <a className="hover:underline">Simulasi Investasi</a>
                 </Link>
               </li>
@@ -695,8 +692,8 @@ export default function Home() {
           <div className="mt-8 text-center text-sm text-gray-400">
             &copy; 2025 FranchiseHub. Semua hak dilindungi.
           </div>
-        </footer>
-      </div>
+        </div>
+      </footer>
     </div>
   );
 }
