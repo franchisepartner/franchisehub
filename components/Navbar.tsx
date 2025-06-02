@@ -51,12 +51,12 @@ export default function Navbar() {
 
   // Siapa nama yang akan disapa
   const userGreeting = session
-    ? `${session.user?.user_metadata?.full_name || 'User'}_${role}`
+    ? ${session.user?.user_metadata?.full_name || 'User'}_${role}
     : 'Calon Franchisee';
 
   return (
     <>
-      <nav className={`w-full px-4 py-3 flex items-center justify-between relative z-50 ${router.pathname === '/login' ? 'bg-transparent shadow-none' : 'bg-white shadow-md'}`}>
+      <nav className="w-full bg-white shadow-md px-4 py-3 flex items-center justify-between relative z-50">
         {/* =========== KIRI: Logo (diperbesar menjadi 44×44) =========== */}
         <div className="flex-shrink-0">
           <Link href="/" passHref>
