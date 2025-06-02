@@ -97,14 +97,15 @@ export default function Home() {
 
         {/* ======= KOTAK SEARCH ======= */}
         <div className="absolute left-1/2 transform -translate-x-1/2 -bottom-10 w-full max-w-3xl px-4 sm:px-6 lg:px-8 z-50">
-          <div className="bg-white rounded-xl shadow-lg p-4">
-            {/* Logo kecil di atas kolom pencarian */}
-            <div className="absolute -top-12 left-1/2 -translate-x-1/2">
+          <div className="bg-white rounded-xl shadow-lg p-4 relative">
+            {/* Logo kecil di kanan atas tombol pencarian */}
+            <div className="absolute -top-12 right-4">
               <Image
                 src="/22C6DD46-5682-4FDD-998B-710D24A74856.png"
                 alt="Logo FranchiseHub"
                 width={60}
                 height={60}
+                className="rounded-t-full rounded-b-none object-cover shadow-md"
               />
             </div>
             <form className="flex space-x-2">
@@ -119,8 +120,7 @@ export default function Home() {
               >
                 Cari
               </button>
-            </form>
-          </div>
+           </form>
         </div>
       </div>
 
