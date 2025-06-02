@@ -99,7 +99,7 @@ export default function Home() {
         <div className="absolute left-1/2 transform -translate-x-1/2 -bottom-10 w-full max-w-3xl px-4 sm:px-6 lg:px-8 z-50">
           <div className="bg-white rounded-xl shadow-lg p-4 relative">
             {/* Logo kecil di kanan atas tombol pencarian */}
-            <div className="absolute -top-12 right-4 bg-white rounded-t-full overflow-hidden shadow-md">
+            <div className="absolute -top-12 right-3 bg-white rounded-t-full overflow-hidden shadow-md">
               <Image
                 src="/22C6DD46-5682-4FDD-998B-710D24A74856.png"
                 alt="Logo FranchiseHub"
