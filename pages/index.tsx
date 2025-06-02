@@ -17,8 +17,8 @@ interface Franchise {
   category: string;
   investment_min: number;
   location: string;
-  logo_url: string;
-  slug: string;
+  logo_url: string; // URL publik gambar logo dari Supabase Storage
+  slug: string;     // Digunakan untuk halaman detail franchise
 }
 
 export default function Home() {
@@ -36,6 +36,7 @@ export default function Home() {
       if (error) {
         console.error('Error fetching franchises:', error);
       } else if (data) {
+        // Konversi setiap franchise.logo_url menjadi URL publik Supabase Storage
         const franchisesWithImages = data.map((franchise) => ({
           ...franchise,
           logo_url:
@@ -55,37 +56,6 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="relative min-h-screen bg-gray-50">
-      {/* ========== NAVBAR ========== */}
-      <header className="sticky top-0 bg-white shadow-sm z-30">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-          {/* Logo */}
-          <div className="flex items-center">
-            <Image
-              src="/logo-franchisehub.png"
-              alt="Logo FranchiseHub"
-              width={128}
-              height={32}
-            />
-          </div>
-          {/* Teks & Hamburger */}
-          <div className="flex items-center space-x-4">
-            <span className="text-gray-700 whitespace-nowrap">Halo, Rio Kadek_administrator!</span>
-            <button className="sm:hidden focus:outline-none">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-gray-700"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      </header>
-
       {/* ========== BANNER + CAROUSEL ========== */}
       <div className="relative w-full h-[240px] sm:h-[280px] md:h-[360px] lg:h-[420px] overflow-hidden">
         <Swiper
@@ -121,10 +91,14 @@ export default function Home() {
           </SwiperSlide>
         </Swiper>
 
-        {/* Curve putih di pojok kiri bawah */}
+        {/* Curve putih di pojok kiri bawah (supaya terlihat seperti Rumah123) */}
         <div className="absolute bottom-0 left-0 w-40 h-20 bg-white rounded-tl-full"></div>
 
-        {/* ========== Kotak Search ========== */}
+        {/* ========== KOTAK SEARCH ========== */}
+        {/* 
+          - Kita posisikan di bottom banner dengan translate -50% 
+          - Beri z-index lebih tinggi dari bar ikon
+        */}
         <div className="absolute left-1/2 transform -translate-x-1/2 -bottom-10 w-full max-w-3xl px-4 sm:px-6 lg:px-8 z-20">
           <div className="bg-white rounded-xl shadow-lg p-4">
             <form className="flex space-x-2">
@@ -144,8 +118,13 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ========== BAR IKON UTAMA (Setelah banner + search) ========== */}
-      <section className="relative -mt-8 bg-white z-10 drop-shadow-md">
+      {/* 
+        ========== BAR IKON UTAMA ==========
+        Kita hapus negative margin, lalu beri margin-top cukup untuk "menjaga jarak"
+        agar bar ini tetap tepat di bawah kotak search. 
+        Karena kotak search di-translateY(-10), cukup gunakan mt-16 atau mt-20.
+      */}
+      <section className="relative mt-20 bg-white z-10 drop-shadow-md">
         <div className="overflow-x-auto whitespace-nowrap py-6 px-4 sm:px-6 lg:px-8">
           <div className="inline-flex space-x-6 items-center">
             {/* Notifikasiku */}
@@ -299,13 +278,15 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ========== MODAL KALKULATOR ========== */}
+      {/* ========== MODAL KALKULATOR ==========
+            Muncul di atas semua konten */}
       <CalculatorModal
         show={showCalculatorModal}
         setShow={setShowCalculatorModal}
       />
 
-      {/* ========== DAFTAR FRANCHISE ========== */}
+      {/* ========== DAFTAR FRANCHISE ==========
+            Berdiri setelah bar ikon */}
       <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8 pb-12">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Daftar Franchise</h2>
         {loading ? (
