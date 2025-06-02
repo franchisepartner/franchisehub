@@ -96,7 +96,7 @@ export default function Home() {
         <div className="absolute bottom-0 left-0 w-40 h-20 bg-white rounded-tl-full"></div>
 
         {/* ======= KOTAK SEARCH ======= */}
-        <div className="absolute left-1/2 transform -translate-x-1/2 -bottom-10 w-full max-w-3xl px-4 sm:px-6 lg:px-8 z-50">
+        <div className="absolute left-1/2 transform -translate-x-1/2 -bottom-10 w-full max-w-3xl px-4 sm:px-6 lg:px-8 z-20">
           <div className="bg-white rounded-xl shadow-lg p-4 relative">
             {/* Logo kecil di kanan atas tombol pencarian */}
             <div className="absolute -top-12 right-6 bg-white rounded-t-full overflow-hidden shadow-md">
