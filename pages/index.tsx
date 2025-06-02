@@ -58,7 +58,7 @@ export default function Home() {
   return (
     <div className="relative min-h-screen bg-gray-50">
       {/* ======= BANNER + CAROUSEL ======= */}
-      <div className="relative w-full h-[300px] sm:h-[340px] md:h-[420px] lg:h-[500px] overflow-visible pb-16">
+      <div className="relative w-full h-[300px] sm:h-[340px] md:h-[420px] lg:h-[500px] overflow-visible pb-20 bg-white"">
         <Swiper
           modules={[Autoplay, Navigation]}
           autoplay={{ delay: 5000, disableOnInteraction: false }}
