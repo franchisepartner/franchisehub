@@ -120,8 +120,9 @@ export default function Home() {
               >
                 Cari
               </button>
-           </form>
-        </div>
+             </form>
+           </div>
+         </div>
       </div>
 
       {/* ======= BAR IKON UTAMA ======= */}
