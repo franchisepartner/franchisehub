@@ -22,15 +22,11 @@ interface Franchise {
 }
 
 export default function Home() {
-  // State untuk data franchise dari Supabase
   const [franchises, setFranchises] = useState<Franchise[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // State untuk menampilkan/menyembunyikan modal kalkulator
   const [showCalculatorModal, setShowCalculatorModal] = useState(false);
 
   useEffect(() => {
-    // Fungsi untuk fetch data franchise dari Supabase
     const fetchFranchises = async () => {
       const { data, error } = await supabase
         .from('franchise_listings')
@@ -40,7 +36,6 @@ export default function Home() {
       if (error) {
         console.error('Error fetching franchises:', error);
       } else if (data) {
-        // Konversi path logo_url menjadi URL publik Supabase Storage
         const franchisesWithImages = data.map((franchise) => ({
           ...franchise,
           logo_url:
@@ -61,12 +56,38 @@ export default function Home() {
 
   return (
     <div className="w-full bg-gray-50 min-h-screen">
-      {/* ========== Navbar (jika ada) ========== */}
-      {/* Anda bisa menambahkan header/navbar di sini jika diperlukan */}
+      {/* ================== HEADER / NAVBAR ================== */}
+      <header className="bg-white shadow-sm">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+          {/* Logo FranchiseHub */}
+          <div className="flex items-center">
+            <Image
+              src="/logo-franchisehub.png"
+              alt="Logo FranchiseHub"
+              width={128}
+              height={32}
+            />
+          </div>
+          {/* Teks Sambutan / Menu Burger */}
+          <div className="flex items-center space-x-4">
+            <span className="text-gray-700">Halo, Rio Kadek_administrator!</span>
+            <button className="sm:hidden focus:outline-none">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6 text-gray-700"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </header>
 
-      {/* ========== Banner + Search Form Overlay ========== */}
+      {/* ================== BANNER + CAROUSEL ================== */}
       <div className="relative w-full h-[240px] sm:h-[280px] md:h-[360px] lg:h-[420px] overflow-hidden">
-        {/* Swiper Carousel */}
         <Swiper
           modules={[Autoplay, Navigation]}
           autoplay={{ delay: 5000, disableOnInteraction: false }}
@@ -74,7 +95,6 @@ export default function Home() {
           navigation
           className="w-full h-full"
         >
-          {/* Slide 1 */}
           <SwiperSlide>
             <Image
               src="/banner-franchisehub.PNG"
@@ -83,8 +103,6 @@ export default function Home() {
               className="object-cover"
             />
           </SwiperSlide>
-
-          {/* Slide 2 */}
           <SwiperSlide>
             <Image
               src="/banner-franchisehub1.PNG"
@@ -93,8 +111,6 @@ export default function Home() {
               className="object-cover"
             />
           </SwiperSlide>
-
-          {/* Slide 3 */}
           <SwiperSlide>
             <Image
               src="/banner-franchisehub2.PNG"
@@ -108,12 +124,8 @@ export default function Home() {
         {/* Curve putih di pojok kiri bawah */}
         <div className="absolute bottom-0 left-0 w-40 h-20 bg-white rounded-tl-full"></div>
 
-        {/* ========== Search Form Overlay (inline style untuk translate lebih rendah) ========== */}
-        <div
-          className="absolute bottom-0 inset-x-0 px-4 sm:px-6 lg:px-8 z-20"
-          // translateY(60%) → mendorong kotak search lebih jauh ke bawah
-          style={{ transform: 'translateY(60%)' }}
-        >
+        {/* ===== Search Form Overlay (negative bottom) ===== */}
+        <div className="absolute left-0 right-0 -bottom-8 px-4 sm:px-6 lg:px-8 z-20">
           <div className="bg-white rounded-xl shadow-lg p-4 w-full max-w-3xl mx-auto">
             <form className="flex space-x-2">
               <input
@@ -132,10 +144,10 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Spacer agar menu ikon tidak tertutup oleh search form yang melayang */}
-      <div className="pt-14 md:pt-16 lg:pt-20"></div>
+      {/* Spacer agar bar ikon tidak tertutup oleh kotak search */}
+      <div className="pt-20 md:pt-24 lg:pt-28"></div>
 
-      {/* ========== Menu Ikon Utama (Mobil Scroll) ========== */}
+      {/* ================== MENU IKON UTAMA ================== */}
       <section className="w-full overflow-x-auto whitespace-nowrap py-6 px-4 sm:px-6 lg:px-8 bg-white drop-shadow-sm">
         <div className="inline-flex space-x-6 items-center">
           {/* Notifikasiku */}
@@ -267,7 +279,7 @@ export default function Home() {
             <span className="text-xs text-gray-600 mt-1 text-center">Jadi Franchisor</span>
           </div>
 
-          {/* Kalkulator (klik untuk memunculkan modal) */}
+          {/* Kalkulator */}
           <div
             className="inline-flex flex-col items-center cursor-pointer w-20"
             onClick={() => setShowCalculatorModal(true)}
@@ -293,13 +305,13 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ========== Modal Kalkulator ========== */}
+      {/* ================== MODAL KALKULATOR ================== */}
       <CalculatorModal
         show={showCalculatorModal}
         setShow={setShowCalculatorModal}
       />
 
-      {/* ========== Daftar Franchise (Grid) ========== */}
+      {/* ================== DAFTAR FRANCHISE (GRID) ================== */}
       <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Daftar Franchise</h2>
         {loading ? (
@@ -335,7 +347,7 @@ export default function Home() {
         )}
       </section>
 
-      {/* ========== Footer ========== */}
+      {/* ================== FOOTER ================== */}
       <footer className="mt-16 bg-gray-800 text-white py-12">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
@@ -372,24 +384,16 @@ export default function Home() {
   );
 }
 
-/**
- * Komponen Modal Kalkulator
- * Props:
- *   - show: boolean — apakah modal ditampilkan
- *   - setShow: (val: boolean) => void — fungsi untuk menutup modal
- */
+/** Komponen Modal Kalkulator */
 interface CalculatorModalProps {
   show: boolean;
   setShow: (val: boolean) => void;
 }
-
 function CalculatorModal({ show, setShow }: CalculatorModalProps) {
   if (!show) return null;
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
       <div className="bg-white rounded-xl shadow-xl w-11/12 max-w-md mx-auto p-6 relative">
-        {/* Tombol Tutup */}
         <button
           onClick={() => setShow(false)}
           className="absolute top-3 right-3 text-gray-600 hover:text-gray-900"
@@ -404,8 +408,6 @@ function CalculatorModal({ show, setShow }: CalculatorModalProps) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
-
-        {/* Isi Kalkulator Sederhana */}
         <h2 className="text-xl font-semibold mb-4 text-gray-800">Kalkulator Sederhana</h2>
         <Calculator />
       </div>
@@ -413,11 +415,7 @@ function CalculatorModal({ show, setShow }: CalculatorModalProps) {
   );
 }
 
-/**
- * Komponen Kalkulator Sederhana
- * Hanya contoh dasar: menampilkan input angka dan tombol-tombol dasar (+, −, ×, ÷, =)
- * Anda bisa menggantinya dengan kalkulator yang lebih lengkap sesuai kebutuhan.
- */
+/** Komponen Kalkulator Sederhana */
 function Calculator() {
   const [display, setDisplay] = useState<string>('0');
 
@@ -426,7 +424,6 @@ function Calculator() {
       setDisplay('0');
     } else if (val === '=') {
       try {
-        // Ganti tanda × menjadi *, ÷ menjadi /
         const sanitized = display.replace(/×/g, '*').replace(/÷/g, '/');
         // eslint-disable-next-line no-eval
         const result = eval(sanitized);
@@ -443,7 +440,6 @@ function Calculator() {
     }
   };
 
-  // Tombol-tombol yang akan ditampilkan
   const buttons: string[][] = [
     ['7', '8', '9', '÷'],
     ['4', '5', '6', '×'],
@@ -454,12 +450,9 @@ function Calculator() {
 
   return (
     <div className="flex flex-col items-center">
-      {/* Display */}
       <div className="w-full bg-gray-100 rounded-md p-3 text-right text-2xl font-mono mb-4">
         {display}
       </div>
-
-      {/* Grid Tombol */}
       <div className="w-full grid grid-cols-4 gap-2">
         {buttons.flat().map((btn, idx) => {
           if (btn === '') {
