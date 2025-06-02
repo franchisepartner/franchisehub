@@ -10,8 +10,8 @@ import { Autoplay, Navigation } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 
-// ==== IMPORT CALCULATOR ====
-import Calculator from '../components/Calculator';
+// ==== IMPORT COMPONENT CALCULATOR MODAL ====
+import CalculatorModal from '../components/CalculatorModal';
 
 interface Franchise {
   id: string;
@@ -20,13 +20,16 @@ interface Franchise {
   category: string;
   investment_min: number;
   location: string;
-  logo_url: string; // URL publik gambar logo dari Supabase Storage
-  slug: string;     // Digunakan untuk halaman detail franchise
+  logo_url: string; // URL publik gambar logo
+  slug: string;     // untuk halaman detail
 }
 
 export default function Home() {
   const [franchises, setFranchises] = useState<Franchise[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // State untuk men‐show/menutup modal kalkulator
+  const [showCalculatorModal, setShowCalculatorModal] = useState(false);
 
   useEffect(() => {
     const fetchFranchises = async () => {
@@ -38,7 +41,6 @@ export default function Home() {
       if (error) {
         console.error('Error fetching franchises:', error);
       } else if (data) {
-        // Konversi setiap franchise.logo_url menjadi URL publik Supabase Storage
         const franchisesWithImages = data.map((franchise) => ({
           ...franchise,
           logo_url:
@@ -53,7 +55,6 @@ export default function Home() {
       }
       setLoading(false);
     };
-
     fetchFranchises();
   }, []);
 
@@ -78,7 +79,6 @@ export default function Home() {
               className="object-cover"
             />
           </SwiperSlide>
-
           {/* Slide 2 */}
           <SwiperSlide>
             <Image
@@ -88,7 +88,6 @@ export default function Home() {
               className="object-cover"
             />
           </SwiperSlide>
-
           {/* Slide 3 */}
           <SwiperSlide>
             <Image
@@ -98,77 +97,37 @@ export default function Home() {
               className="object-cover"
             />
           </SwiperSlide>
-
-          {/* Tambahkan <SwiperSlide> lagi jika ingin slide tambahan */}
         </Swiper>
 
         {/* Curve putih di pojok kiri bawah (mengikuti gaya Rumah123) */}
         <div className="absolute bottom-0 left-0 w-40 h-20 bg-white rounded-tl-full"></div>
 
-        {/* ========== Search Form Overlay dengan Kalkulator & Logo ========== */}
+        {/* ========== Search Form Overlay ========== */}
         <div className="absolute bottom-0 inset-x-0 transform translate-y-1/2 px-4 sm:px-6 lg:px-8 z-20">
-          <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-4xl mx-auto">
-            {/* Baris Kalkulator + Logo */}
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-              {/* Kalkulator (komponen) */}
-              <div className="w-full md:w-2/3">
-                <Calculator />
-              </div>
-
-              {/* Logo FranchiseHub */}
-              <div className="hidden md:flex justify-center items-center md:w-1/3">
-                {/* 
-                  Pastikan file logo Anda berada di folder /public.
-                  Contoh nama file: /public/franchisehub-logo.png 
-                */}
-                <Image
-                  src="/franchisehub-logo.png"
-                  alt="FranchiseHub Logo"
-                  width={200}
-                  height={80}
-                  objectFit="contain"
-                />
-              </div>
-
-              {/* Untuk tampilan mobile, kita tampilkan logo di bawah kalkulator */}
-              <div className="flex md:hidden justify-center items-center mt-4">
-                <Image
-                  src="/franchisehub-logo.png"
-                  alt="FranchiseHub Logo"
-                  width={160}
-                  height={60}
-                  objectFit="contain"
-                />
-              </div>
-            </div>
-
-            {/* ========== Spacer kecil ========== */}
-            <div className="my-4 border-t border-gray-200"></div>
-
-            {/* Form Pencarian */}
-            <div className="flex flex-col md:flex-row items-center gap-3">
+          <div className="bg-white rounded-xl shadow-lg p-4 w-full max-w-3xl mx-auto">
+            <form className="flex space-x-2">
               <input
                 type="text"
                 placeholder="Cari franchise untuk dijual..."
-                className="w-full md:flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
               <button
                 type="submit"
-                className="w-full md:w-auto px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
               >
                 Cari
               </button>
-            </div>
+            </form>
           </div>
         </div>
       </div>
 
-      {/* Spacer agar konten berikutnya (Menu Utama) tidak tertutup overlay */}
+      {/* Spacer agar konten dasar tidak tertutup */}
       <div className="h-24 md:h-28 lg:h-32"></div>
 
-      {/* ========== Menu Utama (Scrollable horizontally) ========== */}
+      {/* ========== Menu Utama (Ikon‐ikon) ========== */}
       <section className="w-full overflow-x-auto whitespace-nowrap py-6 px-4 sm:px-6 lg:px-8">
-        <div className="inline-flex space-x-6">
+        <div className="inline-flex space-x-6 items-center">
           {[
             {
               label: 'Notifikasiku',
@@ -177,6 +136,7 @@ export default function Home() {
                   <path d="M12 22a2 2 0 002-2H10a2 2 0 002 2zm6-6V9a6 6 0 10-12 0v7l-2 2v1h16v-1l-2-2z" />
                 </svg>
               ),
+              href: '#',
             },
             {
               label: 'Favoritku',
@@ -185,6 +145,7 @@ export default function Home() {
                   <path d="M5 15l7 7 7-7V5a2 2 0 00-2-2h-10a2 2 0 00-2 2v10z" />
                 </svg>
               ),
+              href: '#',
             },
             {
               label: 'Forum Global',
@@ -193,6 +154,7 @@ export default function Home() {
                   <path d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8s-9-3.582-9-8 4.03-8 9-8 9 3.582 9 8z" />
                 </svg>
               ),
+              href: '#',
             },
             {
               label: 'Blog Global',
@@ -201,6 +163,7 @@ export default function Home() {
                   <path d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               ),
+              href: '#',
             },
             {
               label: 'Pusat Bantuan',
@@ -209,6 +172,7 @@ export default function Home() {
                   <path d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8s-9-3.582-9-8 4.03-8 9-8 9 3.582 9 8z" />
                 </svg>
               ),
+              href: '#',
             },
             {
               label: 'Syarat & Ketentuan',
@@ -218,6 +182,7 @@ export default function Home() {
                   <path d="M9 9h6v6H9z" />
                 </svg>
               ),
+              href: '#',
             },
             {
               label: 'Kebijakan Privasi',
@@ -226,6 +191,7 @@ export default function Home() {
                   <path d="M12 2L4 6v6c0 5.523 3.582 10 8 10s8-4.477 8-10V6l-8-4z" />
                 </svg>
               ),
+              href: '#',
             },
             {
               label: 'Jadi Franchisor',
@@ -234,15 +200,46 @@ export default function Home() {
                   <path d="M12 8c-1.657 0-3 1.343-3 3 0 3 3 7 3 7s3-4 3-7c0-1.657-1.343-3-3-3z" />
                 </svg>
               ),
+              href: '#',
+            },
+            {
+              label: 'Kalkulator',
+              icon: (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 2h8a2 2 0 012 2v16a2 2 0 01-2 2H8a2 2 0 01-2-2V4a2 2 0 012-2zm2 4h4m-4 4h4m-4 4h4m-4 4h4"
+                  />
+                </svg>
+              ),
+              onClick: () => {
+                setShowCalculatorModal(true);
+              },
             },
           ].map((item) => (
-            <div key={item.label} className="inline-flex flex-col items-center justify-center w-24">
-              <div className="bg-white rounded-full shadow-md p-4">{item.icon}</div>
-              <span className="text-xs text-gray-600 mt-1 text-center">{item.label}</span>
+            <div
+              key={item.label}
+              className="inline-flex flex-col items-center justify-center w-24 cursor-pointer"
+              onClick={() => item.onClick && item.onClick()}
+            >
+              <div className="bg-white rounded-full shadow-md p-3">
+                {item.icon}
+              </div>
+              <span className="text-xs text-gray-600 mt-1 text-center">
+                {item.label}
+              </span>
             </div>
           ))}
         </div>
       </section>
+
+      {/* Modal Kalkulator (muncul hanya jika showCalculatorModal = true) */}
+      <CalculatorModal
+        show={showCalculatorModal}
+        setShow={setShowCalculatorModal}
+      />
 
       {/* ========== Daftar Franchise (Grid) ========== */}
       <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8">
