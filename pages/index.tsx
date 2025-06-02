@@ -108,8 +108,12 @@ export default function Home() {
         {/* Curve putih di pojok kiri bawah */}
         <div className="absolute bottom-0 left-0 w-40 h-20 bg-white rounded-tl-full"></div>
 
-        {/* Search Form (overlay) */}
-        <div className="absolute bottom-0 inset-x-0 transform -translate-y-1/2 px-4 sm:px-6 lg:px-8 z-20">
+        {/* ========== Search Form Overlay (inline style untuk translate lebih rendah) ========== */}
+        <div
+          className="absolute bottom-0 inset-x-0 px-4 sm:px-6 lg:px-8 z-20"
+          // translateY(60%) → mendorong kotak search lebih jauh ke bawah
+          style={{ transform: 'translateY(60%)' }}
+        >
           <div className="bg-white rounded-xl shadow-lg p-4 w-full max-w-3xl mx-auto">
             <form className="flex space-x-2">
               <input
@@ -129,7 +133,7 @@ export default function Home() {
       </div>
 
       {/* Spacer agar menu ikon tidak tertutup oleh search form yang melayang */}
-      <div className="pt-8 md:pt-10 lg:pt-12"></div>
+      <div className="pt-14 md:pt-16 lg:pt-20"></div>
 
       {/* ========== Menu Ikon Utama (Mobil Scroll) ========== */}
       <section className="w-full overflow-x-auto whitespace-nowrap py-6 px-4 sm:px-6 lg:px-8 bg-white drop-shadow-sm">
@@ -404,7 +408,6 @@ function CalculatorModal({ show, setShow }: CalculatorModalProps) {
         {/* Isi Kalkulator Sederhana */}
         <h2 className="text-xl font-semibold mb-4 text-gray-800">Kalkulator Sederhana</h2>
         <Calculator />
-
       </div>
     </div>
   );
@@ -423,9 +426,7 @@ function Calculator() {
       setDisplay('0');
     } else if (val === '=') {
       try {
-        // Gunakan eval() dengan hati-hati — di aplikasi nyata sebaiknya gunakan parser matematika yang lebih aman
         // Ganti tanda × menjadi *, ÷ menjadi /
-        // contohnya: 2×3 → 2*3
         const sanitized = display.replace(/×/g, '*').replace(/÷/g, '/');
         // eslint-disable-next-line no-eval
         const result = eval(sanitized);
@@ -434,7 +435,6 @@ function Calculator() {
         setDisplay('Error');
       }
     } else {
-      // Jika awalnya "0", ganti, bukan tambahkan
       if (display === '0') {
         setDisplay(val);
       } else {
@@ -462,7 +462,6 @@ function Calculator() {
       {/* Grid Tombol */}
       <div className="w-full grid grid-cols-4 gap-2">
         {buttons.flat().map((btn, idx) => {
-          // Jika string kosong, tampilkan kotak kosong
           if (btn === '') {
             return <div key={idx} />;
           }
