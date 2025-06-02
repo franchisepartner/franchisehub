@@ -28,7 +28,6 @@ export default function Home() {
 
   useEffect(() => {
     const fetchFranchises = async () => {
-      // Ambil data list franchise dari Supabase
       const { data, error } = await supabase
         .from('franchise_listings')
         .select('id, franchise_name, description, category, investment_min, location, logo_url, slug')
@@ -98,14 +97,14 @@ export default function Home() {
             />
           </SwiperSlide>
 
-          {/* Tambahkan <SwiperSlide> lagi di sini jika ada slide tambahan */}
+          {/* Tambahkan <SwiperSlide> lagi jika ingin slide tambahan */}
         </Swiper>
 
-        {/* Curve putih di pojok kiri bawah (mengikuti contoh Rumah123) */}
+        {/* Curve putih di pojok kiri bawah (mengikuti gaya Rumah123) */}
         <div className="absolute bottom-0 left-0 w-40 h-20 bg-white rounded-tl-full"></div>
 
-        {/* Search form overlay di bagian bawah banner */}
-        <div className="absolute bottom-0 inset-x-0 transform translate-y-1/2 px-4 sm:px-6 lg:px-8">
+        {/* ========== Search Form Overlay (diberi z-index agar tetap di atas carousel) ========== */}
+        <div className="absolute bottom-0 inset-x-0 transform translate-y-1/2 px-4 sm:px-6 lg:px-8 z-20">
           <div className="bg-white rounded-xl shadow-lg p-4 w-full max-w-3xl mx-auto">
             {/* Tabs: Dijual / Disewa / Properti Baru */}
             <div className="flex">
@@ -175,7 +174,7 @@ export default function Home() {
               label: 'Notifikasiku',
               icon: (
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path d="M12 22a2 2 0 002-2H10a2 2 0 002 2zm6-6V9a6 6 0 10-12 0v7l-2 2v1h16v-1l-2-2z"/>
+                  <path d="M12 22a2 2 0 002-2H10a2 2 0 002 2zm6-6V9a6 6 0 10-12 0v7l-2 2v1h16v-1l-2-2z" />
                 </svg>
               ),
             },
@@ -183,7 +182,7 @@ export default function Home() {
               label: 'Favoritku',
               icon: (
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path d="M5 15l7 7 7-7V5a2 2 0 00-2-2h-10a2 2 0 00-2 2v10z"/>
+                  <path d="M5 15l7 7 7-7V5a2 2 0 00-2-2h-10a2 2 0 00-2 2v10z" />
                 </svg>
               ),
             },
@@ -191,7 +190,7 @@ export default function Home() {
               label: 'Forum Global',
               icon: (
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8s-9-3.582-9-8 4.03-8 9-8 9 3.582 9 8z"/>
+                  <path d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8s-9-3.582-9-8 4.03-8 9-8 9 3.582 9 8z" />
                 </svg>
               ),
             },
@@ -199,7 +198,7 @@ export default function Home() {
               label: 'Blog Global',
               icon: (
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path d="M4 6h16M4 12h16M4 18h16"/>
+                  <path d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               ),
             },
@@ -207,7 +206,7 @@ export default function Home() {
               label: 'Pusat Bantuan',
               icon: (
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8s-9-3.582-9-8 4.03-8 9-8 9 3.582 9 8z"/>
+                  <path d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8s-9-3.582-9-8 4.03-8 9-8 9 3.582 9 8z" />
                 </svg>
               ),
             },
@@ -215,8 +214,8 @@ export default function Home() {
               label: 'Syarat & Ketentuan',
               icon: (
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path d="M5 5v14h14V5H5z"/>
-                  <path d="M9 9h6v6H9z"/>
+                  <path d="M5 5v14h14V5H5z" />
+                  <path d="M9 9h6v6H9z" />
                 </svg>
               ),
             },
@@ -224,7 +223,7 @@ export default function Home() {
               label: 'Kebijakan Privasi',
               icon: (
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path d="M12 2L4 6v6c0 5.523 3.582 10 8 10s8-4.477 8-10V6l-8-4z"/>
+                  <path d="M12 2L4 6v6c0 5.523 3.582 10 8 10s8-4.477 8-10V6l-8-4z" />
                 </svg>
               ),
             },
@@ -232,21 +231,14 @@ export default function Home() {
               label: 'Jadi Franchisor',
               icon: (
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path d="M12 8c-1.657 0-3 1.343-3 3 0 3 3 7 3 7s3-4 3-7c0-1.657-1.343-3-3-3z"/>
+                  <path d="M12 8c-1.657 0-3 1.343-3 3 0 3 3 7 3 7s3-4 3-7c0-1.657-1.343-3-3-3z" />
                 </svg>
               ),
             },
           ].map((item) => (
-            <div
-              key={item.label}
-              className="inline-flex flex-col items-center justify-center w-24"
-            >
-              <div className="bg-white rounded-full shadow-md p-4">
-                {item.icon}
-              </div>
-              <span className="text-xs text-gray-600 mt-1 text-center">
-                {item.label}
-              </span>
+            <div key={item.label} className="inline-flex flex-col items-center justify-center w-24">
+              <div className="bg-white rounded-full shadow-md p-4">{item.icon}</div>
+              <span className="text-xs text-gray-600 mt-1 text-center">{item.label}</span>
             </div>
           ))}
         </div>
@@ -324,22 +316,12 @@ export default function Home() {
           </div>
           <div>
             <h4 className="font-semibold mb-4">Kontak Kami</h4>
-            <p className="text-sm text-gray-300">
-              Email: support@franchisehub.co.id
-            </p>
-            <p className="text-sm text-gray-300">
-              Telepon: +62 812 3456 7890
-            </p>
+            <p className="text-sm text-gray-300">Email: support@franchisehub.co.id</p>
+            <p className="text-sm text-gray-300">Telepon: +62 812 3456 7890</p>
             <div className="mt-4 flex space-x-4">
-              <a href="#" className="hover:text-gray-400">
-                {/* Facebook */}
-              </a>
-              <a href="#" className="hover:text-gray-400">
-                {/* Twitter */}
-              </a>
-              <a href="#" className="hover:text-gray-400">
-                {/* Instagram */}
-              </a>
+              <a href="#" className="hover:text-gray-400">{/* Facebook */}</a>
+              <a href="#" className="hover:text-gray-400">{/* Twitter */}</a>
+              <a href="#" className="hover:text-gray-400">{/* Instagram */}</a>
             </div>
           </div>
         </div>
