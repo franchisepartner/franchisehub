@@ -10,9 +10,6 @@ import { Autoplay, Navigation } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 
-// ==== IMPORT COMPONENT CALCULATOR MODAL ====
-import CalculatorModal from '../components/CalculatorModal';
-
 interface Franchise {
   id: string;
   franchise_name: string;
@@ -20,18 +17,20 @@ interface Franchise {
   category: string;
   investment_min: number;
   location: string;
-  logo_url: string; // URL publik gambar logo
-  slug: string;     // untuk halaman detail
+  logo_url: string; // URL publik gambar logo dari Supabase Storage
+  slug: string;     // Digunakan untuk halaman detail franchise
 }
 
 export default function Home() {
+  // State untuk data franchise dari Supabase
   const [franchises, setFranchises] = useState<Franchise[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // State untuk men‐show/menutup modal kalkulator
+  // State untuk menampilkan/menyembunyikan modal kalkulator
   const [showCalculatorModal, setShowCalculatorModal] = useState(false);
 
   useEffect(() => {
+    // Fungsi untuk fetch data franchise dari Supabase
     const fetchFranchises = async () => {
       const { data, error } = await supabase
         .from('franchise_listings')
@@ -41,6 +40,7 @@ export default function Home() {
       if (error) {
         console.error('Error fetching franchises:', error);
       } else if (data) {
+        // Konversi path logo_url menjadi URL publik Supabase Storage
         const franchisesWithImages = data.map((franchise) => ({
           ...franchise,
           logo_url:
@@ -55,12 +55,16 @@ export default function Home() {
       }
       setLoading(false);
     };
+
     fetchFranchises();
   }, []);
 
   return (
-    <div className="w-full">
-      {/* ========== Banner Carousel Section ========== */}
+    <div className="w-full bg-gray-50 min-h-screen">
+      {/* ========== Navbar (jika ada) ========== */}
+      {/* Anda bisa menambahkan header/navbar di sini jika diperlukan */}
+
+      {/* ========== Banner + Search Form Overlay ========== */}
       <div className="relative w-full h-[240px] sm:h-[280px] md:h-[360px] lg:h-[420px] overflow-hidden">
         {/* Swiper Carousel */}
         <Swiper
@@ -79,6 +83,7 @@ export default function Home() {
               className="object-cover"
             />
           </SwiperSlide>
+
           {/* Slide 2 */}
           <SwiperSlide>
             <Image
@@ -88,6 +93,7 @@ export default function Home() {
               className="object-cover"
             />
           </SwiperSlide>
+
           {/* Slide 3 */}
           <SwiperSlide>
             <Image
@@ -99,11 +105,11 @@ export default function Home() {
           </SwiperSlide>
         </Swiper>
 
-        {/* Curve putih di pojok kiri bawah (mengikuti gaya Rumah123) */}
+        {/* Curve putih di pojok kiri bawah */}
         <div className="absolute bottom-0 left-0 w-40 h-20 bg-white rounded-tl-full"></div>
 
-        {/* ========== Search Form Overlay ========== */}
-        <div className="absolute bottom-0 inset-x-0 transform -translate-y-1/4 px-4 sm:px-6 lg:px-8 z-20">
+        {/* Search Form (overlay) */}
+        <div className="absolute bottom-0 inset-x-0 transform -translate-y-1/2 px-4 sm:px-6 lg:px-8 z-20">
           <div className="bg-white rounded-xl shadow-lg p-4 w-full max-w-3xl mx-auto">
             <form className="flex space-x-2">
               <input
@@ -122,120 +128,168 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Spacer agar isi berikutnya (menu ikon) tidak tertutup overlay search form */}
-      <div className="pt-16 md:pt-20 lg:pt-24"></div>
+      {/* Spacer agar menu ikon tidak tertutup oleh search form yang melayang */}
+      <div className="pt-8 md:pt-10 lg:pt-12"></div>
 
-      {/* ========== Menu Utama (Ikon‐ikon) ========== */}
-      <section className="w-full overflow-x-auto whitespace-nowrap py-6 px-4 sm:px-6 lg:px-8">
+      {/* ========== Menu Ikon Utama (Mobil Scroll) ========== */}
+      <section className="w-full overflow-x-auto whitespace-nowrap py-6 px-4 sm:px-6 lg:px-8 bg-white drop-shadow-sm">
         <div className="inline-flex space-x-6 items-center">
-          {[
-            {
-              label: 'Notifikasiku',
-              icon: (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path d="M12 22a2 2 0 002-2H10a2 2 0 002 2zm6-6V9a6 6 0 10-12 0v7l-2 2v1h16v-1l-2-2z" />
-                </svg>
-              ),
-              href: '#',
-            },
-            {
-              label: 'Favoritku',
-              icon: (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path d="M5 15l7 7 7-7V5a2 2 0 00-2-2h-10a2 2 0 00-2 2v10z" />
-                </svg>
-              ),
-              href: '#',
-            },
-            {
-              label: 'Forum Global',
-              icon: (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8s-9-3.582-9-8 4.03-8 9-8 9 3.582 9 8z" />
-                </svg>
-              ),
-              href: '#',
-            },
-            {
-              label: 'Blog Global',
-              icon: (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              ),
-              href: '#',
-            },
-            {
-              label: 'Pusat Bantuan',
-              icon: (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8s-9-3.582-9-8 4.03-8 9-8 9 3.582 9 8z" />
-                </svg>
-              ),
-              href: '#',
-            },
-            {
-              label: 'Syarat & Ketentuan',
-              icon: (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path d="M5 5v14h14V5H5z" />
-                  <path d="M9 9h6v6H9z" />
-                </svg>
-              ),
-              href: '#',
-            },
-            {
-              label: 'Kebijakan Privasi',
-              icon: (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path d="M12 2L4 6v6c0 5.523 3.582 10 8 10s8-4.477 8-10V6l-8-4z" />
-                </svg>
-              ),
-              href: '#',
-            },
-            {
-              label: 'Jadi Franchisor',
-              icon: (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path d="M12 8c-1.657 0-3 1.343-3 3 0 3 3 7 3 7s3-4 3-7c0-1.657-1.343-3-3-3z" />
-                </svg>
-              ),
-              href: '#',
-            },
-            {
-              label: 'Kalkulator',
-              icon: (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 2h8a2 2 0 012 2v16a2 2 0 01-2 2H8a2 2 0 01-2-2V4a2 2 0 012-2zm2 4h4m-4 4h4m-4 4h4m-4 4h4"
-                  />
-                </svg>
-              ),
-              onClick: () => {
-                setShowCalculatorModal(true);
-              },
-            },
-          ].map((item) => (
-            <div
-              key={item.label}
-              className="inline-flex flex-col items-center justify-center w-24 cursor-pointer"
-              onClick={() => item.onClick && item.onClick()}
-            >
-              <div className="bg-white rounded-full shadow-md p-3">
-                {item.icon}
-              </div>
-              <span className="text-xs text-gray-600 mt-1 text-center">
-                {item.label}
-              </span>
+          {/* Notifikasiku */}
+          <div className="inline-flex flex-col items-center cursor-pointer w-20">
+            <div className="bg-white rounded-full shadow p-3">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6 text-blue-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path d="M12 22a2 2 0 002-2H10a2 2 0 002 2zm6-6V9a6 6 0 10-12 0v7l-2 2v1h16v-1l-2-2z" />
+              </svg>
             </div>
-          ))}
+            <span className="text-xs text-gray-600 mt-1 text-center">Notifikasiku</span>
+          </div>
+
+          {/* Favoritku */}
+          <div className="inline-flex flex-col items-center cursor-pointer w-20">
+            <div className="bg-white rounded-full shadow p-3">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6 text-red-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path d="M5 15l7 7 7-7V5a2 2 0 00-2-2h-10a2 2 0 00-2 2v10z" />
+              </svg>
+            </div>
+            <span className="text-xs text-gray-600 mt-1 text-center">Favoritku</span>
+          </div>
+
+          {/* Forum Global */}
+          <div className="inline-flex flex-col items-center cursor-pointer w-20">
+            <div className="bg-white rounded-full shadow p-3">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6 text-green-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8s-9-3.582-9-8 4.03-8 9-8 9 3.582 9 8z" />
+              </svg>
+            </div>
+            <span className="text-xs text-gray-600 mt-1 text-center">Forum Global</span>
+          </div>
+
+          {/* Blog Global */}
+          <div className="inline-flex flex-col items-center cursor-pointer w-20">
+            <div className="bg-white rounded-full shadow p-3">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6 text-purple-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </div>
+            <span className="text-xs text-gray-600 mt-1 text-center">Blog Global</span>
+          </div>
+
+          {/* Pusat Bantuan */}
+          <div className="inline-flex flex-col items-center cursor-pointer w-20">
+            <div className="bg-white rounded-full shadow p-3">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6 text-indigo-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8s-9-3.582-9-8 4.03-8 9-8 9 3.582 9 8z" />
+              </svg>
+            </div>
+            <span className="text-xs text-gray-600 mt-1 text-center">Pusat Bantuan</span>
+          </div>
+
+          {/* Syarat & Ketentuan */}
+          <div className="inline-flex flex-col items-center cursor-pointer w-20">
+            <div className="bg-white rounded-full shadow p-3">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6 text-gray-700"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path d="M5 5v14h14V5H5z" />
+                <path d="M9 9h6v6H9z" />
+              </svg>
+            </div>
+            <span className="text-xs text-gray-600 mt-1 text-center">Syarat & Ketentuan</span>
+          </div>
+
+          {/* Kebijakan Privasi */}
+          <div className="inline-flex flex-col items-center cursor-pointer w-20">
+            <div className="bg-white rounded-full shadow p-3">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6 text-green-700"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path d="M12 2L4 6v6c0 5.523 3.582 10 8 10s8-4.477 8-10V6l-8-4z" />
+              </svg>
+            </div>
+            <span className="text-xs text-gray-600 mt-1 text-center">Kebijakan Privasi</span>
+          </div>
+
+          {/* Jadi Franchisor */}
+          <div className="inline-flex flex-col items-center cursor-pointer w-20">
+            <div className="bg-white rounded-full shadow p-3">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6 text-teal-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path d="M12 8c-1.657 0-3 1.343-3 3 0 3 3 7 3 7s3-4 3-7c0-1.657-1.343-3-3-3z" />
+              </svg>
+            </div>
+            <span className="text-xs text-gray-600 mt-1 text-center">Jadi Franchisor</span>
+          </div>
+
+          {/* Kalkulator (klik untuk memunculkan modal) */}
+          <div
+            className="inline-flex flex-col items-center cursor-pointer w-20"
+            onClick={() => setShowCalculatorModal(true)}
+          >
+            <div className="bg-white rounded-full shadow p-3">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6 text-gray-800"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8 2h8a2 2 0 012 2v16a2 2 0 01-2 2H8a2 2 0 01-2-2V4a2 2 0 012-2zm2 4h4m-4 4h4m-4 4h4m-4 4h4"
+                />
+              </svg>
+            </div>
+            <span className="text-xs text-gray-600 mt-1 text-center">Kalkulator</span>
+          </div>
         </div>
       </section>
 
-      {/* Modal Kalkulator (muncul hanya jika showCalculatorModal = true) */}
+      {/* ========== Modal Kalkulator ========== */}
       <CalculatorModal
         show={showCalculatorModal}
         setShow={setShowCalculatorModal}
@@ -289,26 +343,10 @@ export default function Home() {
           <div>
             <h4 className="font-semibold mb-4">Menu Cepat</h4>
             <ul className="space-y-2 text-sm text-gray-300">
-              <li>
-                <a href="#" className="hover:underline">
-                  Cari Agen
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:underline">
-                  Iklankan Franchise
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:underline">
-                  Jual Franchise
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:underline">
-                  Simulasi Investasi
-                </a>
-              </li>
+              <li><a href="#" className="hover:underline">Cari Agen</a></li>
+              <li><a href="#" className="hover:underline">Iklankan Franchise</a></li>
+              <li><a href="#" className="hover:underline">Jual Franchise</a></li>
+              <li><a href="#" className="hover:underline">Simulasi Investasi</a></li>
             </ul>
           </div>
           <div>
@@ -317,8 +355,8 @@ export default function Home() {
             <p className="text-sm text-gray-300">Telepon: +62 812 3456 7890</p>
             <div className="mt-4 flex space-x-4">
               <a href="#" className="hover:text-gray-400">{/* Facebook */}</a>
-              <a href="#" className="hover:text-gray-400">{/* Twitter */}</a>
-              <a href="#" className="hover:text-gray-400">{/* Instagram */}</a>
+              <a href="#" className="hover:text-gray-400">{/* Twitter  */}</a>
+              <a href="#" className="hover:text-gray-400">{/* Instagram*/}</a>
             </div>
           </div>
         </div>
@@ -326,6 +364,119 @@ export default function Home() {
           &copy; 2025 FranchiseHub. Semua hak dilindungi.
         </div>
       </footer>
+    </div>
+  );
+}
+
+/**
+ * Komponen Modal Kalkulator
+ * Props:
+ *   - show: boolean — apakah modal ditampilkan
+ *   - setShow: (val: boolean) => void — fungsi untuk menutup modal
+ */
+interface CalculatorModalProps {
+  show: boolean;
+  setShow: (val: boolean) => void;
+}
+
+function CalculatorModal({ show, setShow }: CalculatorModalProps) {
+  if (!show) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+      <div className="bg-white rounded-xl shadow-xl w-11/12 max-w-md mx-auto p-6 relative">
+        {/* Tombol Tutup */}
+        <button
+          onClick={() => setShow(false)}
+          className="absolute top-3 right-3 text-gray-600 hover:text-gray-900"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        {/* Isi Kalkulator Sederhana */}
+        <h2 className="text-xl font-semibold mb-4 text-gray-800">Kalkulator Sederhana</h2>
+        <Calculator />
+
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Komponen Kalkulator Sederhana
+ * Hanya contoh dasar: menampilkan input angka dan tombol-tombol dasar (+, −, ×, ÷, =)
+ * Anda bisa menggantinya dengan kalkulator yang lebih lengkap sesuai kebutuhan.
+ */
+function Calculator() {
+  const [display, setDisplay] = useState<string>('0');
+
+  const handleButton = (val: string) => {
+    if (val === 'C') {
+      setDisplay('0');
+    } else if (val === '=') {
+      try {
+        // Gunakan eval() dengan hati-hati — di aplikasi nyata sebaiknya gunakan parser matematika yang lebih aman
+        // Ganti tanda × menjadi *, ÷ menjadi /
+        // contohnya: 2×3 → 2*3
+        const sanitized = display.replace(/×/g, '*').replace(/÷/g, '/');
+        // eslint-disable-next-line no-eval
+        const result = eval(sanitized);
+        setDisplay(String(result));
+      } catch {
+        setDisplay('Error');
+      }
+    } else {
+      // Jika awalnya "0", ganti, bukan tambahkan
+      if (display === '0') {
+        setDisplay(val);
+      } else {
+        setDisplay(display + val);
+      }
+    }
+  };
+
+  // Tombol-tombol yang akan ditampilkan
+  const buttons: string[][] = [
+    ['7', '8', '9', '÷'],
+    ['4', '5', '6', '×'],
+    ['1', '2', '3', '-'],
+    ['0', '.', 'C', '+'],
+    ['(', ')', '=', '']
+  ];
+
+  return (
+    <div className="flex flex-col items-center">
+      {/* Display */}
+      <div className="w-full bg-gray-100 rounded-md p-3 text-right text-2xl font-mono mb-4">
+        {display}
+      </div>
+
+      {/* Grid Tombol */}
+      <div className="w-full grid grid-cols-4 gap-2">
+        {buttons.flat().map((btn, idx) => {
+          // Jika string kosong, tampilkan kotak kosong
+          if (btn === '') {
+            return <div key={idx} />;
+          }
+          return (
+            <button
+              key={idx}
+              onClick={() => handleButton(btn)}
+              className="bg-gray-200 hover:bg-gray-300 rounded-md py-2 text-lg font-medium"
+            >
+              {btn}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
