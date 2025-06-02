@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabaseClient';
 
 // ==== IMPORT SWIPER ====
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay, Navigation } from 'swiper';
+import { Autoplay, Navigation } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 
