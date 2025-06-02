@@ -28,6 +28,7 @@ export default function Home() {
 
   useEffect(() => {
     const fetchFranchises = async () => {
+      // Ambil data list franchise dari Supabase
       const { data, error } = await supabase
         .from('franchise_listings')
         .select('id, franchise_name, description, category, investment_min, location, logo_url, slug')
@@ -57,9 +58,11 @@ export default function Home() {
 
   return (
     <div className="w-full">
-      {/* ========== Banner Carousel Section ========== */}
+      {/* =============================
+          SECTION: Banner Carousel + Kurva
+         ============================= */}
       <div className="relative w-full h-[280px] sm:h-[320px] md:h-[420px] lg:h-[540px] overflow-hidden">
-        {/* Swiper Carousel */}
+        {/* ==== Swiper Carousel ==== */}
         <Swiper
           modules={[Autoplay, Navigation]}
           autoplay={{ delay: 5000, disableOnInteraction: false }}
@@ -97,76 +100,86 @@ export default function Home() {
             />
           </SwiperSlide>
 
-          {/* Tambahkan <SwiperSlide> lagi jika ingin slide tambahan */}
+          {/* Tambahkan <SwiperSlide> lagi bila ada gambar tambahan */}
         </Swiper>
 
-        {/* Curve putih di pojok kiri bawah (mengikuti gaya Rumah123) */}
+        {/* ==== Kurva putih di pojok kiri bawah ==== */}
         <div className="absolute bottom-0 left-0 w-40 h-20 bg-white rounded-tl-full"></div>
+      </div>
 
-        {/* ========== Search Form Overlay (diberi z-index agar tetap di atas carousel) ========== */}
-        <div className="absolute bottom-0 inset-x-0 transform translate-y-1/2 px-4 sm:px-6 lg:px-8 z-20">
-          <div className="bg-white rounded-xl shadow-lg p-4 w-full max-w-3xl mx-auto">
-            {/* Tabs: Dijual / Disewa / Properti Baru */}
-            <div className="flex">
-              <button
-                onClick={() => setTab('dijual')}
-                className={`flex-1 py-3 text-center font-medium rounded-t-xl ${
-                  tab === 'dijual'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                Dijual
-              </button>
-              <button
-                onClick={() => setTab('disewa')}
-                className={`flex-1 py-3 text-center font-medium rounded-t-xl ${
-                  tab === 'disewa'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                Disewa
-              </button>
-              <button
-                onClick={() => setTab('baru')}
-                className={`flex-1 py-3 text-center font-medium rounded-t-xl ${
-                  tab === 'baru'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                Properti Baru
-              </button>
-            </div>
-            {/* Form Pencarian */}
-            <form className="mt-4 flex space-x-2">
-              <input
-                type="text"
-                placeholder={
-                  tab === 'dijual'
-                    ? 'Cari franchise untuk dijual...'
-                    : tab === 'disewa'
-                    ? 'Cari franchise untuk disewa...'
-                    : 'Cari properti baru...'
-                }
-                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-              />
-              <button
-                type="submit"
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
-              >
-                Cari
-              </button>
-            </form>
+      {/*
+        ====================================================
+        SECTION: Search Bar (di luar container overflow-hidden)
+        ====================================================
+        Kita pakai -mt-16 (−64px) agar search bar “menempel” 
+        tepat di atas kurva putih (h-20 = 80px). 
+        Tambahkan z-20 agar tidak tertutup carousel.
+      */}
+      <div className="relative z-20 -mt-16 px-4 sm:px-6 lg:px-8">
+        <div className="bg-white rounded-xl shadow-lg p-4 w-full max-w-3xl mx-auto">
+          {/* ==== Tabs: Dijual / Disewa / Properti Baru ==== */}
+          <div className="flex">
+            <button
+              onClick={() => setTab('dijual')}
+              className={`flex-1 py-3 text-center font-medium rounded-t-xl ${
+                tab === 'dijual'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              Dijual
+            </button>
+            <button
+              onClick={() => setTab('disewa')}
+              className={`flex-1 py-3 text-center font-medium rounded-t-xl ${
+                tab === 'disewa'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              Disewa
+            </button>
+            <button
+              onClick={() => setTab('baru')}
+              className={`flex-1 py-3 text-center font-medium rounded-t-xl ${
+                tab === 'baru'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              Properti Baru
+            </button>
           </div>
+
+          {/* ==== Form Pencarian ==== */}
+          <form className="mt-4 flex space-x-2">
+            <input
+              type="text"
+              placeholder={
+                tab === 'dijual'
+                  ? 'Cari franchise untuk dijual...'
+                  : tab === 'disewa'
+                  ? 'Cari franchise untuk disewa...'
+                  : 'Cari properti baru...'
+              }
+              className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+            <button
+              type="submit"
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
+            >
+              Cari
+            </button>
+          </form>
         </div>
       </div>
 
-      {/* Spacer agar konten berikutnya (Menu Utama) tidak tertutup overlay */}
+      {/* Spacer agar konten selanjutnya tidak tertutup */}
       <div className="h-24 md:h-28 lg:h-32"></div>
 
-      {/* ========== Menu Utama (Scrollable horizontally) ========== */}
+      {/* ======================================
+          SECTION: Menu Utama (scrollable horizontal)
+         ====================================== */}
       <section className="w-full overflow-x-auto whitespace-nowrap py-6 px-4 sm:px-6 lg:px-8">
         <div className="inline-flex space-x-6">
           {[
@@ -244,7 +257,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ========== Daftar Franchise (Grid) ========== */}
+      {/* =================================
+          SECTION: Daftar Franchise (Grid)
+         ================================= */}
       <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Daftar Franchise</h2>
         {loading ? (
@@ -280,7 +295,9 @@ export default function Home() {
         )}
       </section>
 
-      {/* ========== Footer ========== */}
+      {/* ==========
+          SECTION: Footer
+         ========== */}
       <footer className="mt-16 bg-gray-800 text-white py-12">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
@@ -293,24 +310,16 @@ export default function Home() {
             <h4 className="font-semibold mb-4">Menu Cepat</h4>
             <ul className="space-y-2 text-sm text-gray-300">
               <li>
-                <a href="#" className="hover:underline">
-                  Cari Agen
-                </a>
+                <a href="#" className="hover:underline">Cari Agen</a>
               </li>
               <li>
-                <a href="#" className="hover:underline">
-                  Iklankan Franchise
-                </a>
+                <a href="#" className="hover:underline">Iklankan Franchise</a>
               </li>
               <li>
-                <a href="#" className="hover:underline">
-                  Jual Franchise
-                </a>
+                <a href="#" className="hover:underline">Jual Franchise</a>
               </li>
               <li>
-                <a href="#" className="hover:underline">
-                  Simulasi Investasi
-                </a>
+                <a href="#" className="hover:underline">Simulasi Investasi</a>
               </li>
             </ul>
           </div>
