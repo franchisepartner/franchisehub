@@ -61,7 +61,7 @@ export default function Home() {
   return (
     <div className="w-full">
       {/* ========== Banner Carousel Section ========== */}
-      <div className="relative w-full h-[280px] sm:h-[320px] md:h-[420px] lg:h-[540px] overflow-hidden">
+      <div className="relative w-full h-[240px] sm:h-[280px] md:h-[360px] lg:h-[420px] overflow-hidden">
         {/* Swiper Carousel */}
         <Swiper
           modules={[Autoplay, Navigation]}
@@ -103,7 +103,7 @@ export default function Home() {
         <div className="absolute bottom-0 left-0 w-40 h-20 bg-white rounded-tl-full"></div>
 
         {/* ========== Search Form Overlay ========== */}
-        <div className="absolute bottom-0 inset-x-0 transform translate-y-1/2 px-4 sm:px-6 lg:px-8 z-20">
+        <div className="absolute bottom-0 inset-x-0 transform -translate-y-1/4 px-4 sm:px-6 lg:px-8 z-20">
           <div className="bg-white rounded-xl shadow-lg p-4 w-full max-w-3xl mx-auto">
             <form className="flex space-x-2">
               <input
@@ -122,8 +122,8 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Spacer agar konten dasar tidak tertutup */}
-      <div className="h-24 md:h-28 lg:h-32"></div>
+      {/* Spacer agar isi berikutnya (menu ikon) tidak tertutup overlay search form */}
+      <div className="pt-16 md:pt-20 lg:pt-24"></div>
 
       {/* ========== Menu Utama (Ikon‐ikon) ========== */}
       <section className="w-full overflow-x-auto whitespace-nowrap py-6 px-4 sm:px-6 lg:px-8">
