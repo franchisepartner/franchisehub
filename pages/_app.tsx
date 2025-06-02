@@ -11,7 +11,7 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <>
       <Navbar />
-      <main className={isHome ? '' : 'pt-16'}>
+      <main className={isHome ? '' : 'pt-0'}>
         <Component {...pageProps} />
       </main>
     </>
