@@ -17,8 +17,8 @@ interface Franchise {
   category: string;
   investment_min: number;
   location: string;
-  logo_url: string; // URL publik gambar logo dari Supabase Storage
-  slug: string;     // Digunakan untuk halaman detail franchise
+  logo_url: string;
+  slug: string;
 }
 
 export default function Home() {
@@ -55,11 +55,11 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* ================== HEADER / NAVBAR ================== */}
-      <header className="bg-white shadow-sm z-30">
+    <div className="relative min-h-screen bg-gray-50">
+      {/* ========== NAVBAR ========== */}
+      <header className="sticky top-0 bg-white shadow-sm z-30">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-          {/* Logo FranchiseHub */}
+          {/* Logo */}
           <div className="flex items-center">
             <Image
               src="/logo-franchisehub.png"
@@ -68,7 +68,7 @@ export default function Home() {
               height={32}
             />
           </div>
-          {/* Teks Sambutan & Menu Burger */}
+          {/* Teks & Hamburger */}
           <div className="flex items-center space-x-4">
             <span className="text-gray-700 whitespace-nowrap">Halo, Rio Kadek_administrator!</span>
             <button className="sm:hidden focus:outline-none">
@@ -86,7 +86,7 @@ export default function Home() {
         </div>
       </header>
 
-      {/* ================== BANNER + CAROUSEL ================== */}
+      {/* ========== BANNER + CAROUSEL ========== */}
       <div className="relative w-full h-[240px] sm:h-[280px] md:h-[360px] lg:h-[420px] overflow-hidden">
         <Swiper
           modules={[Autoplay, Navigation]}
@@ -124,9 +124,9 @@ export default function Home() {
         {/* Curve putih di pojok kiri bawah */}
         <div className="absolute bottom-0 left-0 w-40 h-20 bg-white rounded-tl-full"></div>
 
-        {/* ===== Kotak Search “menjorok” di bawah banner, dengan z-index tinggi ===== */}
-        <div className="absolute left-0 right-0 -bottom-10 px-4 sm:px-6 lg:px-8 z-20">
-          <div className="bg-white rounded-xl shadow-lg p-4 w-full max-w-3xl mx-auto">
+        {/* ========== Kotak Search ========== */}
+        <div className="absolute left-1/2 transform -translate-x-1/2 -bottom-10 w-full max-w-3xl px-4 sm:px-6 lg:px-8 z-20">
+          <div className="bg-white rounded-xl shadow-lg p-4">
             <form className="flex space-x-2">
               <input
                 type="text"
@@ -144,175 +144,169 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Spacer agar bar ikon tidak tertutup oleh kotak search */}
-      <div className="pt-24 md:pt-28 lg:pt-32"></div>
-
-      {/* ================== MENU IKON UTAMA ================== */}
-      <section className="w-full overflow-x-auto whitespace-nowrap py-6 px-4 sm:px-6 lg:px-8 bg-white drop-shadow-md z-10">
-        <div className="inline-flex space-x-6 items-center">
-          {/* Notifikasiku */}
-          <div className="inline-flex flex-col items-center w-20 cursor-pointer">
-            <div className="bg-white rounded-full shadow p-3">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-blue-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path d="M12 22a2 2 0 002-2H10a2 2 0 002 2zm6-6V9a6 6 0 10-12 0v7l-2 2v1h16v-1l-2-2z" />
-              </svg>
+      {/* ========== BAR IKON UTAMA (Setelah banner + search) ========== */}
+      <section className="relative -mt-8 bg-white z-10 drop-shadow-md">
+        <div className="overflow-x-auto whitespace-nowrap py-6 px-4 sm:px-6 lg:px-8">
+          <div className="inline-flex space-x-6 items-center">
+            {/* Notifikasiku */}
+            <div className="inline-flex flex-col items-center w-20 cursor-pointer">
+              <div className="bg-white rounded-full shadow p-3">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 text-blue-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path d="M12 22a2 2 0 002-2H10a2 2 0 002 2zm6-6V9a6 6 0 10-12 0v7l-2 2v1h16v-1l-2-2z" />
+                </svg>
+              </div>
+              <span className="text-xs text-gray-600 mt-1 text-center">Notifikasiku</span>
             </div>
-            <span className="text-xs text-gray-600 mt-1 text-center">Notifikasiku</span>
-          </div>
 
-          {/* Favoritku */}
-          <div className="inline-flex flex-col items-center w-20 cursor-pointer">
-            <div className="bg-white rounded-full shadow p-3">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-red-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path d="M5 15l7 7 7-7V5a2 2 0 00-2-2h-10a2 2 0 00-2 2v10z" />
-              </svg>
+            {/* Favoritku */}
+            <div className="inline-flex flex-col items-center w-20 cursor-pointer">
+              <div className="bg-white rounded-full shadow p-3">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 text-red-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path d="M5 15l7 7 7-7V5a2 2 0 00-2-2h-10a2 2 0 00-2 2v10z" />
+                </svg>
+              </div>
+              <span className="text-xs text-gray-600 mt-1 text-center">Favoritku</span>
             </div>
-            <span className="text-xs text-gray-600 mt-1 text-center">Favoritku</span>
-          </div>
 
-          {/* Forum Global */}
-          <div className="inline-flex flex-col items-center w-20 cursor-pointer">
-            <div className="bg-white rounded-full shadow p-3">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-green-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8s-9-3.582-9-8 4.03-8 9-8 9 3.582 9 8z" />
-              </svg>
+            {/* Forum Global */}
+            <div className="inline-flex flex-col items-center w-20 cursor-pointer">
+              <div className="bg-white rounded-full shadow p-3">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 text-green-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8s-9-3.582-9-8 4.03-8 9-8 9 3.582 9 8z" />
+                </svg>
+              </div>
+              <span className="text-xs text-gray-600 mt-1 text-center">Forum Global</span>
             </div>
-            <span className="text-xs text-gray-600 mt-1 text-center">Forum Global</span>
-          </div>
 
-          {/* Blog Global */}
-          <div className="inline-flex flex-col items-center w-20 cursor-pointer">
-            <div className="bg-white rounded-full shadow p-3">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-purple-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
+            {/* Blog Global */}
+            <div className="inline-flex flex-col items-center w-20 cursor-pointer">
+              <div className="bg-white rounded-full shadow p-3">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 text-purple-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </div>
+              <span className="text-xs text-gray-600 mt-1 text-center">Blog Global</span>
             </div>
-            <span className="text-xs text-gray-600 mt-1 text-center">Blog Global</span>
-          </div>
 
-          {/* Pusat Bantuan */}
-          <div className="inline-flex flex-col items-center w-20 cursor-pointer">
-            <div className="bg-white rounded-full shadow p-3">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-indigo-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8s-9-3.582-9-8 4.03-8 9-8 9 3.582 9 8z" />
-              </svg>
+            {/* Pusat Bantuan */}
+            <div className="inline-flex flex-col items-center w-20 cursor-pointer">
+              <div className="bg-white rounded-full shadow p-3">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 text-indigo-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8s-9-3.582-9-8 4.03-8 9-8 9 3.582 9 8z" />
+                </svg>
+              </div>
+              <span className="text-xs text-gray-600 mt-1 text-center">Pusat Bantuan</span>
             </div>
-            <span className="text-xs text-gray-600 mt-1 text-center">Pusat Bantuan</span>
-          </div>
 
-          {/* Syarat & Ketentuan */}
-          <div className="inline-flex flex-col items-center w-20 cursor-pointer">
-            <div className="bg-white rounded-full shadow p-3">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-gray-700"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path d="M5 5v14h14V5H5z" />
-                <path d="M9 9h6v6H9z" />
-              </svg>
+            {/* Syarat & Ketentuan */}
+            <div className="inline-flex flex-col items-center w-20 cursor-pointer">
+              <div className="bg-white rounded-full shadow p-3">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 text-gray-700"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path d="M5 5v14h14V5H5z" />
+                  <path d="M9 9h6v6H9z" />
+                </svg>
+              </div>
+              <span className="text-xs text-gray-600 mt-1 text-center">Syarat & Ketentuan</span>
             </div>
-            <span className="text-xs text-gray-600 mt-1 text-center">Syarat & Ketentuan</span>
-          </div>
 
-          {/* Kebijakan Privasi */}
-          <div className="inline-flex flex-col items-center w-20 cursor-pointer">
-            <div className="bg-white rounded-full shadow p-3">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-green-700"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path d="M12 2L4 6v6c0 5.523 3.582 10 8 10s8-4.477 8-10V6l-8-4z" />
-              </svg>
+            {/* Kebijakan Privasi */}
+            <div className="inline-flex flex-col items-center w-20 cursor-pointer">
+              <div className="bg-white rounded-full shadow p-3">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 text-green-700"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path d="M12 2L4 6v6c0 5.523 3.582 10 8 10s8-4.477 8-10V6l-8-4z" />
+                </svg>
+              </div>
+              <span className="text-xs text-gray-600 mt-1 text-center">Kebijakan Privasi</span>
             </div>
-            <span className="text-xs text-gray-600 mt-1 text-center">Kebijakan Privasi</span>
-          </div>
 
-          {/* Jadi Franchisor */}
-          <div className="inline-flex flex-col items-center w-20 cursor-pointer">
-            <div className="bg-white rounded-full shadow p-3">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-teal-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path d="M12 8c-1.657 0-3 1.343-3 3 0 3 3 7 3 7s3-4 3-7c0-1.657-1.343-3-3-3z" />
-              </svg>
+            {/* Jadi Franchisor */}
+            <div className="inline-flex flex-col items-center w-20 cursor-pointer">
+              <div className="bg-white rounded-full shadow p-3">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 text-teal-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path d="M12 8c-1.657 0-3 1.343-3 3 0 3 3 7 3 7s3-4 3-7c0-1.657-1.343-3-3-3z" />
+                </svg>
+              </div>
+              <span className="text-xs text-gray-600 mt-1 text-center">Jadi Franchisor</span>
             </div>
-            <span className="text-xs text-gray-600 mt-1 text-center">Jadi Franchisor</span>
-          </div>
 
-          {/* Kalkulator */}
-          <div
-            className="inline-flex flex-col items-center w-20 cursor-pointer"
-            onClick={() => setShowCalculatorModal(true)}
-          >
-            <div className="bg-white rounded-full shadow p-3">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-gray-800"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 2h8a2 2 0 012 2v16a2 2 0 01-2 2H8a2 2 0 01-2-2V4a2 2 0 012-2zm2 4h4m-4 4h4m-4 4h4m-4 4h4"
-                />
-              </svg>
+            {/* Kalkulator */}
+            <div
+              className="inline-flex flex-col items-center w-20 cursor-pointer"
+              onClick={() => setShowCalculatorModal(true)}
+            >
+              <div className="bg-white rounded-full shadow p-3">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 text-gray-800"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path d="M8 2h8a2 2 0 012 2v16a2 2 0 01-2 2H8a2 2 0 01-2-2V4a2 2 0 012-2zm2 4h4m-4 4h4m-4 4h4m-4 4h4" />
+                </svg>
+              </div>
+              <span className="text-xs text-gray-600 mt-1 text-center">Kalkulator</span>
             </div>
-            <span className="text-xs text-gray-600 mt-1 text-center">Kalkulator</span>
           </div>
         </div>
       </section>
 
-      {/* ================== MODAL KALKULATOR ================== */}
+      {/* ========== MODAL KALKULATOR ========== */}
       <CalculatorModal
         show={showCalculatorModal}
         setShow={setShowCalculatorModal}
       />
 
-      {/* ================== DAFTAR FRANCHISE (GRID) ================== */}
-      <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+      {/* ========== DAFTAR FRANCHISE ========== */}
+      <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8 pb-12">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Daftar Franchise</h2>
         {loading ? (
           <p className="text-center text-gray-500">Memuat daftar franchise...</p>
@@ -347,8 +341,8 @@ export default function Home() {
         )}
       </section>
 
-      {/* ================== FOOTER ================== */}
-      <footer className="mt-16 bg-gray-800 text-white py-12">
+      {/* ========== FOOTER ========== */}
+      <footer className="bg-gray-800 text-white py-12">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
             <h4 className="font-semibold mb-4">Tentang FranchiseHub</h4>
@@ -384,7 +378,7 @@ export default function Home() {
   );
 }
 
-/** Komponen Modal Kalkulator */
+// ================== KOMONEN CALCULATOR MODAL ==================
 interface CalculatorModalProps {
   show: boolean;
   setShow: (val: boolean) => void;
@@ -415,7 +409,7 @@ function CalculatorModal({ show, setShow }: CalculatorModalProps) {
   );
 }
 
-/** Komponen Kalkulator Sederhana */
+// ================== KOMONEN CALCULATOR SEDERHANA ==================
 function Calculator() {
   const [display, setDisplay] = useState<string>('0');
 
