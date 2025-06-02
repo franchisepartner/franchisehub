@@ -55,9 +55,9 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="w-full bg-gray-50 min-h-screen">
+    <div className="min-h-screen bg-gray-50">
       {/* ================== HEADER / NAVBAR ================== */}
-      <header className="bg-white shadow-sm">
+      <header className="bg-white shadow-sm z-30">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
           {/* Logo FranchiseHub */}
           <div className="flex items-center">
@@ -68,9 +68,9 @@ export default function Home() {
               height={32}
             />
           </div>
-          {/* Teks Sambutan / Menu Burger */}
+          {/* Teks Sambutan & Menu Burger */}
           <div className="flex items-center space-x-4">
-            <span className="text-gray-700">Halo, Rio Kadek_administrator!</span>
+            <span className="text-gray-700 whitespace-nowrap">Halo, Rio Kadek_administrator!</span>
             <button className="sm:hidden focus:outline-none">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -124,8 +124,8 @@ export default function Home() {
         {/* Curve putih di pojok kiri bawah */}
         <div className="absolute bottom-0 left-0 w-40 h-20 bg-white rounded-tl-full"></div>
 
-        {/* ===== Search Form Overlay (negative bottom) ===== */}
-        <div className="absolute left-0 right-0 -bottom-8 px-4 sm:px-6 lg:px-8 z-20">
+        {/* ===== Kotak Search “menjorok” di bawah banner, dengan z-index tinggi ===== */}
+        <div className="absolute left-0 right-0 -bottom-10 px-4 sm:px-6 lg:px-8 z-20">
           <div className="bg-white rounded-xl shadow-lg p-4 w-full max-w-3xl mx-auto">
             <form className="flex space-x-2">
               <input
@@ -145,13 +145,13 @@ export default function Home() {
       </div>
 
       {/* Spacer agar bar ikon tidak tertutup oleh kotak search */}
-      <div className="pt-20 md:pt-24 lg:pt-28"></div>
+      <div className="pt-24 md:pt-28 lg:pt-32"></div>
 
       {/* ================== MENU IKON UTAMA ================== */}
-      <section className="w-full overflow-x-auto whitespace-nowrap py-6 px-4 sm:px-6 lg:px-8 bg-white drop-shadow-sm">
+      <section className="w-full overflow-x-auto whitespace-nowrap py-6 px-4 sm:px-6 lg:px-8 bg-white drop-shadow-md z-10">
         <div className="inline-flex space-x-6 items-center">
           {/* Notifikasiku */}
-          <div className="inline-flex flex-col items-center cursor-pointer w-20">
+          <div className="inline-flex flex-col items-center w-20 cursor-pointer">
             <div className="bg-white rounded-full shadow p-3">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -167,7 +167,7 @@ export default function Home() {
           </div>
 
           {/* Favoritku */}
-          <div className="inline-flex flex-col items-center cursor-pointer w-20">
+          <div className="inline-flex flex-col items-center w-20 cursor-pointer">
             <div className="bg-white rounded-full shadow p-3">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -183,7 +183,7 @@ export default function Home() {
           </div>
 
           {/* Forum Global */}
-          <div className="inline-flex flex-col items-center cursor-pointer w-20">
+          <div className="inline-flex flex-col items-center w-20 cursor-pointer">
             <div className="bg-white rounded-full shadow p-3">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -199,7 +199,7 @@ export default function Home() {
           </div>
 
           {/* Blog Global */}
-          <div className="inline-flex flex-col items-center cursor-pointer w-20">
+          <div className="inline-flex flex-col items-center w-20 cursor-pointer">
             <div className="bg-white rounded-full shadow p-3">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -215,7 +215,7 @@ export default function Home() {
           </div>
 
           {/* Pusat Bantuan */}
-          <div className="inline-flex flex-col items-center cursor-pointer w-20">
+          <div className="inline-flex flex-col items-center w-20 cursor-pointer">
             <div className="bg-white rounded-full shadow p-3">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -231,7 +231,7 @@ export default function Home() {
           </div>
 
           {/* Syarat & Ketentuan */}
-          <div className="inline-flex flex-col items-center cursor-pointer w-20">
+          <div className="inline-flex flex-col items-center w-20 cursor-pointer">
             <div className="bg-white rounded-full shadow p-3">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -248,7 +248,7 @@ export default function Home() {
           </div>
 
           {/* Kebijakan Privasi */}
-          <div className="inline-flex flex-col items-center cursor-pointer w-20">
+          <div className="inline-flex flex-col items-center w-20 cursor-pointer">
             <div className="bg-white rounded-full shadow p-3">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -264,7 +264,7 @@ export default function Home() {
           </div>
 
           {/* Jadi Franchisor */}
-          <div className="inline-flex flex-col items-center cursor-pointer w-20">
+          <div className="inline-flex flex-col items-center w-20 cursor-pointer">
             <div className="bg-white rounded-full shadow p-3">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -281,7 +281,7 @@ export default function Home() {
 
           {/* Kalkulator */}
           <div
-            className="inline-flex flex-col items-center cursor-pointer w-20"
+            className="inline-flex flex-col items-center w-20 cursor-pointer"
             onClick={() => setShowCalculatorModal(true)}
           >
             <div className="bg-white rounded-full shadow p-3">
@@ -455,9 +455,7 @@ function Calculator() {
       </div>
       <div className="w-full grid grid-cols-4 gap-2">
         {buttons.flat().map((btn, idx) => {
-          if (btn === '') {
-            return <div key={idx} />;
-          }
+          if (btn === '') return <div key={idx} />;
           return (
             <button
               key={idx}
