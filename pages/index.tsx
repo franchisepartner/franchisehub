@@ -10,6 +10,9 @@ import { Autoplay, Navigation } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 
+// ==== IMPORT CALCULATOR ====
+import Calculator from '../components/Calculator';
+
 interface Franchise {
   id: string;
   franchise_name: string;
@@ -24,11 +27,9 @@ interface Franchise {
 export default function Home() {
   const [franchises, setFranchises] = useState<Franchise[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<'dijual' | 'disewa' | 'baru'>('dijual');
 
   useEffect(() => {
     const fetchFranchises = async () => {
-      // Ambil data list franchise dari Supabase
       const { data, error } = await supabase
         .from('franchise_listings')
         .select('id, franchise_name, description, category, investment_min, location, logo_url, slug')
@@ -58,11 +59,9 @@ export default function Home() {
 
   return (
     <div className="w-full">
-      {/* =============================
-          SECTION: Banner Carousel + Kurva
-         ============================= */}
+      {/* ========== Banner Carousel Section ========== */}
       <div className="relative w-full h-[280px] sm:h-[320px] md:h-[420px] lg:h-[540px] overflow-hidden">
-        {/* ==== Swiper Carousel ==== */}
+        {/* Swiper Carousel */}
         <Swiper
           modules={[Autoplay, Navigation]}
           autoplay={{ delay: 5000, disableOnInteraction: false }}
@@ -100,86 +99,74 @@ export default function Home() {
             />
           </SwiperSlide>
 
-          {/* Tambahkan <SwiperSlide> lagi bila ada gambar tambahan */}
+          {/* Tambahkan <SwiperSlide> lagi jika ingin slide tambahan */}
         </Swiper>
 
-        {/* ==== Kurva putih di pojok kiri bawah ==== */}
+        {/* Curve putih di pojok kiri bawah (mengikuti gaya Rumah123) */}
         <div className="absolute bottom-0 left-0 w-40 h-20 bg-white rounded-tl-full"></div>
-      </div>
 
-      {/*
-        ====================================================
-        SECTION: Search Bar (di luar container overflow-hidden)
-        ====================================================
-        Kita pakai -mt-16 (−64px) agar search bar “menempel” 
-        tepat di atas kurva putih (h-20 = 80px). 
-        Tambahkan z-20 agar tidak tertutup carousel.
-      */}
-      <div className="relative z-20 -mt-16 px-4 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-xl shadow-lg p-4 w-full max-w-3xl mx-auto">
-          {/* ==== Tabs: Dijual / Disewa / Properti Baru ==== */}
-          <div className="flex">
-            <button
-              onClick={() => setTab('dijual')}
-              className={`flex-1 py-3 text-center font-medium rounded-t-xl ${
-                tab === 'dijual'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              Dijual
-            </button>
-            <button
-              onClick={() => setTab('disewa')}
-              className={`flex-1 py-3 text-center font-medium rounded-t-xl ${
-                tab === 'disewa'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              Disewa
-            </button>
-            <button
-              onClick={() => setTab('baru')}
-              className={`flex-1 py-3 text-center font-medium rounded-t-xl ${
-                tab === 'baru'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              Properti Baru
-            </button>
+        {/* ========== Search Form Overlay dengan Kalkulator & Logo ========== */}
+        <div className="absolute bottom-0 inset-x-0 transform translate-y-1/2 px-4 sm:px-6 lg:px-8 z-20">
+          <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-4xl mx-auto">
+            {/* Baris Kalkulator + Logo */}
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+              {/* Kalkulator (komponen) */}
+              <div className="w-full md:w-2/3">
+                <Calculator />
+              </div>
+
+              {/* Logo FranchiseHub */}
+              <div className="hidden md:flex justify-center items-center md:w-1/3">
+                {/* 
+                  Pastikan file logo Anda berada di folder /public.
+                  Contoh nama file: /public/franchisehub-logo.png 
+                */}
+                <Image
+                  src="/franchisehub-logo.png"
+                  alt="FranchiseHub Logo"
+                  width={200}
+                  height={80}
+                  objectFit="contain"
+                />
+              </div>
+
+              {/* Untuk tampilan mobile, kita tampilkan logo di bawah kalkulator */}
+              <div className="flex md:hidden justify-center items-center mt-4">
+                <Image
+                  src="/franchisehub-logo.png"
+                  alt="FranchiseHub Logo"
+                  width={160}
+                  height={60}
+                  objectFit="contain"
+                />
+              </div>
+            </div>
+
+            {/* ========== Spacer kecil ========== */}
+            <div className="my-4 border-t border-gray-200"></div>
+
+            {/* Form Pencarian */}
+            <div className="flex flex-col md:flex-row items-center gap-3">
+              <input
+                type="text"
+                placeholder="Cari franchise untuk dijual..."
+                className="w-full md:flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+              />
+              <button
+                type="submit"
+                className="w-full md:w-auto px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
+              >
+                Cari
+              </button>
+            </div>
           </div>
-
-          {/* ==== Form Pencarian ==== */}
-          <form className="mt-4 flex space-x-2">
-            <input
-              type="text"
-              placeholder={
-                tab === 'dijual'
-                  ? 'Cari franchise untuk dijual...'
-                  : tab === 'disewa'
-                  ? 'Cari franchise untuk disewa...'
-                  : 'Cari properti baru...'
-              }
-              className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
-            <button
-              type="submit"
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
-            >
-              Cari
-            </button>
-          </form>
         </div>
       </div>
 
-      {/* Spacer agar konten selanjutnya tidak tertutup */}
+      {/* Spacer agar konten berikutnya (Menu Utama) tidak tertutup overlay */}
       <div className="h-24 md:h-28 lg:h-32"></div>
 
-      {/* ======================================
-          SECTION: Menu Utama (scrollable horizontal)
-         ====================================== */}
+      {/* ========== Menu Utama (Scrollable horizontally) ========== */}
       <section className="w-full overflow-x-auto whitespace-nowrap py-6 px-4 sm:px-6 lg:px-8">
         <div className="inline-flex space-x-6">
           {[
@@ -257,9 +244,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* =================================
-          SECTION: Daftar Franchise (Grid)
-         ================================= */}
+      {/* ========== Daftar Franchise (Grid) ========== */}
       <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Daftar Franchise</h2>
         {loading ? (
@@ -295,9 +280,7 @@ export default function Home() {
         )}
       </section>
 
-      {/* ==========
-          SECTION: Footer
-         ========== */}
+      {/* ========== Footer ========== */}
       <footer className="mt-16 bg-gray-800 text-white py-12">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
@@ -310,16 +293,24 @@ export default function Home() {
             <h4 className="font-semibold mb-4">Menu Cepat</h4>
             <ul className="space-y-2 text-sm text-gray-300">
               <li>
-                <a href="#" className="hover:underline">Cari Agen</a>
+                <a href="#" className="hover:underline">
+                  Cari Agen
+                </a>
               </li>
               <li>
-                <a href="#" className="hover:underline">Iklankan Franchise</a>
+                <a href="#" className="hover:underline">
+                  Iklankan Franchise
+                </a>
               </li>
               <li>
-                <a href="#" className="hover:underline">Jual Franchise</a>
+                <a href="#" className="hover:underline">
+                  Jual Franchise
+                </a>
               </li>
               <li>
-                <a href="#" className="hover:underline">Simulasi Investasi</a>
+                <a href="#" className="hover:underline">
+                  Simulasi Investasi
+                </a>
               </li>
             </ul>
           </div>
