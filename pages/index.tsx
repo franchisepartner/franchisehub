@@ -56,7 +56,8 @@ export default function Home() {
   }, []);
 
   return (
-      {/* ========== BANNER + CAROUSEL ========== */}
+    <div className="relative min-h-screen bg-gray-50">
+      {/* ======= BANNER + CAROUSEL ======= */}
       <div className="relative w-full h-[240px] sm:h-[280px] md:h-[360px] lg:h-[420px] overflow-hidden">
         <Swiper
           modules={[Autoplay, Navigation]}
@@ -91,14 +92,10 @@ export default function Home() {
           </SwiperSlide>
         </Swiper>
 
-        {/* Curve putih di pojok kiri bawah (supaya terlihat seperti Rumah123) */}
+        {/* Curve putih di pojok kiri bawah */}
         <div className="absolute bottom-0 left-0 w-40 h-20 bg-white rounded-tl-full"></div>
 
-        {/* ========== KOTAK SEARCH ========== */}
-        {/* 
-          - Kita posisikan di bottom banner dengan translate -50% 
-          - Beri z-index lebih tinggi dari bar ikon
-        */}
+        {/* ======= KOTAK SEARCH ======= */}
         <div className="absolute left-1/2 transform -translate-x-1/2 -bottom-10 w-full max-w-3xl px-4 sm:px-6 lg:px-8 z-20">
           <div className="bg-white rounded-xl shadow-lg p-4">
             <form className="flex space-x-2">
@@ -118,12 +115,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* 
-        ========== BAR IKON UTAMA ==========
-        Kita hapus negative margin, lalu beri margin-top cukup untuk "menjaga jarak"
-        agar bar ini tetap tepat di bawah kotak search. 
-        Karena kotak search di-translateY(-10), cukup gunakan mt-16 atau mt-20.
-      */}
+      {/* ======= BAR IKON UTAMA ======= */}
       <section className="relative mt-20 bg-white z-10 drop-shadow-md">
         <div className="overflow-x-auto whitespace-nowrap py-6 px-4 sm:px-6 lg:px-8">
           <div className="inline-flex space-x-6 items-center">
@@ -144,7 +136,7 @@ export default function Home() {
             </div>
 
             {/* Favoritku */}
-            <div className="inline-flex flex-col items-center w-20 cursor-pointer">
+            <div className="inline-flex flex-col	items-center w-20 cursor-pointer">
               <div className="bg-white rounded-full shadow p-3">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -160,7 +152,7 @@ export default function Home() {
             </div>
 
             {/* Forum Global */}
-            <div className="inline-flex flex-col items-center w-20 cursor-pointer">
+            <div className="inline-flex flex-col	items-center w-20 cursor-pointer">
               <div className="bg-white rounded-full shadow p-3">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -176,7 +168,7 @@ export default function Home() {
             </div>
 
             {/* Blog Global */}
-            <div className="inline-flex flex-col items-center w-20 cursor-pointer">
+            <div className="inline-flex flex-col	items-center w-20 cursor-pointer">
               <div className="bg-white rounded-full shadow p-3">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -192,7 +184,7 @@ export default function Home() {
             </div>
 
             {/* Pusat Bantuan */}
-            <div className="inline-flex flex-col items-center w-20 cursor-pointer">
+            <div className="inline-flex flex-col	items-center w-20 cursor-pointer">
               <div className="bg-white rounded-full shadow p-3">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -208,7 +200,7 @@ export default function Home() {
             </div>
 
             {/* Syarat & Ketentuan */}
-            <div className="inline-flex flex-col items-center w-20 cursor-pointer">
+            <div className="inline-flex flex-col	items-center w-20 cursor-pointer">
               <div className="bg-white rounded-full shadow p-3">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -225,7 +217,7 @@ export default function Home() {
             </div>
 
             {/* Kebijakan Privasi */}
-            <div className="inline-flex flex-col items-center w-20 cursor-pointer">
+            <div className="inline-flex flex-col	items-center w-20 cursor-pointer">
               <div className="bg-white rounded-full shadow p-3">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -241,7 +233,7 @@ export default function Home() {
             </div>
 
             {/* Jadi Franchisor */}
-            <div className="inline-flex flex-col items-center w-20 cursor-pointer">
+            <div className="inline-flex flex-col	items-center w-20 cursor-pointer">
               <div className="bg-white rounded-full shadow p-3">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -258,7 +250,7 @@ export default function Home() {
 
             {/* Kalkulator */}
             <div
-              className="inline-flex flex-col items-center w-20 cursor-pointer"
+              className="inline-flex flex-col	items-center w-20 cursor-pointer"
               onClick={() => setShowCalculatorModal(true)}
             >
               <div className="bg-white rounded-full shadow p-3">
@@ -278,15 +270,13 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ========== MODAL KALKULATOR ==========
-            Muncul di atas semua konten */}
+      {/* ======= MODAL KALKULATOR ======= */}
       <CalculatorModal
         show={showCalculatorModal}
         setShow={setShowCalculatorModal}
       />
 
-      {/* ========== DAFTAR FRANCHISE ==========
-            Berdiri setelah bar ikon */}
+      {/* ======= DAFTAR FRANCHISE ======= */}
       <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8 pb-12">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Daftar Franchise</h2>
         {loading ? (
@@ -322,7 +312,7 @@ export default function Home() {
         )}
       </section>
 
-      {/* ========== FOOTER ========== */}
+      {/* ======= FOOTER ======= */}
       <footer className="bg-gray-800 text-white py-12">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
