@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
+import { Session } from '@supabase/supabase-js';
 import Image from 'next/image';
 
 export default function ForumGlobal() {
   const [threads, setThreads] = useState([]);
   const [selectedThread, setSelectedThread] = useState(null);
   const [comments, setComments] = useState([]);
-  const [session, setSession] = useState(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [newThread, setNewThread] = useState({ title: '', content: '', imageFile: null });
   const [newComment, setNewComment] = useState('');
 
