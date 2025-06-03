@@ -41,7 +41,7 @@ export default function ForumGlobal() {
   const [newComment, setNewComment] = useState('');
   const [selectedThread, setSelectedThread] = useState<Thread | null>(null);
   const [showThreadPopup, setShowThreadPopup] = useState(false);
-  const popupRef = useRef(null);
+  const popupRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -62,7 +62,7 @@ export default function ForumGlobal() {
       .subscribe();
 
     return () => {
-      threadSubscription.unsubscribe();
+      supabase.removeChannel(threadSubscription);
       listener.subscription.unsubscribe();
     };
   }, []);
@@ -77,6 +77,29 @@ export default function ForumGlobal() {
         .then(({ data }) => setIsAdmin(data?.is_admin || false));
     }
   }, [session]);
+
+  useEffect(() => {
+    if (!selectedThread?.id) return;
+
+    const commentSubscription = supabase
+      .channel(`comments:${selectedThread.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'thread_comments', filter: `thread_id=eq.${selectedThread.id}` }, () => fetchComments(selectedThread.id))
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(commentSubscription);
+    };
+  }, [selectedThread]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (showThreadPopup && popupRef.current && !popupRef.current.contains(e.target as Node)) {
+        setShowThreadPopup(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showThreadPopup]);
 
   async function fetchThreads() {
     const { data } = await supabase.from('threads').select('*').order('created_at', { ascending: false });
@@ -101,23 +124,36 @@ export default function ForumGlobal() {
 
   async function handleCreateThread() {
     if (!session?.user?.id) {
-      alert('Anda harus login terlebih dahulu!');
+      alert('Login dahulu!');
       return;
     }
 
     let image_url = '';
     if (newThread.imageFile) {
       const fileName = `${Date.now()}_${newThread.imageFile.name}`;
-      const { data } = await supabase.storage.from('thread-images').upload(fileName, newThread.imageFile);
-      if (data) image_url = supabase.storage.from('thread-images').getPublicUrl(data.path).data.publicUrl;
+      const { data, error } = await supabase.storage
+        .from('thread-images')
+        .upload(fileName, newThread.imageFile);
+
+      if (error) {
+        alert(`Upload gagal: ${error.message}`);
+        return;
+      }
+
+      image_url = supabase.storage.from('thread-images').getPublicUrl(data.path).data.publicUrl;
     }
 
-    await supabase.from('threads').insert({
+    const { error } = await supabase.from('threads').insert({
       title: newThread.title,
       content: newThread.content,
       image_url,
       created_by: session.user.id,
     });
+
+    if (error) {
+      alert(`Insert gagal: ${error.message}`);
+      return;
+    }
 
     setNewThread({ title: '', content: '', imageFile: null });
     setShowThreadPopup(false);
@@ -130,11 +166,16 @@ export default function ForumGlobal() {
       return;
     }
 
-    await supabase.from('thread_comments').insert({
+    const { error } = await supabase.from('thread_comments').insert({
       thread_id: selectedThread.id,
       content: newComment,
       created_by: session.user.id,
     });
+
+    if (error) {
+      alert(`Insert komentar gagal: ${error.message}`);
+      return;
+    }
 
     setNewComment('');
     fetchComments(selectedThread.id);
@@ -150,17 +191,6 @@ export default function ForumGlobal() {
     fetchThreads();
     setSelectedThread(null);
   }
-
-  const handleClickOutside = (e: any) => {
-    if (popupRef.current && !(popupRef.current as any).contains(e.target)) {
-      setShowThreadPopup(false);
-    }
-  };
-
-  useEffect(() => {
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
-  }, []);
 
   return (
     <div className="max-w-3xl mx-auto p-6 relative">
@@ -193,11 +223,11 @@ export default function ForumGlobal() {
               <h3 className="font-semibold text-lg">{thread.title}</h3>
               <p className="text-sm text-gray-500">{new Date(thread.created_at).toLocaleString()}</p>
             </div>
-            {session?.user.id === thread.created_by || isAdmin ? (
+            {(session?.user.id === thread.created_by || isAdmin) && (
               <button className="absolute top-2 right-2 text-red-500 text-sm" onClick={() => handleDeleteThread(thread.id)}>
                 Hapus
               </button>
-            ) : null}
+            )}
           </div>
         ))}
       </div>
@@ -249,8 +279,8 @@ export default function ForumGlobal() {
       )}
 
       {showThreadPopup && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" onClick={() => setShowThreadPopup(false)}>
-          <div className="bg-white p-6 rounded relative" onClick={(e) => e.stopPropagation()} ref={popupRef}>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded relative" ref={popupRef}>
             <button className="absolute top-2 right-2" onClick={() => setShowThreadPopup(false)}>
               &times;
             </button>
