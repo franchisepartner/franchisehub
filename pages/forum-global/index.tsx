@@ -161,16 +161,28 @@ export default function ForumGlobal() {
   }
 
   async function handleCommentSubmit() {
-    if (!selectedThread?.id || !session?.user?.id) {
-      alert('Pilih thread atau login dahulu!');
-      return;
-    }
+  if (!selectedThread?.id || !session?.user?.id) {
+    alert('Pilih thread atau login dahulu!');
+    return;
+  }
 
-    const { error } = await supabase.from('thread_comments').insert({
+  const { data, error } = await supabase
+    .from('thread_comments')
+    .insert({
       thread_id: selectedThread.id,
       content: newComment,
       created_by: session.user.id,
     });
+
+  if (error) {
+    console.error('Error inserting comment:', error);
+    alert(`Insert komentar gagal: ${error.message}`);
+    return;
+  }
+
+  setNewComment('');
+  fetchComments(selectedThread.id);
+}
 
     if (error) {
       alert(`Insert komentar gagal: ${error.message}`);
