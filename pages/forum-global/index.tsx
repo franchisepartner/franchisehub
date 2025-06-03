@@ -11,18 +11,28 @@ export default function ForumGlobal() {
   const [newComment, setNewComment] = useState('');
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSession(data.session));
-    supabase.auth.onAuthStateChange((_event, session) => setSession(session));
+    const fetchSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      setSession(data.session);
+    };
+
+    fetchSession();
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
 
     fetchThreads();
 
-    const threadSubscription = supabase.channel('threads').on(
-      'postgres_changes',
-      { event: '*', schema: 'public', table: 'threads' },
-      () => fetchThreads()
-    ).subscribe();
+    const threadSubscription = supabase
+      .channel('threads')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'threads' }, fetchThreads)
+      .subscribe();
 
-    return () => threadSubscription.unsubscribe();
+    return () => {
+      threadSubscription.unsubscribe();
+      listener.subscription.unsubscribe();
+    };
   }, []);
 
   async function fetchThreads() {
@@ -30,7 +40,6 @@ export default function ForumGlobal() {
       .from('threads')
       .select('*')
       .order('created_at', { ascending: false });
-
     setThreads(data);
   }
 
@@ -40,7 +49,6 @@ export default function ForumGlobal() {
       .select('*')
       .eq('thread_id', threadId)
       .order('created_at', { ascending: true });
-
     setComments(data);
   }
 
@@ -51,7 +59,6 @@ export default function ForumGlobal() {
       const { data } = await supabase.storage
         .from('thread-images')
         .upload(fileName, newThread.imageFile);
-
       if (data) image_url = supabase.storage.from('thread-images').getPublicUrl(data.path).data.publicUrl;
     }
 
