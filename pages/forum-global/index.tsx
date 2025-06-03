@@ -25,6 +25,12 @@ export default function ForumGlobal() {
   const [comments, setComments] = useState<Comment[]>([]);
   const [session, setSession] = useState<Session | null>(null);
 
+  const [newThread, setNewThread] = useState({
+  title: '',
+  content: '',
+  imageFile: null as File | null,
+});
+
   useEffect(() => {
     const fetchSession = async () => {
       const { data } = await supabase.auth.getSession();
