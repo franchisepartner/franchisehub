@@ -74,6 +74,11 @@ export default function AnnouncementPage() {
     setLoading(false);
   }
 
+  async function handleDelete(id: number) {
+    await supabase.from('announcements').delete().eq('id', id);
+    fetchAnnouncements();
+  }
+
   return (
     <div className="max-w-2xl mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Pengumuman</h1>
@@ -115,21 +120,36 @@ export default function AnnouncementPage() {
         {announcements.map((item) => (
           <div
             key={item.id}
-            className="border p-3 rounded cursor-pointer hover:shadow-lg"
-            onClick={() => setSelectedAnnouncement(item)}
+            className="border p-3 rounded cursor-pointer hover:shadow-lg flex justify-between items-center"
           >
-            <h3 className="font-bold">{item.title}</h3>
-            <p className="text-gray-500 text-sm">
-              {new Date(item.created_at).toLocaleString()}
-            </p>
-            <p className="text-gray-700 text-sm truncate">{item.content}</p>
+            <div onClick={() => setSelectedAnnouncement(item)} className="flex-grow">
+              <h3 className="font-bold">{item.title}</h3>
+              <p className="text-gray-500 text-sm">
+                {new Date(item.created_at).toLocaleString()}
+              </p>
+              <p className="text-gray-700 text-sm truncate">{item.content}</p>
+            </div>
+            {isAdmin && (
+              <button
+                className="text-red-500 ml-4"
+                onClick={() => handleDelete(item.id)}
+              >
+                Hapus
+              </button>
+            )}
           </div>
         ))}
       </div>
 
       {selectedAnnouncement && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
-          <div className="bg-white p-4 rounded max-w-full md:max-w-lg w-full shadow-lg overflow-auto max-h-screen">
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4"
+          onClick={() => setSelectedAnnouncement(null)}
+        >
+          <div
+            className="bg-white p-4 rounded max-w-full md:max-w-lg w-full shadow-lg overflow-auto max-h-screen"
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
               className="float-right text-red-500 text-xl"
               onClick={() => setSelectedAnnouncement(null)}
