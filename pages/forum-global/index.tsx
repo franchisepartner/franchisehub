@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef, ChangeEvent, FormEvent } from 'react'
-import { NextPage } from 'next'
-// Import Supabase hooks (assuming @supabase/auth-helpers is set up)
-import { useSupabaseClient, useUser } from '@supabase/auth-helpers-react'
+import { useEffect, useState, useRef } from 'react';
+import { supabase } from '../../lib/supabaseClient';
+import { Session } from '@supabase/supabase-js';
+import Image from 'next/image';
+import Link from 'next/link';
 
-// Tipe data (sesuaikan dengan struktur tabel sebenarnya)
 type Profile = {
   full_name: string
   is_admin: boolean
