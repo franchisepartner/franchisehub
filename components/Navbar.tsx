@@ -9,7 +9,7 @@ import BurgerMenu from './BurgerMenu';
 
 export default function Navbar() {
   const router = useRouter();
-  const [session, setSession] = useState<any>(null);
+  const [navbarSession, setNavbarSession] = useState<any>(null);
   const [role, setRole] = useState<string>('Franchisee');
   const [menuOpen, setMenuOpen] = useState(false);
 
