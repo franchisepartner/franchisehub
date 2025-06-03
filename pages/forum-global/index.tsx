@@ -1,299 +1,452 @@
-import { useEffect, useState, useRef } from 'react';
-import { supabase } from '../../lib/supabaseClient';
-import { Session } from '@supabase/supabase-js';
-import Image from 'next/image';
-import Link from 'next/link';
+import { useState, useEffect, useRef, ChangeEvent, FormEvent } from 'react'
+import { NextPage } from 'next'
+// Import Supabase hooks (assuming @supabase/auth-helpers is set up)
+import { useSupabaseClient, useUser } from '@supabase/auth-helpers-react'
 
-interface Thread {
-  id: string;
-  title: string;
-  content: string;
-  image_url?: string;
-  created_by: string;
-  created_at: string;
+// Tipe data (sesuaikan dengan struktur tabel sebenarnya)
+type Profile = {
+  full_name: string
+  is_admin: boolean
+}
+type Comment = {
+  id: string
+  content: string
+  user_id: string
+  thread_id: string
+  created_at: string
+  profiles?: Profile    // data profil user (nama & admin) via relasi
+}
+type Thread = {
+  id: string
+  title: string
+  content: string
+  image_url?: string
+  user_id: string
+  created_at: string
+  profiles?: Profile    // data profil author (nama, is_admin jika perlu)
 }
 
-interface Comment {
-  id: string;
-  thread_id: string;
-  content: string;
-  created_by: string;
-  created_at: string;
-  user_role?: string;
-  user_name?: string;
-  profiles?: {
-    role: string;
-    full_name: string;
-  };
-}
+const ForumGlobalPage: NextPage = () => {
+  const supabase = useSupabaseClient()
+  const user = useUser()                        // data user yang sedang login
+  const [threads, setThreads] = useState<Thread[]>([])
+  const [selectedThread, setSelectedThread] = useState<Thread | null>(null)
+  const [comments, setComments] = useState<Comment[]>([])
+  const [loadingThreads, setLoadingThreads] = useState(false)
+  const [loadingComments, setLoadingComments] = useState(false)
+  const [currentUserProfile, setCurrentUserProfile] = useState<Profile | null>(null)
 
-export default function ForumGlobal() {
-  const [threads, setThreads] = useState<Thread[]>([]);
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [session, setSession] = useState<Session | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
+  // State untuk form input
+  const [newThreadTitle, setNewThreadTitle] = useState('')
+  const [newThreadContent, setNewThreadContent] = useState('')
+  const [newThreadFile, setNewThreadFile] = useState<File | null>(null)
+  const [newCommentContent, setNewCommentContent] = useState('')
 
-  const [newThread, setNewThread] = useState({
-    title: '',
-    content: '',
-    imageFile: null as File | null,
-  });
-  const [newComment, setNewComment] = useState('');
-  const [selectedThread, setSelectedThread] = useState<Thread | null>(null);
-  const [showThreadPopup, setShowThreadPopup] = useState(false);
-  const popupRef = useRef<HTMLDivElement>(null);
+  // Refs untuk input file (opsional, bisa langsung pakai onChange)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => {
-    const fetchSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      setSession(data.session);
-    };
-    fetchSession();
-
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
-    fetchThreads();
-
-    const threadSubscription = supabase
-      .channel('threads')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'threads' }, fetchThreads)
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(threadSubscription);
-      listener.subscription.unsubscribe();
-    };
-  }, []);
-
-  useEffect(() => {
-    if (session?.user?.id) {
-      supabase
-        .from('profiles')
-        .select('is_admin')
-        .eq('id', session.user.id)
-        .single()
-        .then(({ data }) => setIsAdmin(data?.is_admin || false));
-    }
-  }, [session]);
-
-  useEffect(() => {
-    if (!selectedThread?.id) return;
-
-    const commentSubscription = supabase
-      .channel(`comments:${selectedThread.id}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'thread_comments', filter: `thread_id=eq.${selectedThread.id}` }, () => fetchComments(selectedThread.id))
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(commentSubscription);
-    };
-  }, [selectedThread]);
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (showThreadPopup && popupRef.current && !popupRef.current.contains(e.target as Node)) {
-        setShowThreadPopup(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showThreadPopup]);
-
-  async function fetchThreads() {
-    const { data } = await supabase.from('threads').select('*').order('created_at', { ascending: false });
-    setThreads(data || []);
-  }
-
-  async function fetchComments(threadId: string) {
+  // Fetch profil user saat ini (untuk cek is_admin)
+  const fetchCurrentUserProfile = async (userId: string) => {
     const { data, error } = await supabase
-      .from('thread_comments')
-      .select('*,profiles(full_name, role)')
-      .eq('thread_id', threadId)
-      .order('created_at', { ascending: true });
-
-    if (error) console.error('Error fetching comments:', error);
-
-    setComments(
-      data?.map((comment) => ({
-        ...comment,
-        user_name: comment.profiles?.full_name,
-        user_role: comment.profiles?.role,
-      })) || []
-    );
-  }
-
-  async function handleCreateThread() {
-    if (!session?.user?.id) {
-      alert('Login dahulu!');
-      return;
-    }
-
-    let image_url = '';
-    if (newThread.imageFile) {
-      const fileName = `${Date.now()}_${newThread.imageFile.name}`;
-      const { data, error } = await supabase.storage.from('thread-images').upload(fileName, newThread.imageFile);
-
-      if (error) {
-        alert(`Upload gagal: ${error.message}`);
-        return;
-      }
-
-      image_url = supabase.storage.from('thread-images').getPublicUrl(data.path).data.publicUrl;
-    }
-
-    const { error } = await supabase.from('threads').insert({
-      title: newThread.title,
-      content: newThread.content,
-      image_url,
-      created_by: session.user.id,
-    });
-
+      .from('profiles')
+      .select('full_name, is_admin')
+      .eq('id', userId)
+      .single()
     if (error) {
-      alert(`Insert gagal: ${error.message}`);
-      return;
+      console.error('Error fetching user profile:', error.message)
+    } else {
+      setCurrentUserProfile({ full_name: data.full_name, is_admin: data.is_admin })
     }
-
-    setNewThread({ title: '', content: '', imageFile: null });
-    setShowThreadPopup(false);
-    fetchThreads();
   }
 
-  async function handleCommentSubmit() {
-  if (!selectedThread?.id || !session?.user?.id) {
-    alert('Pilih thread atau login dahulu!');
-    return;
+  // Fetch daftar semua thread
+  const fetchThreads = async () => {
+    setLoadingThreads(true)
+    const { data, error } = await supabase
+      .from('threads')
+      .select(`
+        id,
+        title,
+        content,
+        image_url,
+        user_id,
+        created_at,
+        profiles ( full_name )
+      `) // mengambil nama penulis via relasi profiles
+      .order('created_at', { ascending: false })
+    if (error) {
+      console.error('Error fetching threads:', error.message)
+    } else if (data) {
+      setThreads(data as Thread[])
+    }
+    setLoadingThreads(false)
   }
 
-  const { error } = await supabase.from('thread_comments').insert({
-    thread_id: selectedThread.id,
-    content: newComment,
-    created_by: session.user.id,
-  });
-
-  if (error) {
-    alert(`Insert komentar gagal: ${error.message}`);
-    console.error('Insert Error:', error);
-    return;
+  // Fetch komentar untuk thread tertentu (berdasarkan thread_id)
+  const fetchComments = async (threadId: string) => {
+    setLoadingComments(true)
+    const { data, error } = await supabase
+      .from('comments')
+      .select(`
+        id,
+        content,
+        user_id,
+        thread_id,
+        created_at,
+        profiles ( full_name, is_admin )
+      `) // mengambil nama & status admin komentator via relasi profiles
+      .eq('thread_id', threadId)
+      .order('created_at', { ascending: true })
+    if (error) {
+      console.error('Error fetching comments:', error.message)
+    } else if (data) {
+      setComments(data as Comment[])
+    }
+    setLoadingComments(false)
   }
 
-  setNewComment('');
-  fetchComments(selectedThread.id);
-}
+  // Inisialisasi data awal setelah komponen mount atau user berubah
+  useEffect(() => {
+    if (user) {
+      fetchCurrentUserProfile(user.id)  // dapatkan profil user login (nama & is_admin)
+      fetchThreads()                    // ambil daftar thread
+    } else {
+      // jika tidak ada user (misal belum login), bisa handle di sini (misal redirect atau skip fetch)
+      setThreads([])
+      setSelectedThread(null)
+      setComments([])
+    }
+  }, [user])
 
-  async function handleDeleteComment(id: string) {
-    await supabase.from('thread_comments').delete().eq('id', id);
-    if (selectedThread) fetchComments(selectedThread.id);
+  // Polling opsional: refresh komentar setiap interval (contoh: 5 detik)
+  useEffect(() => {
+    if (selectedThread) {
+      const intervalId = setInterval(() => {
+        fetchComments(selectedThread.id)
+      }, 5000)
+      return () => clearInterval(intervalId)
+    }
+  }, [selectedThread])
+
+  // Polling opsional: refresh daftar thread tiap interval (contoh: 30 detik)
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      fetchThreads()
+    }, 30000)
+    return () => clearInterval(intervalId)
+  }, [])
+
+  // Handler ketika memilih salah satu thread dari list
+  const handleSelectThread = (thread: Thread) => {
+    setSelectedThread(thread)
+    setComments([])               // reset komentar lama
+    if (thread) {
+      fetchComments(thread.id)    // load komentar untuk thread terpilih
+    }
+    setNewCommentContent('')      // reset input komentar
   }
 
-  async function handleDeleteThread(id: string) {
-    await supabase.from('threads').delete().eq('id', id);
-    fetchThreads();
-    setSelectedThread(null);
+  // Handler input file thread
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null
+    setNewThreadFile(file)
+  }
+
+  // Submit membuat thread baru
+  const handleAddThread = async (e: FormEvent) => {
+    e.preventDefault()
+    if (!user) {
+      alert('Silakan login terlebih dahulu.')
+      return
+    }
+    if (!newThreadTitle.trim()) {
+      alert('Judul thread tidak boleh kosong.')
+      return
+    }
+    // Upload gambar ke Supabase Storage (jika ada file dipilih)
+    let imageUrl: string | null = null
+    if (newThreadFile) {
+      const fileExt = newThreadFile.name.split('.').pop()
+      const fileName = `${Date.now()}.${fileExt}`             // nama file unik: timestamp
+      const { data: uploadData, error: uploadError } = await supabase
+        .storage
+        .from('forum-images')                                // ganti sesuai nama bucket
+        .upload(fileName, newThreadFile)
+      if (uploadError) {
+        console.error('Upload image error:', uploadError.message)
+        alert('Gagal mengupload gambar.')
+        return
+      }
+      if (uploadData) {
+        // dapatkan URL publik gambar
+        const { data: publicData } = supabase
+          .storage
+          .from('forum-images')
+          .getPublicUrl(uploadData.path)
+        imageUrl = publicData.publicUrl
+      }
+    }
+    // Insert thread baru ke database
+    const { data: newThread, error } = await supabase
+      .from('threads')
+      .insert({
+        title: newThreadTitle,
+        content: newThreadContent,
+        image_url: imageUrl,
+        user_id: user.id,
+        created_at: new Date().toISOString()  // atau biarkan default di DB
+      })
+      .select(`
+        id,
+        title,
+        content,
+        image_url,
+        user_id,
+        created_at,
+        profiles ( full_name )
+      `)
+      .single()
+    if (error) {
+      console.error('Error inserting thread:', error.message)
+      alert('Gagal membuat thread baru.')
+    } else if (newThread) {
+      // Update daftar threads di state dengan thread baru
+      setThreads(prev => [newThread as Thread, ...prev])
+      // Reset form input
+      setNewThreadTitle('')
+      setNewThreadContent('')
+      setNewThreadFile(null)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
+  // Submit menambahkan komentar baru ke thread terpilih
+  const handleAddComment = async (e: FormEvent) => {
+    e.preventDefault()
+    if (!user || !selectedThread) {
+      return alert('Harus login dan memilih thread untuk mengirim komentar.')
+    }
+    if (!newCommentContent.trim()) {
+      return // jika komentar kosong, tidak melakukan apa-apa
+    }
+    // Insert komentar ke database
+    const { data: insertedComment, error } = await supabase
+      .from('comments')
+      .insert({
+        content: newCommentContent,
+        thread_id: selectedThread.id,
+        user_id: user.id,
+        created_at: new Date().toISOString()
+      })
+      .select(`
+        id,
+        content,
+        user_id,
+        thread_id,
+        created_at,
+        profiles ( full_name, is_admin )
+      `)
+      .single()
+    if (error) {
+      console.error('Error inserting comment:', error.message)
+      alert('Gagal mengirim komentar.')
+    } else if (insertedComment) {
+      // Tambahkan komentar baru ke state (langsung muncul)
+      setComments(prev => [...prev, insertedComment as Comment])
+      setNewCommentContent('')  // reset input komentar
+    }
+  }
+
+  // Hapus thread (jika user adalah author atau admin)
+  const handleDeleteThread = async (thread: Thread) => {
+    if (!user || !currentUserProfile) return
+    const isOwner = thread.user_id === user.id
+    const isAdmin = currentUserProfile.is_admin
+    if (!isOwner && !isAdmin) {
+      return alert('Anda tidak memiliki izin untuk menghapus thread ini.')
+    }
+    const confirm = window.confirm(`Yakin ingin menghapus thread "${thread.title}" beserta komentarnya?`)
+    if (!confirm) return
+    // Hapus thread dari DB (komentar terhubung akan terhapus otomatis jika FK cascade)
+    const { error } = await supabase
+      .from('threads')
+      .delete()
+      .eq('id', thread.id)
+    if (error) {
+      console.error('Error deleting thread:', error.message)
+      alert('Gagal menghapus thread.')
+    } else {
+      // Update state: hapus thread dari daftar
+      setThreads(prev => prev.filter(t => t.id !== thread.id))
+      // Jika thread yang dihapus sedang ditampilkan, reset tampilan
+      if (selectedThread && selectedThread.id === thread.id) {
+        setSelectedThread(null)
+        setComments([])
+      }
+    }
+  }
+
+  // Hapus komentar (jika user adalah author atau admin)
+  const handleDeleteComment = async (comment: Comment) => {
+    if (!user || !currentUserProfile) return
+    const isOwner = comment.user_id === user.id
+    const isAdmin = currentUserProfile.is_admin
+    if (!isOwner && !isAdmin) {
+      return alert('Anda tidak memiliki izin untuk menghapus komentar ini.')
+    }
+    const confirm = window.confirm('Yakin ingin menghapus komentar ini?')
+    if (!confirm) return
+    const { error } = await supabase
+      .from('comments')
+      .delete()
+      .eq('id', comment.id)
+    if (error) {
+      console.error('Error deleting comment:', error.message)
+      alert('Gagal menghapus komentar.')
+    } else {
+      // Update state: hapus komentar dari list
+      setComments(prev => prev.filter(c => c.id !== comment.id))
+    }
   }
 
   return (
-    <div className="max-w-3xl mx-auto p-6 relative">
-      <Image
-        src="/pattern.jpg"
-        alt="Decorative Corner"
-        width={100}
-        height={100}
-        className="absolute top-0 left-0 -z-10 opacity-20"
-      />
+    <div className="forum-page-container" style={{ padding: '1rem' }}>
+      <h1>Forum Global</h1>
 
-      <h1 className="text-2xl font-bold mb-6">Forum Global 🌐</h1>
-
-      {session && (
-        <button className="mb-4 px-4 py-2 bg-blue-500 text-white rounded" onClick={() => setShowThreadPopup(true)}>
-          Buat Thread Baru
-        </button>
-      )}
-
-      <div className="space-y-4">
-        {threads.map((thread) => (
-          <div key={thread.id} className="border p-4 rounded hover:bg-gray-50 relative">
-            <div
-              className="cursor-pointer"
-              onClick={() => {
-                setSelectedThread(thread);
-                fetchComments(thread.id);
-              }}
-            >
-              <h3 className="font-semibold text-lg">{thread.title}</h3>
-              <p className="text-sm text-gray-500">{new Date(thread.created_at).toLocaleString()}</p>
-            </div>
-            {(session?.user.id === thread.created_by || isAdmin) && (
-              <button className="absolute top-2 right-2 text-red-500 text-sm" onClick={() => handleDeleteThread(thread.id)}>
-                Hapus
-              </button>
-            )}
-          </div>
-        ))}
+      {/* Daftar Threads */}
+      <div className="threads-section" style={{ marginBottom: '2rem' }}>
+        <h2>Daftar Thread</h2>
+        {loadingThreads ? (
+          <p>Loading threads...</p>
+        ) : (
+          <ul>
+            {threads.map(thread => (
+              <li 
+                key={thread.id} 
+                onClick={() => handleSelectThread(thread)} 
+                style={{ cursor: 'pointer', marginBottom: '0.5rem', listStyle: 'none' }}
+              >
+                <strong>{thread.title}</strong>
+                {thread.profiles?.full_name && (
+                  <span> – oleh {thread.profiles.full_name}</span>
+                )}
+                {/* Tampilkan tanggal atau info lain jika perlu */}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
-      {selectedThread && (
-        <div className="mt-6 border p-4 rounded">
-          <h2 className="font-bold text-xl mb-2">{selectedThread.title}</h2>
-          {selectedThread.image_url && (
-            <img src={selectedThread.image_url} className="w-full rounded mb-2" />
-          )}
-          <p className="mb-4">{selectedThread.content}</p>
-
-          <div className="border-t pt-4">
-            <h3 className="font-semibold mb-2">Komentar:</h3>
-            {comments.map((comment) => (
-              <div key={comment.id} className="border-b py-2">
-                <div className="flex justify-between items-center">
-                  <Link href={`/profil/${comment.created_by}`} className="text-blue-600 hover:underline">
-                    {comment.user_name || 'Anon'} <span className="text-xs text-gray-500">({comment.user_role})</span>
-                  </Link>
-                  {(session?.user.id === comment.created_by || isAdmin) && (
-                    <button onClick={() => handleDeleteComment(comment.id)} className="text-red-500 text-xs">
-                      Hapus
-                    </button>
-                  )}
-                </div>
-                <p>{comment.content}</p>
-                <p className="text-xs text-gray-500">{new Date(comment.created_at).toLocaleString()}</p>
+      {/* Detail Thread & Komentar */}
+      <div className="thread-detail-section" style={{ marginBottom: '2rem' }}>
+        {selectedThread ? (
+          <div>
+            <h2>{selectedThread.title}</h2>
+            {selectedThread.profiles?.full_name && (
+              <p>
+                <em>oleh {selectedThread.profiles.full_name}{selectedThread.user_id === user?.id ? " (Anda)" : ""}{currentUserProfile?.is_admin && selectedThread.user_id === user?.id ? " - Admin" : ""}</em>
+              </p>
+            )}
+            {selectedThread.content && <p>{selectedThread.content}</p>}
+            {selectedThread.image_url && (
+              <div style={{ margin: '1rem 0' }}>
+                <img src={selectedThread.image_url} alt="Thread Image" style={{ maxWidth: '100%' }} />
               </div>
-            ))}
+            )}
+            {/* Tombol hapus thread (jika diizinkan) */}
+            {(user && currentUserProfile && (selectedThread.user_id === user.id || currentUserProfile.is_admin)) && (
+              <button onClick={() => handleDeleteThread(selectedThread)}>
+                Hapus Thread
+              </button>
+            )}
 
-            {session ? (
-              <div className="mt-4">
-                <textarea
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  className="w-full border rounded px-3 py-2"
-                  placeholder="Tambah komentar..."
-                />
-                <button className="mt-2 bg-blue-500 text-white px-4 py-2 rounded" onClick={handleCommentSubmit}>
-                  Kirim
-                </button>
-              </div>
+            <h3>Komentar:</h3>
+            {loadingComments ? (
+              <p>Loading comments...</p>
             ) : (
-              <p className="mt-4 text-sm italic">Silakan login untuk berkomentar.</p>
+              <ul>
+                {comments.map(comment => (
+                  <li key={comment.id} style={{ marginBottom: '1rem', listStyle: 'none' }}>
+                    <p>{comment.content}</p>
+                    <p style={{ fontSize: '0.9rem', color: '#555' }}>
+                      – <strong>{comment.profiles?.full_name || "User"}</strong>{comment.profiles?.is_admin ? " (Admin)" : ""} 
+                      {comment.user_id === user?.id ? " (Anda)" : ""}
+                      {' '}<em>{new Date(comment.created_at).toLocaleString()}</em>
+                    </p>
+                    {/* Tombol hapus komentar (jika diizinkan) */}
+                    {(user && currentUserProfile && (comment.user_id === user.id || currentUserProfile.is_admin)) && (
+                      <button onClick={() => handleDeleteComment(comment)} style={{ fontSize: '0.8rem' }}>
+                        Hapus
+                      </button>
+                    )}
+                  </li>
+                ))}
+                {comments.length === 0 && <li>Tidak ada komentar.</li>}
+              </ul>
+            )}
+
+            {/* Form tambah komentar baru */}
+            {user ? (
+              <form onSubmit={handleAddComment}>
+                <textarea 
+                  value={newCommentContent} 
+                  onChange={(e) => setNewCommentContent(e.target.value)}
+                  placeholder="Tulis komentar..." 
+                  rows={3} required 
+                  style={{ width: '100%', marginBottom: '0.5rem' }}
+                />
+                <br />
+                <button type="submit">Kirim Komentar</button>
+              </form>
+            ) : (
+              <p><em>Silakan login untuk mengirim komentar.</em></p>
             )}
           </div>
-        </div>
-      )}
+        ) : (
+          <p>Pilih salah satu thread untuk melihat detail dan komentar.</p>
+        )}
+      </div>
 
-      {showThreadPopup && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded relative" ref={popupRef}>
-            <button className="absolute top-2 right-2" onClick={() => setShowThreadPopup(false)}>
-              &times;
-            </button>
-
-            <h2 className="font-bold mb-2">Thread Baru</h2>
-            <input type="text" placeholder="Judul" value={newThread.title} onChange={(e) => setNewThread({ ...newThread, title: e.target.value })} className="w-full border px-3 py-2 mb-2" />
-            <textarea placeholder="Isi thread" value={newThread.content} onChange={(e) => setNewThread({ ...newThread, content: e.target.value })} className="w-full border px-3 py-2 mb-2" />
-            <input type="file" onChange={(e) => setNewThread({ ...newThread, imageFile: e.target.files?.[0] || null })} />
-            <button onClick={handleCreateThread} className="bg-blue-500 text-white px-4 py-2 rounded mt-4">Kirim</button>
-          </div>
+      {/* Formulir Buat Thread Baru */}
+      {user ? (
+        <div className="new-thread-form">
+          <h2>Buat Thread Baru</h2>
+          <form onSubmit={handleAddThread}>
+            <div style={{ marginBottom: '0.5rem' }}>
+              <input 
+                type="text" 
+                placeholder="Judul thread" 
+                value={newThreadTitle} 
+                onChange={(e) => setNewThreadTitle(e.target.value)} 
+                required 
+                style={{ width: '100%' }}
+              />
+            </div>
+            <div style={{ marginBottom: '0.5rem' }}>
+              <textarea 
+                placeholder="Konten thread (opsional)" 
+                value={newThreadContent} 
+                onChange={(e) => setNewThreadContent(e.target.value)} 
+                rows={4} 
+                style={{ width: '100%' }}
+              />
+            </div>
+            <div style={{ marginBottom: '0.5rem' }}>
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handleFileChange} 
+                accept="image/*"
+              /> (opsional)
+            </div>
+            <button type="submit">Posting Thread</button>
+          </form>
         </div>
+      ) : (
+        <p><em>Silakan login untuk membuat thread baru.</em></p>
       )}
     </div>
-  );
+  )
 }
+
+export default ForumGlobalPage
