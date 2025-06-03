@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import io from 'socket.io-client';
 import { useUser } from '@supabase/auth-helpers-react';
 
-const socket = io('https://easygoing-quietude.up.railway.app');
+const socket = io('https://franchisehub-chat-backend-production.up.railway.app');
 
 export default function ChatPasarPopup({ onClose }: { onClose: () => void }) {
   const user = useUser();
