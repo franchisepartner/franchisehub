@@ -42,6 +42,8 @@ const [messages, setMessages] = useState<Message[]>([]);
 
   const fullName = user?.user_metadata?.full_name || 'User';
   const sendMessage = () => {
+    if (!user || !message.trim()) return;
+    
     const data = {
       sender_id: user.id,
       sender_name: fullName,
