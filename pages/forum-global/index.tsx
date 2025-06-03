@@ -45,7 +45,7 @@ const ForumGlobalPage: NextPage = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchCurrentUserProfile = async (userId: string) => {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('profiles')
       .select('full_name, is_admin')
       .eq('id', userId)
@@ -55,11 +55,17 @@ const ForumGlobalPage: NextPage = () => {
 
   const fetchThreads = async () => {
     setLoadingThreads(true);
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('threads')
       .select(`id, title, content, image_url, user_id, created_at, profiles(full_name, is_admin)`)
       .order('created_at', { ascending: false });
-    if (data) setThreads(data as Thread[]);
+    if (data) {
+      const formattedThreads = data.map((thread: any) => ({
+        ...thread,
+        profiles: thread.profiles[0] || thread.profiles,
+      })) as Thread[];
+      setThreads(formattedThreads);
+    }
     setLoadingThreads(false);
   };
 
@@ -70,7 +76,13 @@ const ForumGlobalPage: NextPage = () => {
       .select(`id, content, user_id, thread_id, created_at, profiles(full_name, is_admin)`)
       .eq('thread_id', threadId)
       .order('created_at', { ascending: true });
-    if (data) setComments(data as Comment[]);
+    if (data) {
+      const formattedComments = data.map((c: any) => ({
+        ...c,
+        profiles: c.profiles[0] || c.profiles
+      })) as Comment[];
+      setComments(formattedComments);
+    }
     setLoadingComments(false);
   };
 
