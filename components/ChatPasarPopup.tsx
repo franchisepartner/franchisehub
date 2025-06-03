@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import io from 'socket.io-client';
 import { useUser } from '@supabase/auth-helpers-react';
 
-const socket = io('URL_BACKEND_CHAT_KAMU'); // Ganti URL Railway-mu
+const socket = io('https://easygoing-quietude.up.railway.app');
 
-export default function ChatPasarPopup({ onClose }) {
+export default function ChatPasarPopup({ onClose }: { onClose: () => void }) {
   const user = useUser();
   const popupRef = useRef(null);
   const [message, setMessage] = useState('');
