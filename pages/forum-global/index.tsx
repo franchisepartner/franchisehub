@@ -32,6 +32,7 @@ export default function ForumGlobal() {
   });
   const [newComment, setNewComment] = useState('');
   const [selectedThread, setSelectedThread] = useState<Thread | null>(null);
+  const [showThreadPopup, setShowThreadPopup] = useState(false);
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -59,11 +60,7 @@ export default function ForumGlobal() {
   }, []);
 
   async function fetchThreads() {
-    const { data } = await supabase
-      .from('threads')
-      .select('*')
-      .order('created_at', { ascending: false });
-
+    const { data } = await supabase.from('threads').select('*').order('created_at', { ascending: false });
     setThreads(data || []);
   }
 
@@ -73,7 +70,6 @@ export default function ForumGlobal() {
       .select('*')
       .eq('thread_id', threadId)
       .order('created_at', { ascending: true });
-
     setComments(data || []);
   }
 
@@ -98,16 +94,12 @@ export default function ForumGlobal() {
     });
 
     setNewThread({ title: '', content: '', imageFile: null });
+    setShowThreadPopup(false);
   }
 
   async function handleCommentSubmit() {
-    if (!selectedThread?.id) {
-      alert('Pilih thread terlebih dahulu!');
-      return;
-    }
-
-    if (!session?.user?.id) {
-      alert('Anda harus login terlebih dahulu!');
+    if (!selectedThread?.id || !session?.user?.id) {
+      alert('Silakan pilih thread dan pastikan anda sudah login!');
       return;
     }
 
@@ -124,7 +116,7 @@ export default function ForumGlobal() {
   return (
     <div className="max-w-3xl mx-auto p-6 relative">
       <Image
-        src="/pattern.jpeg"
+        src="/pattern.jpg"
         alt="Decorative Corner"
         width={100}
         height={100}
@@ -132,6 +124,15 @@ export default function ForumGlobal() {
       />
 
       <h1 className="text-2xl font-bold mb-6">Forum Global 🌐</h1>
+
+      {session && (
+        <button
+          className="mb-4 px-4 py-2 bg-blue-500 text-white rounded"
+          onClick={() => setShowThreadPopup(true)}
+        >
+          Buat Thread Baru
+        </button>
+      )}
 
       <div className="space-y-4">
         {threads.map((thread) => (
@@ -181,6 +182,38 @@ export default function ForumGlobal() {
             ) : (
               <p className="mt-4 text-sm italic">Silakan login untuk berkomentar.</p>
             )}
+          </div>
+        </div>
+      )}
+
+      {showThreadPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded relative">
+            <button className="absolute top-2 right-2" onClick={() => setShowThreadPopup(false)}>
+              &times;
+            </button>
+
+            <h2 className="font-bold mb-2">Thread Baru</h2>
+            <input
+              type="text"
+              placeholder="Judul"
+              value={newThread.title}
+              onChange={(e) => setNewThread({ ...newThread, title: e.target.value })}
+              className="w-full border px-3 py-2 mb-2"
+            />
+            <textarea
+              placeholder="Isi thread"
+              value={newThread.content}
+              onChange={(e) => setNewThread({ ...newThread, content: e.target.value })}
+              className="w-full border px-3 py-2 mb-2"
+            ></textarea>
+            <input
+              type="file"
+              onChange={(e) => setNewThread({ ...newThread, imageFile: e.target.files?.[0] || null })}
+            />
+            <button onClick={handleCreateThread} className="bg-blue-500 text-white px-4 py-2 rounded mt-4">
+              Kirim
+            </button>
           </div>
         </div>
       )}
