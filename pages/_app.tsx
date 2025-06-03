@@ -26,7 +26,7 @@ export default function App({ Component, pageProps }: AppProps) {
         className="fixed bottom-6 right-6 bg-blue-500 text-white p-4 rounded-full shadow-xl z-50"
         onClick={() => setChatOpen(true)}
       >
-        💬
+        📬
       </button>
 
       {/* Popup Chat Pasar */}
