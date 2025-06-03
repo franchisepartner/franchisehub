@@ -29,7 +29,7 @@ const [messages, setMessages] = useState<Message[]>([]);
   }, []);
 
   useEffect(() => {
-    function handleClickOutside(event) {
+    function handleClickOutside(event: MouseEvent) {
       if (popupRef.current && !popupRef.current.contains(event.target)) {
         onClose();
       }
