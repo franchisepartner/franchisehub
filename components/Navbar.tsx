@@ -19,14 +19,14 @@ export default function Navbar() {
   // Ambil session & role user dari Supabase
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
+      setNavbarSession(data.session);
       if (data.session) {
         fetchUserRole(data.session.user.id);
       }
     });
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
+      setNavbarSession(session);
       if (session) {
         fetchUserRole(session.user.id);
       }
