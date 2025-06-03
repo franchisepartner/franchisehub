@@ -41,7 +41,7 @@ export default function ForumGlobal() {
     };
   }, []);
 
-  async function fetchThreads(threadId: string) {
+  async function fetchThreads() { 
     const { data } = await supabase
       .from('threads')
       .select('*')
