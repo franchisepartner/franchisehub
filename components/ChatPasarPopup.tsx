@@ -3,11 +3,6 @@ import io from 'socket.io-client';
 import { useUser } from '@supabase/auth-helpers-react';
 
 const socket = io('https://franchisehub-chat-backend-production.up.railway.app');
-fetch('<URL_backend>/send-message', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ content: onmessage, senderId: useUser, ... })
-});
 
 export default function ChatPasarPopup({ onClose }: { onClose: () => void }) {
   const user = useUser();
