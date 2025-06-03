@@ -57,7 +57,7 @@ const [messages, setMessages] = useState<Message[]>([]);
   return (
     <div className="fixed bottom-24 right-6 w-80 h-96 bg-white shadow-2xl rounded-lg flex flex-col z-50" ref={popupRef}>
       <div className="p-2 border-b flex justify-between items-center">
-        <span className="font-semibold">🌐 Chat Pasar</span>
+        <span className="font-semibold">🏪 Chat Pasar</span>
         <button onClick={onClose} className="text-gray-500">✖️</button>
       </div>
       <div className="flex-1 p-2 overflow-y-auto">
