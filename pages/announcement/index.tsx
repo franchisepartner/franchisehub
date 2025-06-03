@@ -128,8 +128,8 @@ export default function AnnouncementPage() {
       </div>
 
       {selectedAnnouncement && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-4 rounded max-w-lg w-full shadow-lg">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
+          <div className="bg-white p-4 rounded max-w-full md:max-w-lg w-full shadow-lg overflow-auto max-h-screen">
             <button
               className="float-right text-red-500 text-xl"
               onClick={() => setSelectedAnnouncement(null)}
@@ -150,7 +150,7 @@ export default function AnnouncementPage() {
                 className="w-full max-h-80 object-cover mb-4 rounded"
               />
             )}
-            <p>{selectedAnnouncement.content}</p>
+            <p className="break-words">{selectedAnnouncement.content}</p>
           </div>
         </div>
       )}
