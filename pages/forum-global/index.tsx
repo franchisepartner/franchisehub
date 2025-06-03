@@ -128,25 +128,18 @@ const ForumGlobalPage: NextPage = () => {
       .select(`id, title, content, image_url, user_id, created_at, profiles(full_name, is_admin)`)
       .single();
 
-    if (newThread) setThreads(prev => [newThread as Thread, ...prev]);
+    if (newThread) {
+      const formattedThread = {
+        ...newThread,
+        profiles: Array.isArray(newThread.profiles) ? newThread.profiles[0] : newThread.profiles,
+      } as Thread;
+      setThreads(prev => [formattedThread, ...prev]);
+    }
+
     setNewThreadTitle('');
     setNewThreadContent('');
     setNewThreadFile(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
-  };
-
-  const handleAddComment = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!user || !selectedThread || !newCommentContent.trim()) return;
-
-    const { data: newComment } = await supabase
-      .from('comments')
-      .insert({ content: newCommentContent, thread_id: selectedThread.id, user_id: user.id })
-      .select(`id, content, user_id, thread_id, created_at, profiles(full_name, is_admin)`)
-      .single();
-
-    if (newComment) setComments(prev => [...prev, newComment as Comment]);
-    setNewCommentContent('');
   };
 
   return (
