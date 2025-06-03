@@ -41,7 +41,7 @@ export default function ForumGlobal() {
       .from('threads')
       .select('*')
       .order('created_at', { ascending: false });
-    setThreads(data);
+    setThreads(data || []);
   }
 
   async function fetchComments(threadId) {
