@@ -11,6 +11,7 @@ export default function AnnouncementPage() {
   const [content, setContent] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState<any>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
@@ -110,24 +111,49 @@ export default function AnnouncementPage() {
         </form>
       )}
 
-      <div className="space-y-6">
+      <div className="space-y-4">
         {announcements.map((item) => (
-          <div key={item.id} className="border p-4 rounded">
-            <h3 className="font-bold text-lg">{item.title}</h3>
-            <p className="text-sm text-gray-600 mb-2">
+          <div
+            key={item.id}
+            className="border p-3 rounded cursor-pointer hover:shadow-lg"
+            onClick={() => setSelectedAnnouncement(item)}
+          >
+            <h3 className="font-bold">{item.title}</h3>
+            <p className="text-gray-500 text-sm">
               {new Date(item.created_at).toLocaleString()}
             </p>
-            {item.image_url && (
-              <img
-                src={item.image_url}
-                alt="Gambar Pengumuman"
-                className="w-full max-h-80 object-cover mb-2 rounded"
-              />
-            )}
-            <p>{item.content}</p>
           </div>
         ))}
       </div>
+
+      {/* Popup modal detail */}
+      {selectedAnnouncement && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-4 rounded max-w-lg w-full shadow-lg">
+            <button
+              className="float-right text-red-500 text-xl"
+              onClick={() => setSelectedAnnouncement(null)}
+            >
+              &times;
+            </button>
+
+            <h2 className="font-bold text-xl mb-2">
+              {selectedAnnouncement.title}
+            </h2>
+            <p className="text-sm text-gray-500 mb-2">
+              {new Date(selectedAnnouncement.created_at).toLocaleString()}
+            </p>
+            {selectedAnnouncement.image_url && (
+              <img
+                src={selectedAnnouncement.image_url}
+                alt="Gambar Pengumuman"
+                className="w-full max-h-80 object-cover mb-4 rounded"
+              />
+            )}
+            <p>{selectedAnnouncement.content}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
