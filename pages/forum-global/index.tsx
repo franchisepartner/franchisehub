@@ -66,7 +66,7 @@ export default function ForumGlobal() {
       .select('*')
       .eq('thread_id', threadId)
       .order('created_at', { ascending: true });
-    setComments(data);
+    setComments(data || []);
   }
 
   async function handleCreateThread(threadId: string) {
