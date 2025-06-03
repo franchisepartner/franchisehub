@@ -3,13 +3,18 @@ import { supabase } from '../../lib/supabaseClient';
 import { Session } from '@supabase/supabase-js';
 import Image from 'next/image';
 
+interface Thread {
+  id: string;
+  title: string;
+  content: string;
+  image_url?: string;
+  created_by: string;
+  created_at: string;
+}
+
 export default function ForumGlobal() {
-  const [threads, setThreads] = useState([]);
-  const [selectedThread, setSelectedThread] = useState(null);
-  const [comments, setComments] = useState([]);
+  const [threads, setThreads] = useState<Thread[]>([]);
   const [session, setSession] = useState<Session | null>(null);
-  const [newThread, setNewThread] = useState({ title: '', content: '', imageFile: null });
-  const [newComment, setNewComment] = useState('');
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -41,7 +46,9 @@ export default function ForumGlobal() {
       .from('threads')
       .select('*')
       .order('created_at', { ascending: false });
+
     setThreads(data || []);
+
   }
 
   async function fetchComments(threadId) {
