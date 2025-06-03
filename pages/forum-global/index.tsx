@@ -26,11 +26,13 @@ export default function ForumGlobal() {
   const [session, setSession] = useState<Session | null>(null);
 
   const [newThread, setNewThread] = useState({
-  title: '',
-  content: '',
-  imageFile: null as File | null,
-});
+    title: '',
+    content: '',
+    imageFile: null as File | null,
+  });
+  const [newComment, setNewComment] = useState('');
   const [selectedThread, setSelectedThread] = useState<Thread | null>(null);
+
   useEffect(() => {
     const fetchSession = async () => {
       const { data } = await supabase.auth.getSession();
@@ -56,14 +58,13 @@ export default function ForumGlobal() {
     };
   }, []);
 
-  async function fetchThreads() { 
+  async function fetchThreads() {
     const { data } = await supabase
       .from('threads')
       .select('*')
       .order('created_at', { ascending: false });
 
     setThreads(data || []);
-
   }
 
   async function fetchComments(threadId: string) {
@@ -72,16 +73,20 @@ export default function ForumGlobal() {
       .select('*')
       .eq('thread_id', threadId)
       .order('created_at', { ascending: true });
+
     setComments(data || []);
   }
 
-  async function handleCreateThread(threadId: string) {
+  async function handleCreateThread() {
+    if (!session?.user?.id) {
+      alert('Anda harus login terlebih dahulu!');
+      return;
+    }
+
     let image_url = '';
     if (newThread.imageFile) {
       const fileName = `${Date.now()}_${newThread.imageFile.name}`;
-      const { data } = await supabase.storage
-        .from('thread-images')
-        .upload(fileName, newThread.imageFile);
+      const { data } = await supabase.storage.from('thread-images').upload(fileName, newThread.imageFile);
       if (data) image_url = supabase.storage.from('thread-images').getPublicUrl(data.path).data.publicUrl;
     }
 
@@ -89,13 +94,23 @@ export default function ForumGlobal() {
       title: newThread.title,
       content: newThread.content,
       image_url,
-      created_by: session?.user?.id || '',
+      created_by: session.user.id,
     });
 
     setNewThread({ title: '', content: '', imageFile: null });
   }
 
-  async function handleCommentSubmit(threadId: string) {
+  async function handleCommentSubmit() {
+    if (!selectedThread?.id) {
+      alert('Pilih thread terlebih dahulu!');
+      return;
+    }
+
+    if (!session?.user?.id) {
+      alert('Anda harus login terlebih dahulu!');
+      return;
+    }
+
     await supabase.from('thread_comments').insert({
       thread_id: selectedThread.id,
       content: newComment,
@@ -129,9 +144,7 @@ export default function ForumGlobal() {
             }}
           >
             <h3 className="font-semibold text-lg">{thread.title}</h3>
-            <p className="text-sm text-gray-500">
-              {new Date(thread.created_at).toLocaleString()}
-            </p>
+            <p className="text-sm text-gray-500">{new Date(thread.created_at).toLocaleString()}</p>
           </div>
         ))}
       </div>
@@ -149,9 +162,7 @@ export default function ForumGlobal() {
             {comments.map((comment) => (
               <div key={comment.id} className="border-b py-2">
                 <p>{comment.content}</p>
-                <p className="text-xs text-gray-500">
-                  {new Date(comment.created_at).toLocaleString()}
-                </p>
+                <p className="text-xs text-gray-500">{new Date(comment.created_at).toLocaleString()}</p>
               </div>
             ))}
 
@@ -163,15 +174,12 @@ export default function ForumGlobal() {
                   className="w-full border rounded px-3 py-2"
                   placeholder="Tambah komentar..."
                 />
-                <button
-                  className="mt-2 bg-blue-500 text-white px-4 py-2 rounded"
-                  onClick={handleCommentSubmit}
-                >
+                <button className="mt-2 bg-blue-500 text-white px-4 py-2 rounded" onClick={handleCommentSubmit}>
                   Kirim
                 </button>
               </div>
             ) : (
-              <p className="mt-4 text-sm italic">Silahkan login untuk berkomentar.</p>
+              <p className="mt-4 text-sm italic">Silakan login untuk berkomentar.</p>
             )}
           </div>
         </div>
