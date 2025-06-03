@@ -6,7 +6,7 @@ const socket = io('https://easygoing-quietude.up.railway.app');
 
 export default function ChatPasarPopup({ onClose }: { onClose: () => void }) {
   const user = useUser();
-  const popupRef = useRef(null);
+  const popupRef = useRef<HTMLDivElement>(null);
   const [message, setMessage] = useState('');
   interface Message {
   sender_id: string;
