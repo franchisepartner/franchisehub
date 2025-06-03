@@ -107,11 +107,13 @@ export default function ForumGlobal() {
   }
 
   async function fetchComments(threadId: string) {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('thread_comments')
       .select('*,profiles(full_name, role)')
       .eq('thread_id', threadId)
       .order('created_at', { ascending: true });
+
+    if (error) console.error('Error fetching comments:', error);
 
     setComments(
       data?.map((comment) => ({
@@ -131,9 +133,7 @@ export default function ForumGlobal() {
     let image_url = '';
     if (newThread.imageFile) {
       const fileName = `${Date.now()}_${newThread.imageFile.name}`;
-      const { data, error } = await supabase.storage
-        .from('thread-images')
-        .upload(fileName, newThread.imageFile);
+      const { data, error } = await supabase.storage.from('thread-images').upload(fileName, newThread.imageFile);
 
       if (error) {
         alert(`Upload gagal: ${error.message}`);
@@ -178,7 +178,7 @@ export default function ForumGlobal() {
     }
 
     setNewComment('');
-    fetchComments(selectedThread.id);
+    await fetchComments(selectedThread.id);
   }
 
   async function handleDeleteComment(id: string) {
