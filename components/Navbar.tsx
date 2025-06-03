@@ -51,7 +51,7 @@ export default function Navbar() {
 
   // Siapa nama yang akan disapa
   const userGreeting = navbarSession
-    ? ${navbarSession.user?.user_metadata?.full_name || 'User'}_${role}
+    ? `${navbarSession.user?.user_metadata?.full_name || 'User'}_${role}`
     : 'Calon Franchisee';
 
   return (
