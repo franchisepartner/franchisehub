@@ -4,6 +4,7 @@ import Image from 'next/image';
 
 export default function AnnouncementPage() {
   const [announcements, setAnnouncements] = useState<any[]>([]);
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [session, setSession] = useState<any>(null);
 
@@ -11,7 +12,6 @@ export default function AnnouncementPage() {
   const [content, setContent] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
-  const [selectedAnnouncement, setSelectedAnnouncement] = useState<any>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
@@ -65,6 +65,7 @@ export default function AnnouncementPage() {
       content,
       image_url,
       created_by: session.user.id,
+      status: 'published',
     });
 
     setTitle('');
@@ -74,9 +75,9 @@ export default function AnnouncementPage() {
     setLoading(false);
   }
 
-  async function handleDelete(id: number) {
-    await supabase.from('announcements').delete().eq('id', id);
-    fetchAnnouncements();
+  async function deleteAnnouncement(id: number) {
+    const { error } = await supabase.from('announcements').delete().eq('id', id);
+    if (!error) fetchAnnouncements();
   }
 
   return (
@@ -120,19 +121,23 @@ export default function AnnouncementPage() {
         {announcements.map((item) => (
           <div
             key={item.id}
-            className="border p-3 rounded cursor-pointer hover:shadow-lg flex justify-between items-center"
+            className="border p-3 rounded cursor-pointer hover:shadow-lg relative"
+            onClick={() => setSelectedAnnouncement(item)}
           >
-            <div onClick={() => setSelectedAnnouncement(item)} className="flex-grow">
-              <h3 className="font-bold">{item.title}</h3>
-              <p className="text-gray-500 text-sm">
-                {new Date(item.created_at).toLocaleString()}
-              </p>
-              <p className="text-gray-700 text-sm truncate">{item.content}</p>
-            </div>
+            <h3 className="font-bold pr-16">{item.title}</h3>
+            <p className="text-gray-500 text-sm">
+              {new Date(item.created_at).toLocaleString()}
+            </p>
+            <p className="text-gray-700 text-sm truncate">
+              {item.content.substring(0, 20)}...
+            </p>
             {isAdmin && (
               <button
-                className="text-red-500 ml-4"
-                onClick={() => handleDelete(item.id)}
+                className="absolute top-2 right-2 text-red-500"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deleteAnnouncement(item.id);
+                }}
               >
                 Hapus
               </button>
@@ -147,19 +152,16 @@ export default function AnnouncementPage() {
           onClick={() => setSelectedAnnouncement(null)}
         >
           <div
-            className="bg-white p-4 rounded max-w-full md:max-w-lg w-full shadow-lg overflow-auto max-h-screen"
+            className="bg-white p-4 rounded max-w-full md:max-w-lg w-full shadow-lg overflow-auto max-h-screen relative"
             onClick={(e) => e.stopPropagation()}
           >
             <button
-              className="float-right text-red-500 text-xl"
+              className="absolute top-2 right-2 text-red-500 text-xl"
               onClick={() => setSelectedAnnouncement(null)}
             >
               &times;
             </button>
-
-            <h2 className="font-bold text-xl mb-2">
-              {selectedAnnouncement.title}
-            </h2>
+            <h2 className="font-bold text-xl mb-2 pt-4">{selectedAnnouncement.title}</h2>
             <p className="text-sm text-gray-500 mb-2">
               {new Date(selectedAnnouncement.created_at).toLocaleString()}
             </p>
@@ -170,7 +172,7 @@ export default function AnnouncementPage() {
                 className="w-full max-h-80 object-cover mb-4 rounded"
               />
             )}
-            <p className="break-words">{selectedAnnouncement.content}</p>
+            <p className="break-words whitespace-pre-wrap">{selectedAnnouncement.content}</p>
           </div>
         </div>
       )}
