@@ -8,7 +8,15 @@ export default function ChatPasarPopup({ onClose }: { onClose: () => void }) {
   const user = useUser();
   const popupRef = useRef(null);
   const [message, setMessage] = useState('');
-  const [messages, setMessages] = useState([]);
+  interface Message {
+  sender_id: string;
+  sender_name: string;
+  sender_role: string;
+  content: string;
+  created_at?: Date;
+}
+
+const [messages, setMessages] = useState<Message[]>([]);
 
   useEffect(() => {
     socket.on('receive_message', (msg) => {
