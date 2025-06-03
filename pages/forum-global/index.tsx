@@ -41,7 +41,7 @@ export default function ForumGlobal() {
     };
   }, []);
 
-  async function fetchThreads() {
+  async function fetchThreads(threadId: string) {
     const { data } = await supabase
       .from('threads')
       .select('*')
@@ -51,7 +51,7 @@ export default function ForumGlobal() {
 
   }
 
-  async function fetchComments(threadId) {
+  async function fetchComments(threadId: string) {
     const { data } = await supabase
       .from('thread_comments')
       .select('*')
@@ -60,7 +60,7 @@ export default function ForumGlobal() {
     setComments(data);
   }
 
-  async function handleCreateThread() {
+  async function handleCreateThread(threadId: string) {
     let image_url = '';
     if (newThread.imageFile) {
       const fileName = `${Date.now()}_${newThread.imageFile.name}`;
@@ -80,7 +80,7 @@ export default function ForumGlobal() {
     setNewThread({ title: '', content: '', imageFile: null });
   }
 
-  async function handleCommentSubmit() {
+  async function handleCommentSubmit(threadId: string) {
     await supabase.from('thread_comments').insert({
       thread_id: selectedThread.id,
       content: newComment,
