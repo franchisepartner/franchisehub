@@ -122,11 +122,11 @@ export default function AnnouncementPage() {
             <p className="text-gray-500 text-sm">
               {new Date(item.created_at).toLocaleString()}
             </p>
+            <p className="text-gray-700 text-sm truncate">{item.content}</p>
           </div>
         ))}
       </div>
 
-      {/* Popup modal detail */}
       {selectedAnnouncement && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white p-4 rounded max-w-lg w-full shadow-lg">
