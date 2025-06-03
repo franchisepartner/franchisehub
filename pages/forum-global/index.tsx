@@ -120,7 +120,7 @@ export default function ForumGlobal() {
         alt="Decorative Corner"
         width={100}
         height={100}
-        className="absolute top-0 left-0"
+        className="absolute top-0 left-0 -z-10 opacity-20"
       />
 
       <h1 className="text-2xl font-bold mb-6">Forum Global 🌐</h1>
