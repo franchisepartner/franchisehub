@@ -50,8 +50,8 @@ export default function Navbar() {
   };
 
   // Siapa nama yang akan disapa
-  const userGreeting = session
-    ? ${session.user?.user_metadata?.full_name || 'User'}_${role}
+  const userGreeting = navbarSession
+    ? ${navbarSession.user?.user_metadata?.full_name || 'User'}_${role}
     : 'Calon Franchisee';
 
   return (
