@@ -89,7 +89,7 @@ export default function ForumGlobal() {
       title: newThread.title,
       content: newThread.content,
       image_url,
-      created_by: session.user.id,
+      created_by: session?.user?.id || '',
     });
 
     setNewThread({ title: '', content: '', imageFile: null });
