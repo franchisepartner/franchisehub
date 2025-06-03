@@ -30,7 +30,7 @@ export default function ForumGlobal() {
   content: '',
   imageFile: null as File | null,
 });
-
+  const [selectedThread, setSelectedThread] = useState<Thread | null>(null);
   useEffect(() => {
     const fetchSession = async () => {
       const { data } = await supabase.auth.getSession();
