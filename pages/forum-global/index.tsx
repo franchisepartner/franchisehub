@@ -12,8 +12,17 @@ interface Thread {
   created_at: string;
 }
 
+interface Comment {
+  id: string;
+  thread_id: string;
+  content: string;
+  created_by: string;
+  created_at: string;
+}
+
 export default function ForumGlobal() {
   const [threads, setThreads] = useState<Thread[]>([]);
+  const [comments, setComments] = useState<Comment[]>([]);
   const [session, setSession] = useState<Session | null>(null);
 
   useEffect(() => {
