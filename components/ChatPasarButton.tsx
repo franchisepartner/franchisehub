@@ -10,7 +10,7 @@ export default function ChatPasarButton() {
         className="fixed bottom-6 right-6 bg-blue-500 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center z-50"
         onClick={() => setOpen(true)}
       >
-        💬
+        👁️‍🗨️
       </button>
 
       {open && (
