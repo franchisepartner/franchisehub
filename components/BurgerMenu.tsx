@@ -101,7 +101,7 @@ export default function BurgerMenu({ open, onClose }: Props) {
           </Link>
         </li>
         <li>
-          <Link href="/blog" onClick={onClose}>
+          <Link href="/blog-global" onClick={onClose}>
             Blog Global
           </Link>
         </li>
