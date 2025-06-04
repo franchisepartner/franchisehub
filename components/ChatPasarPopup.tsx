@@ -77,7 +77,7 @@ export default function ChatPasarPopup({ onClose }: { onClose: () => void }) {
   return (
     <div
       className="fixed bottom-24 right-6 w-80 h-96 shadow-2xl rounded-lg flex flex-col z-50"
-      style={{ backgroundImage: 'url(/latar.PNG)', backgroundSize: 'cover', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', backgroundColor: 'rgba(255,255,255,0.4)' }}
+      style={{ backgroundImage: 'url(/latar.PNG)', backgroundSize: 'cover', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', backgroundColor: 'rgba(255,255,255,0.1)' }}
       ref={popupRef}
     >
       <div className="p-2 border-b flex justify-between items-center bg-white bg-opacity-90">
