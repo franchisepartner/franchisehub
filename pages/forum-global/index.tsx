@@ -68,6 +68,8 @@ export default function ForumGlobal() {
 
   async function handleCreateThread() {
     if (!session?.user?.id) return alert('Login dahulu!');
+    if (!newThread.title.trim()) return alert('Judul tidak boleh kosong.');
+    if (!newThread.content.trim()) return alert('Isi thread tidak boleh kosong.');
 
     let image_url = '';
 
