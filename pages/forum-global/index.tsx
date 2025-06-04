@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, FormEvent, ChangeEvent } from 'react';
 import { NextPage } from 'next';
 import { useSupabaseClient, useUser } from '@supabase/auth-helpers-react';
+import { supabase } from '../../lib/supabaseClient';
 
 type Profile = {
   full_name: string;
