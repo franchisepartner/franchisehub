@@ -124,7 +124,7 @@ export default function ForumGlobal() {
       {!loading && threads.map(thread => (
         <div key={thread.id} className="border p-4 rounded hover:bg-gray-50 cursor-pointer" onClick={() => { setSelectedThread(thread); fetchComments(thread.id); }}>
           <h3 className="font-semibold text-lg">{thread.title}</h3>
-          <p className="text-sm text-gray-500">{new Date(thread.created_at).toLocaleString()} oleh {thread.profiles?.full_name || 'Anonim'}</p>
+          <p className="text-sm text-gray-500">{new Date(thread.created_at).toLocaleString()}</p>
         </div>
       ))}
 
@@ -155,13 +155,7 @@ export default function ForumGlobal() {
 
       {showThreadPopup && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" onClick={() => setShowThreadPopup(false)}>
-          <div className="bg-white p-6 rounded relative" onClick={e => e.stopPropagation()}>
-            <button className="absolute top-2 right-2 text-xl" onClick={() => setShowThreadPopup(false)}>&times;</button>
-            <input type="text" placeholder="Judul" value={newThread.title} onChange={e => setNewThread({ ...newThread, title: e.target.value })} className="w-full border px-3 py-2 mb-2" />
-            <textarea placeholder="Isi thread" value={newThread.content} onChange={e => setNewThread({ ...newThread, content: e.target.value })} className="w-full border px-3 py-2 mb-2" />
-            <input type="file" onChange={e => setNewThread({ ...newThread, imageFile: e.target.files?.[0] || null })} />
-            <button onClick={handleCreateThread} className="bg-blue-500 text-white px-4 py-2 rounded mt-4">Kirim</button>
-          </div>
+          {/* Form Popup */}
         </div>
       )}
     </div>
