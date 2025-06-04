@@ -23,21 +23,20 @@ export default function BlogManage() {
   const [session, setSession] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
 
-  // Blog list
-  const [blogs, setBlogs] = useState<any[]>([]);
-  const [loadingBlogs, setLoadingBlogs] = useState(true);
-
-  // Form state
-  const [editId, setEditId] = useState<string | null>(null);
+  // Form states
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('');
+  const [author, setAuthor] = useState('');
   const [content, setContent] = useState('');
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverUrl, setCoverUrl] = useState('');
   const [loading, setLoading] = useState(false);
-
-  // Modal preview
   const [showPreview, setShowPreview] = useState(false);
+
+  // Manage state
+  const [blogs, setBlogs] = useState<any[]>([]);
+  const [loadingBlogs, setLoadingBlogs] = useState(true);
+  const [editId, setEditId] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -92,9 +91,11 @@ export default function BlogManage() {
   async function handleSubmit(e: any) {
     e.preventDefault();
     if (!profile || !['franchisor', 'administrator'].includes(profile.role)) {
+      setLoading(false);
       return alert("Hanya franchisor dan admin yang bisa membuat blog.");
     }
-    if (!title.trim() || !category.trim() || !content.trim()) {
+    if (!title.trim() || !category.trim() || !content.trim() || !author.trim()) {
+      setLoading(false);
       return alert("Semua field wajib diisi!");
     }
     setLoading(true);
@@ -116,7 +117,7 @@ export default function BlogManage() {
         title,
         slug,
         category,
-        author: profile?.full_name || session?.user?.user_metadata?.full_name || 'User',
+        author,
         created_by: profile.id,
         cover_url: imageUrl,
         content,
@@ -133,7 +134,7 @@ export default function BlogManage() {
         title,
         slug,
         category,
-        author: profile.full_name,
+        author,
         created_by: profile.id,
         cover_url: imageUrl,
         content,
@@ -152,6 +153,7 @@ export default function BlogManage() {
     setEditId(null);
     setTitle('');
     setCategory('');
+    setAuthor('');
     setContent('');
     setCoverFile(null);
     setCoverUrl('');
@@ -162,6 +164,7 @@ export default function BlogManage() {
     setEditId(blog.id);
     setTitle(blog.title);
     setCategory(blog.category);
+    setAuthor(blog.author);
     setContent(blog.content);
     setCoverUrl(blog.cover_url);
     setCoverFile(null);
@@ -182,18 +185,16 @@ export default function BlogManage() {
     if (editId === blog.id) resetForm();
   }
 
-  // Preview: markdown simple jadi HTML (optional: pakai library markdown)
-  function renderContentPreview() {
-    // Ganti enter jadi <br> (markdown super basic, bisa diupgrade pakai react-markdown)
-    return { __html: content.replace(/\n/g, '<br/>') };
-  }
-
-  if (!session) {
-    return <div className="max-w-xl mx-auto py-20 text-center">Harap login untuk mengakses halaman ini.</div>;
-  }
-  if (profile && !['franchisor', 'administrator'].includes(profile.role)) {
-    return <div className="max-w-xl mx-auto py-20 text-center">Hanya franchisor dan admin yang bisa mengelola blog.</div>;
-  }
+  // Preview cover image
+  useEffect(() => {
+    if (coverFile) {
+      const reader = new FileReader();
+      reader.onload = e => {
+        setCoverUrl(e.target?.result as string);
+      };
+      reader.readAsDataURL(coverFile);
+    }
+  }, [coverFile]);
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
@@ -239,6 +240,17 @@ export default function BlogManage() {
           />
         </div>
         <div>
+          <label className="block text-sm font-medium">Penulis</label>
+          <input
+            type="text"
+            className="border rounded px-3 py-2 w-full"
+            value={author}
+            onChange={e => setAuthor(e.target.value)}
+            required
+            placeholder="Nama penulis"
+          />
+        </div>
+        <div>
           <label className="block text-sm font-medium">Gambar Cover</label>
           <input
             type="file"
@@ -246,7 +258,7 @@ export default function BlogManage() {
             onChange={e => setCoverFile(e.target.files?.[0] || null)}
             className="mb-1"
           />
-          <p className="text-xs text-gray-500 mb-2">Hanya file .jpg atau .png. </p>
+          <p className="text-xs text-gray-500 mb-2">Hanya file .jpg atau .png. Disarankan ukuran horizontal.</p>
           {coverUrl && (
             <img src={coverUrl} alt="Preview" className="w-full rounded mb-2" />
           )}
@@ -314,7 +326,6 @@ export default function BlogManage() {
                   >
                     Edit
                   </button>
-                  {/* Tombol hapus hanya untuk admin/penulis */}
                   {(profile.role === 'administrator' || blog.created_by === profile.id) && (
                     <button
                       className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
@@ -344,14 +355,13 @@ export default function BlogManage() {
             >
               &times;
             </button>
-            {/* PREVIEW KONTEN BLOG */}
             <h1 className="text-3xl font-bold mb-2">{title || <span className="italic text-gray-400">[Judul belum diisi]</span>}</h1>
             <div className="text-sm text-gray-500 mb-4 flex flex-wrap gap-x-3">
               <span className="font-medium">{category || <span className="italic text-gray-400">[Kategori]</span>}</span>
               <span>|</span>
               <span>{new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
               <span>|</span>
-              <span>{profile?.full_name || '-'}</span>
+              <span>{author || <span className="italic text-gray-400">[Penulis]</span>}</span>
             </div>
             <hr className="border-black mb-6" />
             {coverUrl && (
@@ -363,7 +373,7 @@ export default function BlogManage() {
             )}
             <div
               className="prose prose-lg max-w-none"
-              dangerouslySetInnerHTML={renderContentPreview()}
+              dangerouslySetInnerHTML={{ __html: content.replace(/\n/g, '<br/>') }}
             />
           </div>
         </div>
