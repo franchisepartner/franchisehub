@@ -33,8 +33,6 @@ const ForumGlobalPage: NextPage = () => {
   const [threads, setThreads] = useState<Thread[]>([]);
   const [selectedThread, setSelectedThread] = useState<Thread | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
-  const [loadingThreads, setLoadingThreads] = useState(false);
-  const [loadingComments, setLoadingComments] = useState(false);
   const [currentUserProfile, setCurrentUserProfile] = useState<Profile | null>(null);
 
   const [newThreadTitle, setNewThreadTitle] = useState('');
@@ -44,107 +42,131 @@ const ForumGlobalPage: NextPage = () => {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const fetchCurrentUserProfile = async (userId: string) => {
-    const { data } = await supabase
-      .from('profiles')
-      .select('full_name, is_admin')
-      .eq('id', userId)
-      .single();
-    if (data) setCurrentUserProfile(data);
-  };
-
-  const fetchThreads = async () => {
-    setLoadingThreads(true);
-    const { data } = await supabase
-      .from('threads')
-      .select(`id, title, content, image_url, user_id, created_at, profiles(full_name, is_admin)`)
-      .order('created_at', { ascending: false });
-    if (data) {
-      const formattedThreads = data.map((thread: any) => ({
-        ...thread,
-        profiles: thread.profiles[0] || thread.profiles,
-      })) as Thread[];
-      setThreads(formattedThreads);
-    }
-    setLoadingThreads(false);
-  };
-
-  const fetchComments = async (threadId: string) => {
-    setLoadingComments(true);
-    const { data } = await supabase
-      .from('comments')
-      .select(`id, content, user_id, thread_id, created_at, profiles(full_name, is_admin)`)
-      .eq('thread_id', threadId)
-      .order('created_at', { ascending: true });
-    if (data) {
-      const formattedComments = data.map((c: any) => ({
-        ...c,
-        profiles: c.profiles[0] || c.profiles
-      })) as Comment[];
-      setComments(formattedComments);
-    }
-    setLoadingComments(false);
-  };
-
   useEffect(() => {
-    if (user) {
-      fetchCurrentUserProfile(user.id);
-      fetchThreads();
-    } else {
-      setThreads([]);
-      setSelectedThread(null);
-      setComments([]);
-    }
+    const fetchProfile = async () => {
+      if (user) {
+        const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+        if (data) setCurrentUserProfile(data);
+      }
+    };
+
+    const fetchThreads = async () => {
+      const { data } = await supabase
+        .from('threads')
+        .select('*, profiles(full_name, is_admin)')
+        .order('created_at', { ascending: false });
+      if (data) setThreads(data);
+    };
+
+    fetchProfile();
+    fetchThreads();
   }, [user]);
 
   useEffect(() => {
-    if (selectedThread) fetchComments(selectedThread.id);
+    const fetchComments = async () => {
+      if (selectedThread) {
+        const { data } = await supabase
+          .from('comments')
+          .select('*, profiles(full_name, is_admin)')
+          .eq('thread_id', selectedThread.id)
+          .order('created_at', { ascending: true });
+        if (data) setComments(data);
+      }
+    };
+    fetchComments();
   }, [selectedThread]);
-
-  const handleSelectThread = (thread: Thread) => {
-    setSelectedThread(thread);
-  };
-
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-    setNewThreadFile(file);
-  };
 
   const handleAddThread = async (e: FormEvent) => {
     e.preventDefault();
-    if (!user || !newThreadTitle.trim()) return;
+    if (!user || !newThreadTitle) return;
 
-    let imageUrl: string | null = null;
+    let image_url = null;
     if (newThreadFile) {
-      const fileExt = newThreadFile.name.split('.').pop();
-      const fileName = `${Date.now()}.${fileExt}`;
-      const { data: uploadData } = await supabase.storage.from('forum-images').upload(fileName, newThreadFile);
-      if (uploadData) imageUrl = supabase.storage.from('forum-images').getPublicUrl(uploadData.path).data.publicUrl;
+      const fileName = `${Date.now()}_${newThreadFile.name}`;
+      await supabase.storage.from('forum-images').upload(fileName, newThreadFile);
+      image_url = supabase.storage.from('forum-images').getPublicUrl(fileName).data.publicUrl;
     }
 
-    const { data: newThread } = await supabase
+    const { data } = await supabase
       .from('threads')
-      .insert({ title: newThreadTitle, content: newThreadContent, image_url: imageUrl, user_id: user.id })
-      .select(`id, title, content, image_url, user_id, created_at, profiles(full_name, is_admin)`)
+      .insert({ title: newThreadTitle, content: newThreadContent, image_url, user_id: user.id })
+      .select('*, profiles(full_name, is_admin)')
       .single();
 
-    if (newThread) {
-      const formattedThread = {
-        ...newThread,
-        profiles: Array.isArray(newThread.profiles) ? newThread.profiles[0] : newThread.profiles,
-      } as Thread;
-      setThreads(prev => [formattedThread, ...prev]);
-    }
-
+    if (data) setThreads([data, ...threads]);
     setNewThreadTitle('');
     setNewThreadContent('');
     setNewThreadFile(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
+  const handleAddComment = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!user || !selectedThread || !newCommentContent) return;
+
+    const { data } = await supabase
+      .from('comments')
+      .insert({ content: newCommentContent, thread_id: selectedThread.id, user_id: user.id })
+      .select('*, profiles(full_name, is_admin)')
+      .single();
+
+    if (data) setComments([...comments, data]);
+    setNewCommentContent('');
+  };
+
   return (
-    <div>
-      {/* Tambahkan implementasi UI minimal di sini atau gunakan yang sudah ada sebelumnya */}
+    <div className="p-4">
+      <h2 className="text-xl font-bold mb-4">Forum Global 🌎</h2>
+
+      <form onSubmit={handleAddThread} className="mb-6">
+        <input
+          type="text"
+          value={newThreadTitle}
+          onChange={(e) => setNewThreadTitle(e.target.value)}
+          placeholder="Judul Thread"
+          className="border rounded w-full p-2 mb-2"
+        />
+        <textarea
+          value={newThreadContent}
+          onChange={(e) => setNewThreadContent(e.target.value)}
+          placeholder="Konten"
+          className="border rounded w-full p-2 mb-2"
+        ></textarea>
+        <input type="file" ref={fileInputRef} onChange={(e) => setNewThreadFile(e.target.files?.[0] || null)} />
+        <button type="submit" className="bg-blue-500 text-white p-2 rounded">Tambah Thread</button>
+      </form>
+
+      <div>
+        {threads.map((thread) => (
+          <div key={thread.id} className="border p-4 rounded mb-2 cursor-pointer" onClick={() => setSelectedThread(thread)}>
+            <h3 className="font-bold">{thread.title}</h3>
+            <p>{thread.content}</p>
+            {thread.image_url && <img src={thread.image_url} className="mt-2 max-h-64" alt="Thread" />}
+            <small>{thread.profiles.full_name} - {new Date(thread.created_at).toLocaleString()}</small>
+          </div>
+        ))}
+      </div>
+
+      {selectedThread && (
+        <div className="mt-6 border-t pt-4">
+          <h4 className="font-bold text-lg">Komentar</h4>
+          {comments.map(c => (
+            <div key={c.id} className="border-b py-2">
+              <p>{c.content}</p>
+              <small>{c.profiles.full_name} - {new Date(c.created_at).toLocaleString()}</small>
+            </div>
+          ))}
+          <form onSubmit={handleAddComment} className="mt-4">
+            <textarea
+              value={newCommentContent}
+              onChange={(e) => setNewCommentContent(e.target.value)}
+              className="border w-full p-2 rounded"
+              placeholder="Tulis komentar..."
+            />
+            <button type="submit" className="mt-2 bg-green-500 text-white p-2 rounded">Tambah Komentar</button>
+          </form>
+        </div>
+      )}
     </div>
   );
 };
