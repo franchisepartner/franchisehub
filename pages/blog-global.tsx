@@ -15,6 +15,31 @@ interface Blog {
 }
 
 export default function BlogGlobal() {
+  const [session, setSession] = useState<any>(null);
+  const [role, setRole] = useState<string>('');
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+    });
+    supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+  }, []);
+
+  useEffect(() => {
+    async function fetchRole() {
+      if (session) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .single();
+        if (profile) setRole(profile.role);
+      }
+    }
+    fetchRole();
+  }, [session]);
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [loading, setLoading] = useState(true);
 
