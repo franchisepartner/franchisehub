@@ -1,175 +1,281 @@
-import { useEffect, useState, useRef, FormEvent, ChangeEvent } from 'react';
-import { NextPage } from 'next';
-import { useSupabaseClient, useUser } from '@supabase/auth-helpers-react';
+import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
+import { Session } from '@supabase/supabase-js';
+import Image from 'next/image';
 
-type Profile = {
-  full_name: string;
-  is_admin: boolean;
-};
-
-type Comment = {
-  id: string;
-  content: string;
-  user_id: string;
-  thread_id: string;
-  created_at: string;
-  profiles: Profile;
-};
-
-type Thread = {
+interface Thread {
   id: string;
   title: string;
   content: string;
   image_url?: string;
-  user_id: string;
+  created_by: string;
   created_at: string;
-  profiles: Profile;
-};
+}
 
-const ForumGlobalPage: NextPage = () => {
-  const supabase = useSupabaseClient();
-  const user = useUser();
+interface Comment {
+  id: string;
+  thread_id: string;
+  content: string;
+  created_by: string;
+  created_at: string;
+  user_role?: string;
+  user_name?: string;
+}
 
+export default function ForumGlobal() {
   const [threads, setThreads] = useState<Thread[]>([]);
-  const [selectedThread, setSelectedThread] = useState<Thread | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
-  const [currentUserProfile, setCurrentUserProfile] = useState<Profile | null>(null);
-
-  const [newThreadTitle, setNewThreadTitle] = useState('');
-  const [newThreadContent, setNewThreadContent] = useState('');
-  const [newThreadFile, setNewThreadFile] = useState<File | null>(null);
-  const [newCommentContent, setNewCommentContent] = useState('');
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [newThread, setNewThread] = useState<{
+    title: string;
+    content: string;
+    imageFile: File | null;
+  }>({ title: '', content: '', imageFile: null });
+  const [newComment, setNewComment] = useState('');
+  const [selectedThread, setSelectedThread] = useState<Thread | null>(null);
+  const [showThreadPopup, setShowThreadPopup] = useState(false);
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      if (user) {
-        const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-        if (data) setCurrentUserProfile(data);
-      }
+    const fetchSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      setSession(data.session);
     };
+    fetchSession();
 
-    const fetchThreads = async () => {
-      const { data } = await supabase
-        .from('threads')
-        .select('*, profiles(full_name, is_admin)')
-        .order('created_at', { ascending: false });
-      if (data) setThreads(data);
-    };
+    supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
 
-    fetchProfile();
     fetchThreads();
-  }, [user]);
+  }, []);
 
-  useEffect(() => {
-    const fetchComments = async () => {
-      if (selectedThread) {
-        const { data } = await supabase
-          .from('comments')
-          .select('*, profiles(full_name, is_admin)')
-          .eq('thread_id', selectedThread.id)
-          .order('created_at', { ascending: true });
-        if (data) setComments(data);
-      }
-    };
-    fetchComments();
-  }, [selectedThread]);
+  async function fetchThreads() {
+    const { data: threadsData } = await supabase
+      .from<Thread>('threads')
+      .select('*')
+      .order('created_at', { ascending: false });
+    setThreads(threadsData || []);
+  }
 
-  const handleAddThread = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!user || !newThreadTitle) return;
+  async function fetchComments(threadId: string) {
+    const { data: commentsData } = await supabase
+      .from('thread_comments')
+      .select('*, profiles(role, full_name)')
+      .eq('thread_id', threadId)
+      .order('created_at', { ascending: true });
 
-    let image_url = null;
-    if (newThreadFile) {
-      const fileName = `${Date.now()}_${newThreadFile.name}`;
-      await supabase.storage.from('forum-images').upload(fileName, newThreadFile);
-      image_url = supabase.storage.from('forum-images').getPublicUrl(fileName).data.publicUrl;
+    setComments(
+      commentsData
+        ? commentsData.map((c: any) => ({
+            id: c.id,
+            thread_id: c.thread_id,
+            content: c.content,
+            created_by: c.created_by,
+            created_at: c.created_at,
+            user_role: c.profiles.role,
+            user_name: c.profiles.full_name,
+          }))
+        : []
+    );
+  }
+
+  async function handleCreateThread() {
+    if (!session?.user?.id) {
+      alert('Login dahulu!');
+      return;
     }
 
-    const { data } = await supabase
-      .from('threads')
-      .insert({ title: newThreadTitle, content: newThreadContent, image_url, user_id: user.id })
-      .select('*, profiles(full_name, is_admin)')
-      .single();
+    let image_url = '';
+    if (newThread.imageFile) {
+      const fileName = `${Date.now()}_${newThread.imageFile.name}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('thread-images')
+        .upload(fileName, newThread.imageFile);
 
-    if (data) setThreads([data, ...threads]);
-    setNewThreadTitle('');
-    setNewThreadContent('');
-    setNewThreadFile(null);
-    if (fileInputRef.current) fileInputRef.current.value = '';
-  };
+      if (uploadError) {
+        console.error(uploadError);
+      } else if (uploadData) {
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from('thread-images').getPublicUrl(uploadData.path);
+        image_url = publicUrl;
+      }
+    }
 
-  const handleAddComment = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!user || !selectedThread || !newCommentContent) return;
+    await supabase.from('threads').insert({
+      title: newThread.title,
+      content: newThread.content,
+      image_url,
+      created_by: session.user.id,
+    });
 
-    const { data } = await supabase
-      .from('comments')
-      .insert({ content: newCommentContent, thread_id: selectedThread.id, user_id: user.id })
-      .select('*, profiles(full_name, is_admin)')
-      .single();
+    setNewThread({ title: '', content: '', imageFile: null });
+    setShowThreadPopup(false);
+    fetchThreads();
+  }
 
-    if (data) setComments([...comments, data]);
-    setNewCommentContent('');
-  };
+  async function handleCommentSubmit() {
+    if (!selectedThread?.id || !session?.user?.id) {
+      alert('Pilih thread atau login dahulu!');
+      return;
+    }
+
+    await supabase.from('thread_comments').insert({
+      thread_id: selectedThread.id,
+      content: newComment,
+      created_by: session.user.id,
+    });
+
+    setNewComment('');
+    fetchComments(selectedThread.id);
+  }
 
   return (
-    <div className="p-4">
-      <h2 className="text-xl font-bold mb-4">Forum Global 🌎</h2>
+    <div className="max-w-3xl mx-auto p-6 relative">
+      <Image
+        src="/pattern.jpg"
+        alt="Decorative Corner"
+        width={100}
+        height={100}
+        className="absolute top-0 left-0 -z-10 opacity-20"
+      />
 
-      <form onSubmit={handleAddThread} className="mb-6">
-        <input
-          type="text"
-          value={newThreadTitle}
-          onChange={(e) => setNewThreadTitle(e.target.value)}
-          placeholder="Judul Thread"
-          className="border rounded w-full p-2 mb-2"
-        />
-        <textarea
-          value={newThreadContent}
-          onChange={(e) => setNewThreadContent(e.target.value)}
-          placeholder="Konten"
-          className="border rounded w-full p-2 mb-2"
-        ></textarea>
-        <input type="file" ref={fileInputRef} onChange={(e) => setNewThreadFile(e.target.files?.[0] || null)} />
-        <button type="submit" className="bg-blue-500 text-white p-2 rounded">Tambah Thread</button>
-      </form>
+      <h1 className="text-2xl font-bold mb-6">Forum Global 🌐</h1>
 
-      <div>
+      {session && (
+        <button
+          className="mb-4 px-4 py-2 bg-blue-500 text-white rounded"
+          onClick={() => setShowThreadPopup(true)}
+        >
+          Buat Thread Baru
+        </button>
+      )}
+
+      <div className="space-y-4">
         {threads.map((thread) => (
-          <div key={thread.id} className="border p-4 rounded mb-2 cursor-pointer" onClick={() => setSelectedThread(thread)}>
-            <h3 className="font-bold">{thread.title}</h3>
-            <p>{thread.content}</p>
-            {thread.image_url && <img src={thread.image_url} className="mt-2 max-h-64" alt="Thread" />}
-            <small>{thread.profiles.full_name} - {new Date(thread.created_at).toLocaleString()}</small>
+          <div
+            key={thread.id}
+            className="border p-4 rounded hover:bg-gray-50 cursor-pointer"
+            onClick={() => {
+              setSelectedThread(thread);
+              fetchComments(thread.id);
+            }}
+          >
+            <h3 className="font-semibold text-lg">{thread.title}</h3>
+            <p className="text-sm text-gray-500">
+              {new Date(thread.created_at).toLocaleString()}
+            </p>
           </div>
         ))}
       </div>
 
       {selectedThread && (
-        <div className="mt-6 border-t pt-4">
-          <h4 className="font-bold text-lg">Komentar</h4>
-          {comments.map(c => (
-            <div key={c.id} className="border-b py-2">
-              <p>{c.content}</p>
-              <small>{c.profiles.full_name} - {new Date(c.created_at).toLocaleString()}</small>
-            </div>
-          ))}
-          <form onSubmit={handleAddComment} className="mt-4">
-            <textarea
-              value={newCommentContent}
-              onChange={(e) => setNewCommentContent(e.target.value)}
-              className="border w-full p-2 rounded"
-              placeholder="Tulis komentar..."
+        <div className="mt-6 border p-4 rounded">
+          <h2 className="font-bold text-xl mb-2">{selectedThread.title}</h2>
+
+          {selectedThread.image_url && (
+            <img
+              src={selectedThread.image_url}
+              alt="Thread Image"
+              className="w-full rounded mb-2"
             />
-            <button type="submit" className="mt-2 bg-green-500 text-white p-2 rounded">Tambah Komentar</button>
-          </form>
+          )}
+
+          <p className="mb-4">{selectedThread.content}</p>
+
+          <div className="border-t pt-4">
+            <h3 className="font-semibold mb-2">Komentar:</h3>
+
+            {comments.map((comment) => (
+              <div key={comment.id} className="border-b py-2">
+                <p>
+                  <span className="font-semibold">
+                    {comment.user_name} ({comment.user_role})
+                  </span>
+                  : {comment.content}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {new Date(comment.created_at).toLocaleString()}
+                </p>
+              </div>
+            ))}
+
+            {session ? (
+              <div className="mt-4">
+                <textarea
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  className="w-full border rounded px-3 py-2"
+                  placeholder="Tambah komentar..."
+                />
+                <button
+                  className="mt-2 bg-blue-500 text-white px-4 py-2 rounded"
+                  onClick={handleCommentSubmit}
+                >
+                  Kirim
+                </button>
+              </div>
+            ) : (
+              <p className="mt-4 text-sm italic">
+                Silakan login untuk berkomentar.
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {showThreadPopup && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
+          onClick={() => setShowThreadPopup(false)}
+        >
+          <div
+            className="bg-white p-6 rounded relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="absolute top-2 right-2 text-xl"
+              onClick={() => setShowThreadPopup(false)}
+            >
+              &times;
+            </button>
+
+            <h2 className="font-bold mb-2">Thread Baru</h2>
+            <input
+              type="text"
+              placeholder="Judul"
+              value={newThread.title}
+              onChange={(e) =>
+                setNewThread({ ...newThread, title: e.target.value })
+              }
+              className="w-full border px-3 py-2 mb-2"
+            />
+            <textarea
+              placeholder="Isi thread"
+              value={newThread.content}
+              onChange={(e) =>
+                setNewThread({ ...newThread, content: e.target.value })
+              }
+              className="w-full border px-3 py-2 mb-2"
+            />
+            <input
+              type="file"
+              onChange={(e) =>
+                setNewThread({
+                  ...newThread,
+                  imageFile: e.target.files?.[0] || null,
+                })
+              }
+            />
+            <button
+              onClick={handleCreateThread}
+              className="bg-blue-500 text-white px-4 py-2 rounded mt-4"
+            >
+              Kirim
+            </button>
+          </div>
         </div>
       )}
     </div>
   );
-};
-
-export default ForumGlobalPage;
+}
