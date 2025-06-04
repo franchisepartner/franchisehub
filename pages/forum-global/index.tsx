@@ -230,8 +230,11 @@ export default function ForumGlobal() {
             />
             <input
               type="file"
+              accept="image/jpeg, image/png"
               onChange={e => setNewThread({ ...newThread, imageFile: e.target.files?.[0] || null })}
+              className="mb-1"
             />
+            <p className="text-sm text-gray-500">Hanya file .jpg atau .png</p>
             <button
               onClick={handleCreateThread}
               className="bg-blue-500 text-white px-4 py-2 rounded mt-4"
