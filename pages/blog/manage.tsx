@@ -246,7 +246,7 @@ export default function BlogManage() {
             onChange={e => setCoverFile(e.target.files?.[0] || null)}
             className="mb-1"
           />
-          <p className="text-xs text-gray-500 mb-2">Hanya file .jpg atau .png. Disarankan ukuran horizontal.</p>
+          <p className="text-xs text-gray-500 mb-2">Hanya file .jpg atau .png. </p>
           {coverUrl && (
             <img src={coverUrl} alt="Preview" className="w-full rounded mb-2" />
           )}
