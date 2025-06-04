@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import io from 'socket.io-client';
 import { useUser } from '@supabase/auth-helpers-react';
+import { supabase } from '../lib/supabaseClient'; // Pastikan import supabase dari lokasi yang benar
 
 const socket = io('https://franchisehub-chat-backend-production.up.railway.app');
 
@@ -8,15 +9,16 @@ export default function ChatPasarPopup({ onClose }: { onClose: () => void }) {
   const user = useUser();
   const popupRef = useRef<HTMLDivElement>(null);
   const [message, setMessage] = useState('');
-  interface Message {
-  sender_id: string;
-  sender_name: string;
-  sender_role: string;
-  content: string;
-  created_at?: Date;
-}
 
-const [messages, setMessages] = useState<Message[]>([]);
+  interface Message {
+    sender_id: string;
+    sender_name: string;
+    sender_role: string;
+    content: string;
+    created_at?: Date;
+  }
+
+  const [messages, setMessages] = useState<Message[]>([]);
 
   useEffect(() => {
     socket.on('receive_message', (msg) => {
@@ -26,6 +28,23 @@ const [messages, setMessages] = useState<Message[]>([]);
     return () => {
       socket.off('receive_message');
     };
+  }, []);
+
+  useEffect(() => {
+    async function fetchInitialMessages() {
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .order('created_at', { ascending: true });
+
+      if (data) {
+        setMessages(data);
+      } else {
+        console.error('Gagal mengambil pesan awal:', error);
+      }
+    }
+
+    fetchInitialMessages();
   }, []);
 
   useEffect(() => {
@@ -41,9 +60,10 @@ const [messages, setMessages] = useState<Message[]>([]);
   }, [onClose]);
 
   const fullName = user?.user_metadata?.full_name || 'User';
+
   const sendMessage = () => {
     if (!user || !message.trim()) return;
-    
+
     const data = {
       sender_id: user.id,
       sender_name: fullName,
