@@ -320,10 +320,6 @@ export default function BlogManage() {
                   <div className="text-xs text-gray-500">{blog.category} • {new Date(blog.created_at).toLocaleDateString('id-ID')}</div>
                 </div>
                 <div className="flex gap-2 mt-2 md:mt-0">
-                  <button
-                    className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
-                    onClick={() => handleEdit(blog)}
-                  >
                   {(profile.role === 'administrator' || blog.created_by === profile.id) && (
                     <button
                       className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
