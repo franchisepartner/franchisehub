@@ -178,20 +178,14 @@ export default function Home() {
             </div>
 
             {/* Blog Global */}
-            <div className="inline-flex flex-col	items-center w-20 cursor-pointer">
-              <div className="bg-white rounded-full shadow p-3">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 text-purple-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
+            <Link href="/blog-global" passHref>
+              <div className="inline-flex flex-col items-center w-20 cursor-pointer">
+                <div className="bg-white rounded-full shadow p-3">
+                  <svg ...> ... </svg>
+                </div>
+                <span className="text-xs text-gray-600 mt-1 text-center">Blog Global</span>
               </div>
-              <span className="text-xs text-gray-600 mt-1 text-center">Blog Global</span>
-            </div>
+            </Link>
 
             {/* Pusat Bantuan */}
             <div className="inline-flex flex-col	items-center w-20 cursor-pointer">
