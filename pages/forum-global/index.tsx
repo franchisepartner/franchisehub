@@ -49,11 +49,13 @@ export default function ForumGlobal() {
     fetchThreads();
   }, []);
 
+  // PERBAIKAN DI SINI: supabase.from<'threads', Thread>
   async function fetchThreads() {
     const { data: threadsData } = await supabase
-      .from<Thread>('threads')
+      .from<'threads', Thread>('threads')
       .select('*')
       .order('created_at', { ascending: false });
+
     setThreads(threadsData || []);
   }
 
