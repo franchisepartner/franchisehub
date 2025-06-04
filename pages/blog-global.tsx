@@ -44,7 +44,21 @@ export default function BlogGlobal() {
         <link rel="canonical" href="https://franchisehubcom.vercel.app/blog-global" />
       </Head>
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <h1 className="text-2xl md:text-3xl font-bold mb-6">Blog FranchiseHub</h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl md:text-3xl font-bold">Blog FranchiseHub</h1>
+          {(role === 'franchisor' || role === 'administrator') && (
+            <div className="flex flex-col items-center">
+              <Link
+                href="/blog/manage"
+                className="flex items-center justify-center w-12 h-12 rounded-full bg-blue-600 text-white text-2xl shadow-lg hover:bg-blue-700 transition"
+                title="Buat Blog Baru"
+              >
+                📝
+              </Link>
+              <span className="text-xs mt-2 text-blue-700 font-semibold">Ayo buat blog</span>
+            </div>
+          )}
+        </div>
         {loading ? (
           <p>Memuat blog...</p>
         ) : blogs.length === 0 ? (
