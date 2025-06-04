@@ -116,7 +116,7 @@ export default function BlogManage() {
         title,
         slug,
         category,
-        author: profile.full_name,
+        author: profile?.full_name || session?.user?.user_metadata?.full_name || 'User',
         created_by: profile.id,
         cover_url: imageUrl,
         content,
