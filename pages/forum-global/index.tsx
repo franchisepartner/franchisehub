@@ -77,8 +77,6 @@ export default function ForumGlobal() {
       }
 
       const fileName = `${Date.now()}_${newThread.imageFile.name}`;
-      console.log("Uploading file:", fileName);
-
       const { data: uploadData, error: uploadError } = await supabase
         .storage
         .from('thread-images')
@@ -95,7 +93,6 @@ export default function ForumGlobal() {
         .getPublicUrl(uploadData.path);
 
       image_url = urlData?.publicUrl || '';
-      console.log("Public image URL:", image_url);
     }
 
     const { error: insertError } = await supabase.from('threads').insert({
@@ -130,6 +127,20 @@ export default function ForumGlobal() {
     fetchComments(selectedThread.id);
   }
 
+  async function handleDeleteThread(id: string) {
+    const confirm = window.confirm("Yakin ingin menghapus thread ini?");
+    if (!confirm) return;
+
+    const { error } = await supabase.from('threads').delete().eq('id', id);
+    if (error) {
+      console.error("Gagal menghapus thread:", error);
+      return alert("Gagal menghapus thread");
+    }
+
+    setSelectedThread(null);
+    fetchThreads();
+  }
+
   return (
     <div className="max-w-3xl mx-auto p-6 relative">
       <Image src="/pattern.jpg" alt="Decorative Corner" width={100} height={100} className="absolute top-0 left-0 -z-10 opacity-20" />
@@ -156,7 +167,17 @@ export default function ForumGlobal() {
 
       {selectedThread && (
         <div className="mt-6 border p-4 rounded">
-          <h2 className="font-bold text-xl mb-2">{selectedThread.title}</h2>
+          <div className="flex justify-between items-center mb-2">
+            <h2 className="font-bold text-xl">{selectedThread.title}</h2>
+            {(session?.user?.id === selectedThread.created_by || role === 'administrator') && (
+              <button
+                onClick={() => handleDeleteThread(selectedThread.id)}
+                className="text-red-600 hover:underline text-sm"
+              >
+                Hapus
+              </button>
+            )}
+          </div>
           {selectedThread.image_url && <img src={selectedThread.image_url} className="w-full rounded mb-2" />}
           <p className="mb-4">{selectedThread.content}</p>
 
