@@ -10,7 +10,7 @@ interface Thread {
   image_url?: string;
   created_by: string;
   created_at: string;
-  profiles?: { full_name: string; role: string };
+  user_name?: string;
 }
 
 interface Comment {
@@ -19,7 +19,6 @@ interface Comment {
   content: string;
   created_by: string;
   created_at: string;
-  user_role?: string;
   user_name?: string;
 }
 
@@ -47,7 +46,7 @@ export default function ForumGlobal() {
     setLoading(true);
     const { data, error } = await supabase
       .from('threads')
-      .select('*, profiles(full_name, role)')
+      .select('*')
       .order('created_at', { ascending: false });
 
     if (error) return console.error('Error fetching threads:', error);
@@ -59,22 +58,12 @@ export default function ForumGlobal() {
     setLoading(true);
     const { data, error } = await supabase
       .from('thread_comments')
-      .select('*, profiles(role, full_name)')
+      .select('*')
       .eq('thread_id', threadId)
       .order('created_at', { ascending: true });
 
     if (error) return console.error('Error fetching comments:', error);
-
-    setComments(data?.map(c => ({
-      id: c.id,
-      thread_id: c.thread_id,
-      content: c.content,
-      created_by: c.created_by,
-      created_at: c.created_at,
-      user_role: c.profiles?.role,
-      user_name: c.profiles?.full_name,
-    })) || []);
-
+    setComments(data || []);
     setLoading(false);
   }
 
@@ -94,6 +83,7 @@ export default function ForumGlobal() {
       content: newThread.content,
       image_url,
       created_by: session.user.id,
+      user_name: session.user.user_metadata.full_name,
     });
 
     setNewThread({ title: '', content: '', imageFile: null });
@@ -108,6 +98,7 @@ export default function ForumGlobal() {
       thread_id: selectedThread.id,
       content: newComment,
       created_by: session.user.id,
+      user_name: session.user.user_metadata.full_name,
     });
 
     setNewComment('');
@@ -124,7 +115,7 @@ export default function ForumGlobal() {
       {!loading && threads.map(thread => (
         <div key={thread.id} className="border p-4 rounded hover:bg-gray-50 cursor-pointer" onClick={() => { setSelectedThread(thread); fetchComments(thread.id); }}>
           <h3 className="font-semibold text-lg">{thread.title}</h3>
-          <p className="text-sm text-gray-500">{new Date(thread.created_at).toLocaleString()}</p>
+          <p className="text-sm text-gray-500">{new Date(thread.created_at).toLocaleString()} oleh {thread.user_name}</p>
         </div>
       ))}
 
@@ -138,7 +129,7 @@ export default function ForumGlobal() {
             <h3 className="font-semibold mb-2">Komentar:</h3>
             {comments.map(c => (
               <div key={c.id} className="border-b py-2">
-                <p><span className="font-semibold">{c.user_name || 'Anonim'} ({c.user_role || '-'})</span>: {c.content}</p>
+                <p><span className="font-semibold">{c.user_name}</span>: {c.content}</p>
                 <p className="text-xs text-gray-500">{new Date(c.created_at).toLocaleString()}</p>
               </div>
             ))}
