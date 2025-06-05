@@ -3,6 +3,9 @@ import { supabase } from '../../lib/supabaseClient';
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
 
+// Import ikon dari react-icons (misal)
+import { FaListAlt, FaPlus, FaBook, FaPenNib } from 'react-icons/fa';
+
 const BarChart = dynamic(() => import('../../components/BarChart'), { ssr: false });
 
 export default function DashboardFranchisor() {
@@ -39,20 +42,15 @@ export default function DashboardFranchisor() {
     fetchData();
   }, []);
 
-  // Mapping label ke route path
-  const routeMap: Record<string, string> = {
-    'Kelola Listing': '/franchisor/manage-listings',
-    'Tambah Listing Baru': '/franchisor/manage-listings/new',
-    'Panduan Regulasi Waralaba': '/panduan-regulasi-waralaba',
-    'Posting Blog Bisnis': '/franchisor/blogs',
-  };
+  const features = [
+    { label: 'Kelola Listing', icon: <FaListAlt size={24} />, route: '/franchisor/manage-listings' },
+    { label: 'Tambah Listing Baru', icon: <FaPlus size={24} />, route: '/franchisor/manage-listings/new' },
+    { label: 'Panduan Regulasi Waralaba', icon: <FaBook size={24} />, route: '/panduan-regulasi-waralaba' },
+    { label: 'Posting Blog Bisnis', icon: <FaPenNib size={24} />, route: '/franchisor/blogs' },
+  ];
 
-  // Fungsi handler klik tombol
-  const handleClick = (label: string) => {
-    const route = routeMap[label];
-    if (route) {
-      router.push(route);
-    }
+  const handleClick = (route: string) => {
+    router.push(route);
   };
 
   return (
@@ -63,20 +61,16 @@ export default function DashboardFranchisor() {
         <span className="text-gray-500">[Carousel Preview]</span>
       </div>
 
-      {/* Tombol Fitur Horizontal dengan scroll */}
-      <div className="flex space-x-6 overflow-x-auto mb-10 no-scrollbar py-2">
-        {[
-          { label: 'Kelola Listing', color: 'bg-white text-gray-800' },
-          { label: 'Tambah Listing Baru', color: 'bg-white text-gray-800' },
-          { label: 'Panduan Regulasi Waralaba', color: 'bg-white text-gray-800' },
-          { label: 'Posting Blog Bisnis', color: 'bg-white text-gray-800' },
-        ].map(({ label, color }) => (
+      {/* Tombol fitur horizontal scroll */}
+      <div className="flex space-x-6 overflow-x-auto no-scrollbar py-2 mb-10">
+        {features.map(({ label, icon, route }) => (
           <button
             key={label}
-            className={`${color} font-semibold rounded-lg shadow-md hover:shadow-lg transition aspect-square flex items-center justify-center text-center text-lg min-w-[140px] flex-shrink-0`}
-            onClick={() => handleClick(label)}
+            onClick={() => handleClick(route)}
+            className="bg-white text-gray-800 font-semibold rounded-lg shadow-md hover:shadow-lg transition aspect-square min-w-[140px] flex flex-col items-center justify-center px-4 py-3 flex-shrink-0"
           >
-            {label}
+            {icon}
+            <span className="mt-2 text-center text-sm break-words">{label}</span>
           </button>
         ))}
       </div>
