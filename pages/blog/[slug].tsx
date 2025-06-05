@@ -12,6 +12,7 @@ interface Blog {
   created_at: string;
   cover_url: string;
   content: string;
+  created_by: string;
 }
 
 export default function BlogDetail() {
@@ -34,11 +35,36 @@ export default function BlogDetail() {
         setBlog(null);
       } else {
         setBlog(data);
+        await trackVisit(data);
       }
       setLoading(false);
     };
     fetchBlog();
   }, [slug]);
+
+  async function trackVisit(blogData: Blog) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const user = sessionData?.session?.user;
+
+    let viewerRole = 'calon_franchisee';
+
+    if (user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+      viewerRole = profile?.role || 'calon_franchisee';
+    }
+
+    await supabase.from('visit_logs').insert({
+      content_type: 'blog',
+      content_id: blogData.id,
+      owner_id: blogData.created_by,
+      viewer_role: viewerRole,
+    });
+  }
 
   if (loading) {
     return (
@@ -56,11 +82,11 @@ export default function BlogDetail() {
     );
   }
 
-  // Ambil excerpt 150 karakter dari konten tanpa tag HTML
+  // Buat excerpt untuk meta description
   const plainContent = blog.content.replace(/<[^>]+>/g, '');
   const seoDescription = plainContent.slice(0, 150) + (plainContent.length > 150 ? '...' : '');
 
-  // Struktur data JSON-LD (Schema.org Article)
+  // Struktur JSON-LD untuk SEO
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -77,7 +103,7 @@ export default function BlogDetail() {
       "name": "FranchiseHub",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://franchisehubcom.vercel.app/logo192.png" // ganti dengan logo kamu
+        "url": "https://franchisehubcom.vercel.app/logo192.png"
       }
     },
     "mainEntityOfPage": {
@@ -89,32 +115,26 @@ export default function BlogDetail() {
   return (
     <>
       <Head>
-        {/* Title SEO */}
         <title>{blog.title} | FranchiseHub</title>
-        {/* Meta Deskripsi */}
         <meta name="description" content={seoDescription} />
-        {/* OpenGraph */}
         <meta property="og:type" content="article" />
         <meta property="og:title" content={blog.title} />
         <meta property="og:description" content={seoDescription} />
         <meta property="og:image" content={blog.cover_url} />
         <meta property="og:url" content={`https://franchisehubcom.vercel.app/blog/${blog.slug}`} />
         <meta property="og:site_name" content="FranchiseHub" />
-        {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={blog.title} />
         <meta name="twitter:description" content={seoDescription} />
         <meta name="twitter:image" content={blog.cover_url} />
-        {/* Canonical */}
         <link rel="canonical" href={`https://franchisehubcom.vercel.app/blog/${blog.slug}`} />
-        {/* JSON-LD Struktur Data */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </Head>
       <div className="max-w-3xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-2">{blog.title}</h1>
+        <h1 className="text-3xl font-bold mb-2">{blog.title}</h1>https://supabase.com/dashboard/project/dtbuiijyevhfxsfzsknr/editor/30891
         <div className="text-sm text-gray-500 mb-4 flex flex-wrap gap-x-3">
           <span className="font-medium">{blog.category}</span>
           <span>|</span>
