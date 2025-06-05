@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
+import Link from 'next/link';
 
 interface Franchise {
   id: string;
@@ -50,9 +51,6 @@ export default function FranchiseDetail() {
           .getPublicUrl(data.cover_url).data.publicUrl;
 
         setFranchise({ ...data, logo_url: logoPublicUrl, cover_url: coverPublicUrl });
-
-        console.log('Logo URL:', logoPublicUrl);
-        console.log('Cover URL:', coverPublicUrl);
       }
       setLoading(false);
     };
@@ -78,8 +76,16 @@ export default function FranchiseDetail() {
       <p className="mb-2"><strong>Minimal Investasi:</strong> Rp. {franchise.investment_min.toLocaleString('id-ID')}</p>
       <p className="mb-2"><strong>Lokasi:</strong> {franchise.location}</p>
       <p className="mb-2"><strong>Mode Operasi:</strong> {franchise.operation_mode}</p>
-      {franchise.website_url && <a href={franchise.website_url} className="text-blue-500 underline" target="_blank" rel="noopener noreferrer">Website</a>}
-      {franchise.google_maps_url && <a href={franchise.google_maps_url} className="text-blue-500 underline ml-4" target="_blank" rel="noopener noreferrer">Google Maps</a>}
+      {franchise.website_url && (
+        <a href={franchise.website_url} className="text-blue-500 underline" target="_blank" rel="noopener noreferrer">
+          Website
+        </a>
+      )}
+      {franchise.google_maps_url && (
+        <a href={franchise.google_maps_url} className="text-blue-500 underline ml-4" target="_blank" rel="noopener noreferrer">
+          Google Maps
+        </a>
+      )}
 
       <div className="mt-4">
         <strong>Kontak:</strong>
@@ -88,6 +94,13 @@ export default function FranchiseDetail() {
           <li>Email: {franchise.email_contact}</li>
         </ul>
       </div>
+
+      <Link
+        href={`/franchise-inbox?receiverId=${franchise.id}&listingId=${franchise.id}`}
+        className="mt-4 inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+      >
+        💬 Inbox
+      </Link>
 
       {franchise.notes && <p className="mt-4"><strong>Catatan:</strong> {franchise.notes}</p>}
       {franchise.tags && <p className="mt-4"><strong>Tag:</strong> {franchise.tags}</p>}
