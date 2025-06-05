@@ -17,13 +17,19 @@ export default function DetailPage() {
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-
-  const user = supabase.auth.user();
-  const userName = user?.user_metadata.full_name || user?.email || 'Anonymous';
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
+    async function getUser() {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    }
+
+    getUser();
     if (slug) fetchComments();
   }, [slug]);
+
+  const userName = user?.user_metadata.full_name || user?.email || 'Anonymous';
 
   async function fetchComments() {
     setLoading(true);
