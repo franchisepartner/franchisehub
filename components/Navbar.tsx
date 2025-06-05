@@ -80,7 +80,7 @@ export default function Navbar() {
           </div>
         )}
 
-        {/* Kanan: Salam → Inbox → Menu Burger */}
+        {/* Kanan: Salam → Dashboard Franchisor/Dashboard Administrator → Menu Burger */}
         <div className="flex items-center space-x-4">
           <p className="italic text-gray-500 text-sm">Halo, {userGreeting}!</p>
 
