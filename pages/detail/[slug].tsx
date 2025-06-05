@@ -8,6 +8,7 @@ interface Blog {
   title: string;
   content: string;
   cover_url?: string;
+  category?: string;
   author?: string;
   created_by: string;
   created_at: string;
@@ -103,28 +104,37 @@ export default function DetailPage() {
         <title>{blog?.title || "Memuat..."} - FranchiseHub</title>
       </Head>
 
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="max-w-2xl mx-auto px-4 py-8">
         {blog ? (
-          <div>
-            <h1 className="text-3xl font-bold mb-2">{blog.title}</h1>
-            <p className="text-gray-500 text-sm mb-4">
-              {blog.author || blog.created_by} | {new Date(blog.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
-            </p>
+          <>
+            <h1 className="text-2xl font-bold mb-2">{blog.title}</h1>
+            <div className="text-sm text-gray-500 mb-4 flex gap-x-3">
+              <span>{blog.category}</span>
+              <span>|</span>
+              <span>{new Date(blog.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+              <span>|</span>
+              <span>{blog.author || blog.created_by}</span>
+            </div>
+            <hr className="border-black mb-6" />
+
             {blog.cover_url && (
               <img
                 src={blog.cover_url}
                 alt={blog.title}
-                className="w-full rounded mb-6"
+                className="w-full rounded-lg mb-6 object-cover"
               />
             )}
-            <div className="text-gray-700 mb-4" dangerouslySetInnerHTML={{ __html: blog.content }} />
-          </div>
+
+            <div className="text-gray-700 mb-4 whitespace-pre-wrap">
+              {blog.content}
+            </div>
+          </>
         ) : (
           <p className="text-gray-500">Memuat konten...</p>
         )}
 
-        <div className="mt-10 border-t pt-6">
-          <h2 className="text-xl font-semibold mb-4">Komentar</h2>
+        <div className="mt-8 border-t pt-6">
+          <h2 className="text-lg font-semibold mb-4">Komentar</h2>
 
           {user ? (
             <>
