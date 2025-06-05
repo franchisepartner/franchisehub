@@ -18,9 +18,36 @@ export default function ListingDetail() {
       .select('*')
       .eq('id', id)
       .single()
-      .then(({ data }) => setListing(data));
+      .then(({ data }) => {
+        setListing(data);
+        if (data) trackVisit(data);
+      });
 
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
+
+    async function trackVisit(listingData: any) {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData?.session?.user;
+
+      let viewerRole = 'calon_franchisee';
+
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+
+        viewerRole = profile?.role || 'calon_franchisee';
+      }
+
+      await supabase.from('visit_logs').insert({
+        content_type: 'listing',
+        content_id: listingData.id,
+        owner_id: listingData.created_by,
+        viewer_role: viewerRole,
+      });
+    }
   }, [id]);
 
   if (!listing) return <p className="p-4">Loading...</p>;
