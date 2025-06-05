@@ -47,7 +47,7 @@ export default function DashboardFranchisor() {
         <span className="text-gray-500">[Carousel Preview]</span>
       </div>
 
-      {/* Grid Tombol Fitur 2x3 persegi */}
+      {/* Grid Tombol Fitur 2x3 kotak persegi */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-10">
         {[
           { label: 'Kelola Listing', color: 'bg-blue-600' },
@@ -59,7 +59,7 @@ export default function DashboardFranchisor() {
         ].map(({ label, color }) => (
           <button
             key={label}
-            className={`${color} text-white font-semibold rounded-lg py-8 shadow-md hover:brightness-110 transition`}
+            className={`${color} text-white font-semibold rounded-lg shadow-md hover:brightness-110 transition aspect-square flex items-center justify-center text-center text-lg`}
           >
             {label}
           </button>
