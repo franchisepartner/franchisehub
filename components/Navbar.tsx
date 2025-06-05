@@ -13,10 +13,8 @@ export default function Navbar() {
   const [role, setRole] = useState<string>('Franchisee');
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // Deteksi apakah sedang di halaman utama ("/")
   const isHomePage = router.pathname === '/';
 
-  // Ambil session & role user dari Supabase
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setNavbarSession(data.session);
@@ -49,7 +47,6 @@ export default function Navbar() {
     }
   };
 
-  // Siapa nama yang akan disapa
   const userGreeting = navbarSession
     ? `${navbarSession.user?.user_metadata?.full_name || 'User'}_${role}`
     : 'Calon Franchisee';
@@ -57,7 +54,7 @@ export default function Navbar() {
   return (
     <>
       <nav className="w-full bg-white shadow-md px-4 py-3 flex items-center justify-between relative z-50">
-        {/* =========== KIRI: Logo (diperbesar menjadi 44×44) =========== */}
+        {/* Logo FranchiseHub */}
         <div className="flex-shrink-0">
           <Link href="/" passHref>
             <a className="flex items-center">
@@ -72,7 +69,7 @@ export default function Navbar() {
           </Link>
         </div>
 
-        {/* =========== TENGAH: Kolom Pencarian (hanya jika bukan homepage) =========== */}
+        {/* Kolom Pencarian (hanya jika bukan homepage) */}
         {!isHomePage && (
           <div className="flex-1 mx-6 lg:mx-12">
             <input
@@ -83,12 +80,21 @@ export default function Navbar() {
           </div>
         )}
 
-        {/* =========== KANAN: Salam pengguna + Burger Menu =========== */}
+        {/* Bagian Kanan: Tombol Inbox, Salam, dan Burger Menu */}
         <div className="flex items-center space-x-4">
-          {/* Salam user */}
+          {/* Tombol Inbox 📩 (hanya muncul jika login) */}
+          {navbarSession && (
+            <Link href="/inbox">
+              <a className="bg-blue-500 text-white px-3 py-1 rounded-lg hover:bg-blue-600 transition">
+                Inbox 📩
+              </a>
+            </Link>
+          )}
+
+          {/* Salam Pengguna */}
           <p className="italic text-gray-500 text-sm">Halo, {userGreeting}!</p>
 
-          {/* Tombol Burger Menu */}
+          {/* Tombol Hamburger */}
           <button
             onClick={() => setMenuOpen(true)}
             className="text-2xl"
@@ -99,7 +105,6 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* =========== Komponen BurgerMenu (slide-in) =========== */}
       <BurgerMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
     </>
   );
