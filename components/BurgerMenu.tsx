@@ -111,7 +111,7 @@ export default function BurgerMenu({ open, onClose }: Props) {
           </Link>
         </li>
         <li>
-          <Link href="/terms" onClick={onClose}>
+          <Link href="/syarat-ketentuan" onClick={onClose}>
             Syarat & Ketentuan
           </Link>
         </li>
