@@ -94,7 +94,7 @@ export default function BlogGlobal() {
               // Buat ringkasan 110 karakter dari konten (tanpa tag HTML)
               const excerpt = blog.content.replace(/<[^>]+>/g, '').slice(0, 110) + (blog.content.length > 110 ? '...' : '');
               return (
-                <Link key={blog.id} href={`/blog/${blog.slug}`} className="block border rounded-lg hover:shadow-md transition bg-white">
+                <Link key={blog.id} href={`/detail/${blog.slug}`} className="block border rounded-lg hover:shadow-md transition bg-white">
                   <div>
                     {blog.cover_url && (
                       <img
