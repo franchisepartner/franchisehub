@@ -85,7 +85,7 @@ export default function Navbar() {
           <p className="italic text-gray-500 text-sm">Halo, {userGreeting}!</p>
 
           {navbarSession && (
-            <Link href="/franchise-inbox">>
+            <Link href="/franchise-inbox">
               <a className="bg-blue-500 text-white px-3 py-1 rounded-lg hover:bg-blue-600 transition">
                  ✉️
               </a>
