@@ -39,6 +39,22 @@ export default function DashboardFranchisor() {
     fetchData();
   }, []);
 
+  // Mapping label ke route path
+  const routeMap: Record<string, string> = {
+    'Kelola Listing': '/franchisor/manage-listings',
+    'Tambah Listing Baru': '/franchisor/manage-listings/new',
+    'Panduan Regulasi Waralaba': '/panduan-regulasi-waralaba',
+    'Posting Blog Bisnis': '/franchisor/blogs',
+  };
+
+  // Fungsi handler klik tombol
+  const handleClick = (label: string) => {
+    const route = routeMap[label];
+    if (route) {
+      router.push(route);
+    }
+  };
+
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <h1 className="text-3xl font-bold mb-1">Dashboard Franchisor</h1>
@@ -47,17 +63,18 @@ export default function DashboardFranchisor() {
         <span className="text-gray-500">[Carousel Preview]</span>
       </div>
 
-      {/* Grid Tombol Fitur 2x3 kotak persegi */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-10">
+      {/* Tombol Fitur Horizontal dengan scroll */}
+      <div className="flex space-x-6 overflow-x-auto mb-10 no-scrollbar py-2">
         {[
-          { label: 'Kelola Listing', color: 'bg-blue-600' },
-          { label: 'Tambah Listing Baru', color: 'bg-green-600' },
-          { label: 'Panduan Regulasi Waralaba', color: 'bg-purple-600' },
-          { label: 'Posting Blog Bisnis', color: 'bg-pink-600' },
+          { label: 'Kelola Listing', color: 'bg-white text-gray-800' },
+          { label: 'Tambah Listing Baru', color: 'bg-white text-gray-800' },
+          { label: 'Panduan Regulasi Waralaba', color: 'bg-white text-gray-800' },
+          { label: 'Posting Blog Bisnis', color: 'bg-white text-gray-800' },
         ].map(({ label, color }) => (
           <button
             key={label}
-            className={`bg-white text-gray-800 font-semibold rounded-lg shadow-md hover:shadow-lg transition aspect-square flex items-center justify-center text-center text-lg`}
+            className={`${color} font-semibold rounded-lg shadow-md hover:shadow-lg transition aspect-square flex items-center justify-center text-center text-lg min-w-[140px] flex-shrink-0`}
+            onClick={() => handleClick(label)}
           >
             {label}
           </button>
