@@ -59,7 +59,7 @@ export default function DashboardFranchisor() {
         ].map(({ label, color }) => (
           <button
             key={label}
-            className={`${color} text-white font-semibold rounded-lg shadow-md hover:brightness-110 transition aspect-square flex items-center justify-center text-center text-lg`}
+            className={`bg-white text-gray-800 font-semibold rounded-lg shadow-md hover:shadow-lg transition aspect-square flex items-center justify-center text-center text-lg`}
           >
             {label}
           </button>
