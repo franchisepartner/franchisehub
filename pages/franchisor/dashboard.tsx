@@ -52,8 +52,6 @@ export default function DashboardFranchisor() {
         {[
           { label: 'Kelola Listing', color: 'bg-blue-600' },
           { label: 'Tambah Listing Baru', color: 'bg-green-600' },
-          { label: 'Edit Profil', color: 'bg-yellow-500' },
-          { label: 'Lihat Statistik Leads', color: 'bg-indigo-600' },
           { label: 'Panduan Regulasi Waralaba', color: 'bg-purple-600' },
           { label: 'Posting Blog Bisnis', color: 'bg-pink-600' },
         ].map(({ label, color }) => (
