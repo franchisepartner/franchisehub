@@ -2,6 +2,16 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { useRouter } from 'next/router';
 
+interface Blog {
+  id: string;
+  title: string;
+  content: string;
+  cover_url?: string;
+  author?: string;
+  created_by: string;
+  created_at: string;
+}
+
 interface Comment {
   id: string;
   content: string;
@@ -13,6 +23,7 @@ export default function DetailPage() {
   const router = useRouter();
   const { slug } = router.query;
 
+  const [blog, setBlog] = useState<Blog | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(false);
@@ -20,11 +31,24 @@ export default function DetailPage() {
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
+    async function fetchBlog() {
+      if (!slug) return;
+
+      const { data, error } = await supabase
+        .from('blogs')
+        .select('*')
+        .eq('slug', slug)
+        .single();
+
+      if (!error) setBlog(data);
+    }
+
     async function getUser() {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
     }
 
+    fetchBlog();
     getUser();
     if (slug) fetchComments();
   }, [slug]);
@@ -74,17 +98,26 @@ export default function DetailPage() {
 
   return (
     <div className="container mx-auto p-4">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold">Judul Detail Halaman</h1>
-        <img
-          src="/path-to-your-detail-image.jpg"
-          alt="Detail"
-          className="w-full rounded my-4"
-        />
-        <p>
-          Deskripsi halaman detail yang akan kamu isi sesuai konten blog atau artikel.
-        </p>
-      </div>
+      {blog ? (
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold">{blog.title}</h1>
+          {blog.cover_url && (
+            <img
+              src={blog.cover_url}
+              alt={blog.title}
+              className="w-full rounded my-4"
+            />
+          )}
+          <p>{blog.content}</p>
+
+          <small className="text-gray-500">
+            Ditulis oleh {blog.author || blog.created_by} pada{' '}
+            {new Date(blog.created_at).toLocaleString()}
+          </small>
+        </div>
+      ) : (
+        <p className="text-gray-500">Memuat konten...</p>
+      )}
 
       <div className="mt-8 border-t pt-4">
         <h3 className="text-lg font-semibold mb-4">Komentar</h3>
