@@ -84,14 +84,6 @@ export default function Navbar() {
         <div className="flex items-center space-x-4">
           <p className="italic text-gray-500 text-sm">Halo, {userGreeting}!</p>
 
-          {navbarSession && (
-            <Link href="/franchise-inbox">
-              <a className="bg-blue-500 text-white px-3 py-1 rounded-lg hover:bg-blue-600 transition">
-                 ✉️
-              </a>
-            </Link>
-          )}
-
           <button
             onClick={() => setMenuOpen(true)}
             className="text-2xl"
