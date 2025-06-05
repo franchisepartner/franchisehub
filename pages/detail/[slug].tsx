@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { useRouter } from 'next/router';
+import Head from 'next/head';
 
 interface Blog {
   id: string;
@@ -97,66 +98,70 @@ export default function DetailPage() {
   }
 
   return (
-    <div className="container mx-auto p-4">
-      {blog ? (
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold">{blog.title}</h1>
-          {blog.cover_url && (
-            <img
-              src={blog.cover_url}
-              alt={blog.title}
-              className="w-full rounded my-4"
-            />
-          )}
-          <p>{blog.content}</p>
+    <>
+      <Head>
+        <title>{blog?.title || "Memuat..."} - FranchiseHub</title>
+      </Head>
 
-          <small className="text-gray-500">
-            Ditulis oleh {blog.author || blog.created_by} pada{' '}
-            {new Date(blog.created_at).toLocaleString()}
-          </small>
-        </div>
-      ) : (
-        <p className="text-gray-500">Memuat konten...</p>
-      )}
-
-      <div className="mt-8 border-t pt-4">
-        <h3 className="text-lg font-semibold mb-4">Komentar</h3>
-
-        {user ? (
-          <>
-            <textarea
-              className="w-full border p-2 rounded mb-2"
-              placeholder="Tulis komentar Anda di sini..."
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-            />
-
-            <button
-              className="bg-blue-500 text-white py-1 px-4 rounded"
-              onClick={handleSubmit}
-            >
-              Kirim
-            </button>
-          </>
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        {blog ? (
+          <div>
+            <h1 className="text-3xl font-bold mb-4">{blog.title}</h1>
+            {blog.cover_url && (
+              <img
+                src={blog.cover_url}
+                alt={blog.title}
+                className="w-full rounded mb-6"
+              />
+            )}
+            <div className="text-gray-700 mb-4" dangerouslySetInnerHTML={{ __html: blog.content }} />
+            <small className="text-gray-500">
+              Ditulis oleh {blog.author || blog.created_by} pada{' '}
+              {new Date(blog.created_at).toLocaleString()}
+            </small>
+          </div>
         ) : (
-          <p className="text-sm text-gray-500">Silakan login untuk berkomentar.</p>
+          <p className="text-gray-500">Memuat konten...</p>
         )}
 
-        {loading && <p>Memuat komentar...</p>}
-        {errorMsg && <p className="text-red-500">{errorMsg}</p>}
+        <div className="mt-10 border-t pt-6">
+          <h2 className="text-xl font-semibold mb-4">Komentar</h2>
 
-        <div className="mt-4">
-          {comments.map((comment) => (
-            <div key={comment.id} className="border-b py-2">
-              <p>{comment.content}</p>
-              <small className="text-gray-500">
-                {comment.created_by} pada{' '}
-                {new Date(comment.created_at).toLocaleString()}
-              </small>
-            </div>
-          ))}
+          {user ? (
+            <>
+              <textarea
+                className="w-full border rounded p-2 mb-4"
+                placeholder="Tulis komentar Anda di sini..."
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+              />
+
+              <button
+                className="bg-blue-600 text-white px-4 py-2 rounded"
+                onClick={handleSubmit}
+              >
+                Kirim
+              </button>
+            </>
+          ) : (
+            <p className="text-sm text-gray-500">Silakan login untuk berkomentar.</p>
+          )}
+
+          {loading && <p>Memuat komentar...</p>}
+          {errorMsg && <p className="text-red-500">{errorMsg}</p>}
+
+          <div className="mt-6">
+            {comments.map((comment) => (
+              <div key={comment.id} className="border-b py-2">
+                <p>{comment.content}</p>
+                <small className="text-gray-500">
+                  {comment.created_by} pada {new Date(comment.created_at).toLocaleString()}
+                </small>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
