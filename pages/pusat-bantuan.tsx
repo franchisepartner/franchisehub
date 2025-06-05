@@ -21,18 +21,21 @@ export default function PusatBantuan() {
   const [newCategory, setNewCategory] = useState('');
 
   useEffect(() => {
-    async function fetchFaqs() {
-      const { data, error } = await supabase.from('help_center').select('*').order('created_at', { ascending: false });
-      if (!error && data) setFaqs(data);
-    }
-
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
       if (data.session) fetchRole(data.session.user.id);
     });
 
-    fetchFaqs();
+  fetchFaqs();
   }, []);
+
+  async function fetchFaqs() {
+    const { data, error } = await supabase
+      .from('help_center')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (!error && data) setFaqs(data);
+  }
 
   async function fetchRole(userId: string) {
     const { data, error } = await supabase.from('profiles').select('role').eq('id', userId).single();
