@@ -80,21 +80,18 @@ export default function Navbar() {
           </div>
         )}
 
-        {/* Bagian Kanan: Tombol Inbox, Salam, dan Burger Menu */}
+        {/* Kanan: Salam → Inbox → Menu Burger */}
         <div className="flex items-center space-x-4">
-          {/* ✉️ (hanya muncul jika login) */}
+          <p className="italic text-gray-500 text-sm">Halo, {userGreeting}!</p>
+
           {navbarSession && (
             <Link href="/inbox">
               <a className="bg-blue-500 text-white px-3 py-1 rounded-lg hover:bg-blue-600 transition">
-                ✉️
+                Inbox 📩
               </a>
             </Link>
           )}
 
-          {/* Salam Pengguna */}
-          <p className="italic text-gray-500 text-sm">Halo, {userGreeting}!</p>
-
-          {/* Tombol Hamburger */}
           <button
             onClick={() => setMenuOpen(true)}
             className="text-2xl"
