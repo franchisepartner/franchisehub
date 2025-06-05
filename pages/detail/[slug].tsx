@@ -82,8 +82,7 @@ export default function DetailPage() {
           className="w-full rounded my-4"
         />
         <p>
-          Ini adalah deskripsi lengkap mengenai halaman detail, produk, atau artikel yang sedang
-          dilihat oleh pengguna. Tambahkan informasi relevan dan menarik di sini.
+          Deskripsi halaman detail yang akan kamu isi sesuai konten blog atau artikel.
         </p>
       </div>
 
@@ -107,7 +106,7 @@ export default function DetailPage() {
             </button>
           </>
         ) : (
-          <p className="text-sm text-gray-500">Silahkan login untuk berkomentar.</p>
+          <p className="text-sm text-gray-500">Silakan login untuk berkomentar.</p>
         )}
 
         {loading && <p>Memuat komentar...</p>}
