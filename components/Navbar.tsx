@@ -87,7 +87,7 @@ export default function Navbar() {
           {navbarSession && (
             <Link href="/inbox">
               <a className="bg-blue-500 text-white px-3 py-1 rounded-lg hover:bg-blue-600 transition">
-                Inbox 📩
+                 ✉️
               </a>
             </Link>
           )}
