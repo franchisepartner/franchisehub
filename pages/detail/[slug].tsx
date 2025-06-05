@@ -106,7 +106,10 @@ export default function DetailPage() {
       <div className="max-w-4xl mx-auto px-4 py-8">
         {blog ? (
           <div>
-            <h1 className="text-3xl font-bold mb-4">{blog.title}</h1>
+            <h1 className="text-3xl font-bold mb-2">{blog.title}</h1>
+            <p className="text-gray-500 text-sm mb-4">
+              {blog.author || blog.created_by} | {new Date(blog.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+            </p>
             {blog.cover_url && (
               <img
                 src={blog.cover_url}
@@ -115,10 +118,6 @@ export default function DetailPage() {
               />
             )}
             <div className="text-gray-700 mb-4" dangerouslySetInnerHTML={{ __html: blog.content }} />
-            <small className="text-gray-500">
-              Ditulis oleh {blog.author || blog.created_by} pada{' '}
-              {new Date(blog.created_at).toLocaleString()}
-            </small>
           </div>
         ) : (
           <p className="text-gray-500">Memuat konten...</p>
