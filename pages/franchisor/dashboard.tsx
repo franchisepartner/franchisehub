@@ -50,6 +50,7 @@ function AdvancedCalculatorModal({ show, onClose }: { show: boolean, onClose: ()
 export default function DashboardFranchisor() {
   const [fullName, setFullName] = useState('');
   const [visitStats, setVisitStats] = useState<any[]>([]);
+  const [roleStats, setRoleStats] = useState<any[]>([]);
   const [loadingStats, setLoadingStats] = useState(true);
   const [carouselItems, setCarouselItems] = useState<any[]>([]);
   const [showCalc, setShowCalc] = useState(false);
@@ -66,15 +67,14 @@ export default function DashboardFranchisor() {
       const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', user.id).single();
       setFullName(profile?.full_name || 'Franchisor');
 
-      // Statistik kunjungan harian (dari fungsi Supabase)
+      // Statistik kunjungan harian (grafik utama)
       setLoadingStats(true);
-      const { data, error } = await supabase.rpc('get_daily_visits_by_owner', { owner_id: user.id });
-      if (error) {
-        console.log("Statistik Error:", error);
-        setVisitStats([]);
-      } else {
-        setVisitStats(data || []);
-      }
+      const { data: daily, error: errDaily } = await supabase.rpc('get_daily_visits_by_owner', { owner_id: user.id });
+      setVisitStats(daily || []);
+
+      // Statistik per role (tabel baru)
+      const { data: perRole, error: errRole } = await supabase.rpc('get_daily_visits_by_owner_with_roles', { owner_id: user.id });
+      setRoleStats(perRole || []);
       setLoadingStats(false);
 
       // Showcase carousel: listing + blog
@@ -245,6 +245,31 @@ export default function DashboardFranchisor() {
                 </tbody>
               </table>
             </>
+          )}
+
+          {/* Statistik Per Role */}
+          <h3 className="text-lg font-semibold mt-10 mb-2">Tabel Kunjungan Per Role</h3>
+          {roleStats.length === 0 ? (
+            <p className="text-gray-500 mb-6">Belum ada data kunjungan per role.</p>
+          ) : (
+            <table className="w-full mb-2 border text-sm">
+              <thead>
+                <tr>
+                  <th className="border px-2">Tanggal</th>
+                  <th className="border px-2">Role Pengunjung</th>
+                  <th className="border px-2">Jumlah Kunjungan</th>
+                </tr>
+              </thead>
+              <tbody>
+                {roleStats.map((row, idx) => (
+                  <tr key={idx}>
+                    <td className="border px-2">{new Date(row.visit_date).toLocaleDateString()}</td>
+                    <td className="border px-2">{row.viewer_role}</td>
+                    <td className="border px-2">{row.visit_count}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           )}
         </div>
       </div>
