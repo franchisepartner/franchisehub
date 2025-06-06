@@ -118,8 +118,11 @@ export default function DashboardFranchisor() {
               navigation
               autoplay={{ delay: 5000, disableOnInteraction: false }}
               loop={true}
-              slidesPerView={1}
               spaceBetween={16}
+              breakpoints={{
+                0:    { slidesPerView: 1 },  // mobile: 1
+                640:  { slidesPerView: 3 },  // tablet ke atas: 3
+              }}
               style={{ width: '100%', height: '100%' }}
             >
               {carouselItems.map(item => (
