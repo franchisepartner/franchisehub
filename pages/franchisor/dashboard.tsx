@@ -4,6 +4,8 @@ import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { FaListAlt, FaPlus, FaBook, FaPenNib } from 'react-icons/fa';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import 'swiper/css';
 
 const BarChart = dynamic(() => import('../../components/BarChart'), { ssr: false });
 
@@ -11,6 +13,7 @@ export default function DashboardFranchisor() {
   const [fullName, setFullName] = useState('');
   const [visitStats, setVisitStats] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [carouselItems, setCarouselItems] = useState<any[]>([]);
 
   const router = useRouter();
 
@@ -36,6 +39,28 @@ export default function DashboardFranchisor() {
 
       setVisitStats(visits || []);
       setLoading(false);
+
+      // --- Ambil data untuk carousel ---
+      const { data: listings } = await supabase
+        .from('franchise_listings')
+        .select('*')
+        .eq('created_by', user.id)
+        .order('created_at', { ascending: false })
+        .limit(4);
+
+      const { data: blogs } = await supabase
+        .from('blogs')
+        .select('*')
+        .eq('created_by', user.id)
+        .order('created_at', { ascending: false })
+        .limit(4);
+
+      const combined = [
+        ...(listings || []).map(item => ({ ...item, type: 'listing' })),
+        ...(blogs || []).map(item => ({ ...item, type: 'blog' })),
+      ];
+      combined.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      setCarouselItems(combined.slice(0, 8));
     };
 
     fetchData();
@@ -70,8 +95,37 @@ export default function DashboardFranchisor() {
       <div className="relative z-10 p-6 max-w-6xl mx-auto">
         <h1 className="text-3xl font-bold mb-1">Dashboard Franchisor</h1>
         <p className="text-gray-700 mb-6">Selamat Datang, {fullName} 👋</p>
-        <div className="w-full h-44 bg-gray-200 rounded-lg flex items-center justify-center mb-8">
-          <span className="text-gray-500">[Carousel Preview]</span>
+
+        {/* CAROUSEL KARYA FRANCHISOR */}
+        <div className="w-full h-44 bg-gray-200 rounded-lg flex items-center justify-center mb-8 overflow-hidden">
+          {carouselItems.length === 0 ? (
+            <span className="text-gray-500">Belum ada karya yang ditampilkan</span>
+          ) : (
+            <Swiper slidesPerView={2} spaceBetween={16}>
+              {carouselItems.map(item => (
+                <SwiperSlide key={item.id}>
+                  <div
+                    className="bg-white h-40 w-64 rounded-lg shadow-md flex flex-col overflow-hidden cursor-pointer transition hover:shadow-lg"
+                    onClick={() =>
+                      item.type === 'listing'
+                        ? router.push(`/listing/${item.id}`)
+                        : router.push(`/detail/${item.slug}`)
+                    }
+                  >
+                    <img
+                      src={item.cover_url || item.image_url || '/logo192.png'}
+                      alt={item.title || item.brand_name}
+                      className="h-24 w-full object-cover"
+                    />
+                    <div className="flex-1 px-3 py-2 flex flex-col justify-between">
+                      <div className="font-bold text-sm truncate">{item.title || item.brand_name}</div>
+                      <div className="text-xs text-gray-500">{item.type === 'listing' ? 'Listing' : 'Blog'}</div>
+                    </div>
+                  </div>
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          )}
         </div>
 
         {/* Tombol fitur horizontal scroll */}
