@@ -51,6 +51,9 @@ export default function FranchiseDetail() {
           .getPublicUrl(data.cover_url).data.publicUrl;
 
         setFranchise({ ...data, logo_url: logoPublicUrl, cover_url: coverPublicUrl });
+
+        // Catat statistik kunjungan
+        await supabase.from('visit_logs').insert({ franchise_id: data.id });
       }
       setLoading(false);
     };
