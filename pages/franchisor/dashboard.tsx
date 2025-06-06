@@ -11,11 +11,70 @@ import 'swiper/css/navigation';
 
 const BarChart = dynamic(() => import('../../components/BarChart'), { ssr: false });
 
+function AdvancedCalculatorModal({ show, onClose }: { show: boolean, onClose: () => void }) {
+  const [display, setDisplay] = useState<string>('0');
+
+  const handleButton = (val: string) => {
+    if (val === 'C') {
+      setDisplay('0');
+    } else if (val === '=') {
+      try {
+        // eval sederhana (untuk demo)
+        // eslint-disable-next-line no-eval
+        const result = eval(display.replace(/×/g, '*').replace(/÷/g, '/'));
+        setDisplay(String(result));
+      } catch {
+        setDisplay('Error');
+      }
+    } else {
+      setDisplay(display === '0' ? val : display + val);
+    }
+  };
+
+  const buttons: string[][] = [
+    ['7', '8', '9', '÷'],
+    ['4', '5', '6', '×'],
+    ['1', '2', '3', '-'],
+    ['0', '.', 'C', '+'],
+    ['(', ')', '=', '']
+  ];
+
+  if (!show) return null;
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center" onClick={onClose}>
+      <div
+        className="bg-white max-w-sm w-full rounded-xl shadow-xl p-6 relative"
+        onClick={e => e.stopPropagation()}
+      >
+        <button className="absolute top-3 right-3 text-gray-600 hover:text-red-600 text-xl" onClick={onClose}>
+          ×
+        </button>
+        <h2 className="text-xl font-semibold mb-3">Kalkulator Canggih</h2>
+        <div className="bg-gray-100 rounded-md p-3 text-right text-2xl font-mono mb-4">{display}</div>
+        <div className="w-full grid grid-cols-4 gap-2">
+          {buttons.flat().map((btn, idx) =>
+            btn === '' ? <div key={idx} /> : (
+              <button
+                key={idx}
+                onClick={() => handleButton(btn)}
+                className="bg-gray-200 hover:bg-blue-200 rounded-md py-2 text-lg font-medium"
+              >
+                {btn}
+              </button>
+            )
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function DashboardFranchisor() {
   const [fullName, setFullName] = useState('');
   const [visitStats, setVisitStats] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [carouselItems, setCarouselItems] = useState<any[]>([]);
+  const [showCalc, setShowCalc] = useState(false);
 
   const router = useRouter();
 
@@ -83,12 +142,20 @@ export default function DashboardFranchisor() {
     { label: 'Tambah Listing Baru', icon: <FaPlus size={48} />, route: '/franchisor/manage-listings/new' },
     { label: 'Panduan Regulasi Waralaba', icon: <FaBook size={48} />, route: '/franchisor/panduan-waralaba' },
     { label: 'Posting Blog Bisnis', icon: <FaPenNib size={48} />, route: '/blog/manage' },
-    { label: 'Kalkulator Canggih', icon: <FaCalculator size={48} />, route: '/franchisor/advanced-calculator' },
+    {
+      label: 'Kalkulator Canggih',
+      icon: <FaCalculator size={48} />,
+      isModal: true, // gunakan modal, bukan route
+    },
     { label: 'Masa Langganan', icon: <FaRegClock size={48} />, route: '/franchisor/subscription-status' },
   ];
 
-  const handleClick = (route: string) => {
-    router.push(route);
+  const handleClick = (route: string | undefined, isModal?: boolean) => {
+    if (isModal) {
+      setShowCalc(true);
+    } else if (route) {
+      router.push(route);
+    }
   };
 
   return (
@@ -162,15 +229,15 @@ export default function DashboardFranchisor() {
 
         {/* Tombol fitur */}
         <div className="flex space-x-6 overflow-x-auto no-scrollbar py-2 mb-10">
-          {features.map(({ label, icon, route }) => (
+          {features.map(({ label, icon, route, isModal }) => (
             <button
               key={label}
-              onClick={() => handleClick(route)}
+              onClick={() => handleClick(route, isModal)}
               className="bg-white text-gray-800 font-semibold rounded-lg shadow-md hover:shadow-lg transition flex flex-col items-center justify-start text-center text-lg flex-shrink-0"
               style={{ width: 160, height: 160 }}
             >
               <div className="mb-3">{icon}</div>
-              <span className="overflow-hidden text-ellipsis max-h-[4.5rem] block">{label}</span>
+              <span className="mt-2 text-center text-base break-words leading-tight">{label}</span>
             </button>
           ))}
         </div>
@@ -197,6 +264,9 @@ export default function DashboardFranchisor() {
           )}
         </div>
       </div>
+
+      {/* Kalkulator Canggih Modal */}
+      <AdvancedCalculatorModal show={showCalc} onClose={() => setShowCalc(false)} />
     </div>
   );
 }
