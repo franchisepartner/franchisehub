@@ -40,7 +40,7 @@ export default function DashboardFranchisor() {
       setVisitStats(visits || []);
       setLoading(false);
 
-      // --- Ambil listing: SELECT slug, logo_url, dst ---
+      // Ambil listing: SELECT slug, logo_url, dst
       const { data: rawListings } = await supabase
         .from('franchise_listings')
         .select('id, franchise_name, logo_url, slug, created_at')
@@ -57,7 +57,7 @@ export default function DashboardFranchisor() {
         title: item.franchise_name,
       }));
 
-      // --- Ambil blog ---
+      // Ambil blog
       const { data: blogs } = await supabase
         .from('blogs')
         .select('*')
@@ -105,8 +105,9 @@ export default function DashboardFranchisor() {
         <h1 className="text-3xl font-bold mb-1">Dashboard Franchisor</h1>
         <p className="text-gray-700 mb-6">Selamat Datang, {fullName} 👋</p>
 
-        {/* CAROUSEL */}
-        <div className="w-full h-48 bg-gray-200 rounded-lg flex items-center justify-center mb-8 overflow-hidden">
+        {/* Judul Showcase */}
+        <h2 className="text-xl font-semibold mb-2">Showcase Karya</h2>
+        <div className="w-full h-48 bg-white/30 backdrop-blur-md rounded-lg flex items-center justify-center mb-8 overflow-hidden shadow-inner">
           {carouselItems.length === 0 ? (
             <span className="text-gray-500">Belum ada karya yang ditampilkan</span>
           ) : (
