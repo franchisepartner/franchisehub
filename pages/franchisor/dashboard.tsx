@@ -109,7 +109,7 @@ export default function DashboardFranchisor() {
               {carouselItems.map(item => (
                 <SwiperSlide key={item.id} style={{ height: '100%' }}>
                   <div
-                    className="bg-white h-full w-full rounded-lg shadow-md flex flex-col overflow-hidden cursor-pointer transition hover:shadow-lg"
+                    className="bg-white h-full w-full rounded-xl shadow-md flex flex-col overflow-hidden cursor-pointer transition hover:shadow-lg p-2"
                     style={{ height: '176px', width: '260px', margin: 'auto' }}
                     onClick={() =>
                       item.type === 'listing'
@@ -120,11 +120,13 @@ export default function DashboardFranchisor() {
                     <img
                       src={item.cover_url || item.image_url || '/logo192.png'}
                       alt={item.title || item.brand_name}
-                      className="h-24 w-full object-cover rounded-t-lg"
+                      className="h-24 w-full object-contain rounded-t-lg bg-white"
                     />
-                    <div className="flex-1 px-3 py-2 flex flex-col justify-between">
-                      <div className="font-bold text-sm truncate">{item.title || item.brand_name}</div>
-                      <div className="text-xs text-gray-500">{item.type === 'listing' ? 'Listing' : 'Blog'}</div>
+                    <div className="flex-1 px-2 pt-2 flex flex-col justify-between">
+                      <div className="font-bold text-base truncate">{item.title || item.brand_name}</div>
+                      <div className="text-xs text-gray-500 mt-1 px-2 py-0.5 bg-gray-100 rounded inline-block w-max">
+                        {item.type === 'listing' ? 'Listing' : 'Blog'}
+                      </div>
                     </div>
                   </div>
                 </SwiperSlide>
