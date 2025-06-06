@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { useRouter } from 'next/router';
 import { v4 as uuidv4 } from 'uuid';
+import Link from 'next/link';
 
 const templates = [
   {
@@ -311,24 +312,31 @@ export default function BlogManage() {
         ) : (
           <div className="space-y-4">
             {blogs.map(blog => (
-              <div key={blog.id} className="border p-3 rounded flex flex-col md:flex-row md:items-center gap-3 bg-white">
-                {blog.cover_url && (
-                  <img src={blog.cover_url} alt={blog.title} className="h-16 w-28 object-cover rounded" />
-                )}
-                <div className="flex-1">
-                  <div className="font-semibold">{blog.title}</div>
-                  <div className="text-xs text-gray-500">{blog.category} • {new Date(blog.created_at).toLocaleDateString('id-ID')}</div>
-                </div>
-                <div className="flex gap-2 mt-2 md:mt-0">
-                  {(profile.role === 'administrator' || blog.created_by === profile.id) && (
-                    <button
-                      className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
-                      onClick={() => handleDelete(blog)}
-                    >
-                      Hapus
-                    </button>
-                  )}
-                </div>
+              <div key={blog.id} className="relative group">
+                <Link href={`/blog/${blog.slug}`} className="block">
+                  <div className="border p-3 rounded flex flex-col md:flex-row md:items-center gap-3 bg-white hover:bg-gray-50 cursor-pointer transition">
+                    {blog.cover_url && (
+                      <img src={blog.cover_url} alt={blog.title} className="h-16 w-28 object-cover rounded" />
+                    )}
+                    <div className="flex-1">
+                      <div className="font-semibold">{blog.title}</div>
+                      <div className="text-xs text-gray-500">{blog.category} • {new Date(blog.created_at).toLocaleDateString('id-ID')}</div>
+                    </div>
+                    <div className="flex gap-2 mt-2 md:mt-0 z-10">
+                      {(profile.role === 'administrator' || blog.created_by === profile.id) && (
+                        <button
+                          className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
+                          onClick={e => {
+                            e.preventDefault(); // agar klik hapus tidak buka link
+                            handleDelete(blog);
+                          }}
+                        >
+                          Hapus
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </Link>
               </div>
             ))}
           </div>
