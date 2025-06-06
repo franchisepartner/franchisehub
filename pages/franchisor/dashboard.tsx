@@ -40,14 +40,24 @@ export default function DashboardFranchisor() {
       setVisitStats(visits || []);
       setLoading(false);
 
-      // --- Ambil data untuk carousel ---
-      const { data: listings } = await supabase
+      // --- Ambil listing dan konversi logo_url ke public URL ---
+      const { data: rawListings } = await supabase
         .from('franchise_listings')
-        .select('*')
+        .select('id, franchise_name, logo_url, created_at')
         .eq('created_by', user.id)
         .order('created_at', { ascending: false })
         .limit(4);
 
+      const listings = (rawListings || []).map(item => ({
+        ...item,
+        logo_url: item.logo_url
+          ? supabase.storage.from('listing-images').getPublicUrl(item.logo_url).data.publicUrl
+          : '',
+        type: 'listing',
+        title: item.franchise_name,
+      }));
+
+      // --- Ambil blog ---
       const { data: blogs } = await supabase
         .from('blogs')
         .select('*')
@@ -56,7 +66,7 @@ export default function DashboardFranchisor() {
         .limit(4);
 
       const combined = [
-        ...(listings || []).map(item => ({ ...item, type: 'listing' })),
+        ...listings,
         ...(blogs || []).map(item => ({ ...item, type: 'blog' })),
       ];
       combined.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
@@ -119,12 +129,16 @@ export default function DashboardFranchisor() {
                     }
                   >
                     <img
-                      src={item.cover_url || item.image_url || '/logo192.png'}
-                      alt={item.title || item.brand_name}
+                      src={
+                        item.type === 'listing'
+                          ? item.logo_url || '/logo192.png'
+                          : item.cover_url || '/logo192.png'
+                      }
+                      alt={item.title || item.franchise_name}
                       className="h-24 w-full object-contain rounded-t-lg bg-white"
                     />
                     <div className="flex-1 px-2 pt-2 flex flex-col justify-between">
-                      <div className="font-bold text-base truncate">{item.title || item.brand_name}</div>
+                      <div className="font-bold text-base truncate">{item.title || item.franchise_name}</div>
                       <div className="text-xs text-gray-500 mt-1 px-2 py-0.5 bg-gray-100 rounded inline-block w-max">
                         {item.type === 'listing' ? 'Listing' : 'Blog'}
                       </div>
