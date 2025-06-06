@@ -3,7 +3,7 @@ import { supabase } from '../../lib/supabaseClient';
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
 
-// Import ikon dari react-icons (misal)
+// Import ikon dari react-icons
 import { FaListAlt, FaPlus, FaBook, FaPenNib } from 'react-icons/fa';
 
 const BarChart = dynamic(() => import('../../components/BarChart'), { ssr: false });
@@ -43,10 +43,10 @@ export default function DashboardFranchisor() {
   }, []);
 
   const features = [
-    { label: 'Kelola Listing', icon: <FaListAlt size={24} />, route: '/franchisor/manage-listings' },
-    { label: 'Tambah Listing Baru', icon: <FaPlus size={24} />, route: '/franchisor/manage-listings/new' },
-    { label: 'Panduan Regulasi Waralaba', icon: <FaBook size={24} />, route: '/panduan-regulasi-waralaba' },
-    { label: 'Posting Blog Bisnis', icon: <FaPenNib size={24} />, route: '/franchisor/blogs' },
+    { label: 'Kelola Listing', icon: <FaListAlt size={48} />, route: '/franchisor/manage-listings' },
+    { label: 'Tambah Listing Baru', icon: <FaPlus size={48} />, route: '/franchisor/manage-listings/new' },
+    { label: 'Panduan Regulasi Waralaba', icon: <FaBook size={48} />, route: '/panduan-regulasi-waralaba' },
+    { label: 'Posting Blog Bisnis', icon: <FaPenNib size={48} />, route: '/franchisor/blogs' },
   ];
 
   const handleClick = (route: string) => {
@@ -67,10 +67,10 @@ export default function DashboardFranchisor() {
           <button
             key={label}
             onClick={() => handleClick(route)}
-            className="bg-white text-gray-800 font-semibold rounded-lg shadow-md hover:shadow-lg transition aspect-square min-w-[140px] flex flex-col items-center justify-center px-4 py-3 flex-shrink-0"
+            className="bg-white text-gray-800 font-semibold rounded-lg shadow-md hover:shadow-lg transition aspect-square min-w-[180px] min-h-[180px] flex flex-col items-center justify-center px-4 py-3 flex-shrink-0"
           >
-            {icon}
-            <span className="mt-2 text-center text-sm break-words">{label}</span>
+            <div className="mb-3">{icon}</div>
+            <span className="text-center text-lg leading-snug break-words">{label}</span>
           </button>
         ))}
       </div>
