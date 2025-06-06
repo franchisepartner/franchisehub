@@ -42,7 +42,41 @@ export default function DetailPage() {
         .eq('slug', slug)
         .single();
 
-      if (!error) setBlog(data);
+      if (!error && data) {
+        setBlog(data);
+
+        // Catat kunjungan ke blog (visit_logs)
+        let viewerRole = 'calon_franchisee';
+        let userId = null;
+        try {
+          const { data: sessionData } = await supabase.auth.getSession();
+          userId = sessionData?.session?.user?.id || null;
+          if (userId) {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('role')
+              .eq('id', userId)
+              .single();
+            viewerRole = profile?.role || 'calon_franchisee';
+          }
+        } catch (e) {}
+        const { error: logError } = await supabase.from('visit_logs').insert({
+          content_type: 'blog',
+          content_id: data.id,
+          owner_id: data.created_by,
+          viewer_role: viewerRole,
+        });
+        if (logError) {
+          console.log('Error insert visit_logs:', logError);
+        } else {
+          console.log('Kunjungan blog dicatat:', {
+            content_type: 'blog',
+            content_id: data.id,
+            owner_id: data.created_by,
+            viewer_role: viewerRole,
+          });
+        }
+      }
     }
 
     async function getUser() {
@@ -53,9 +87,10 @@ export default function DetailPage() {
     fetchBlog();
     getUser();
     if (slug) fetchComments();
+    // eslint-disable-next-line
   }, [slug]);
 
-  const userName = user?.user_metadata.full_name || user?.email || 'Anonymous';
+  const userName = user?.user_metadata?.full_name || user?.email || 'Anonymous';
 
   async function fetchComments() {
     setLoading(true);
