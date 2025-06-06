@@ -5,7 +5,9 @@ import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { FaListAlt, FaPlus, FaBook, FaPenNib } from 'react-icons/fa';
 import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation, Autoplay } from 'swiper/modules';
 import 'swiper/css';
+import 'swiper/css/navigation';
 
 const BarChart = dynamic(() => import('../../components/BarChart'), { ssr: false });
 
@@ -107,14 +109,17 @@ export default function DashboardFranchisor() {
 
         {/* Judul Showcase */}
         <h2 className="text-xl font-semibold mb-2">Showcase Karya</h2>
-        <div className="w-full h-48 bg-white/30 backdrop-blur-md rounded-lg flex items-center justify-center mb-8 overflow-hidden shadow-inner">
+        <div className="w-full h-48 bg-white/30 backdrop-blur-md rounded-lg flex items-center justify-center mb-8 overflow-hidden shadow-inner relative">
           {carouselItems.length === 0 ? (
             <span className="text-gray-500">Belum ada karya yang ditampilkan</span>
           ) : (
             <Swiper
-              slidesPerView={2}
-              spaceBetween={24}
-              centeredSlides={carouselItems.length === 1}
+              modules={[Navigation, Autoplay]}
+              navigation
+              autoplay={{ delay: 5000, disableOnInteraction: false }}
+              loop={true}
+              slidesPerView={1}
+              spaceBetween={16}
               style={{ width: '100%', height: '100%' }}
             >
               {carouselItems.map(item => (
@@ -146,11 +151,6 @@ export default function DashboardFranchisor() {
                   </div>
                 </SwiperSlide>
               ))}
-              {carouselItems.length === 1 && (
-                <SwiperSlide style={{ height: '100%' }}>
-                  <div className="bg-transparent h-full w-full"></div>
-                </SwiperSlide>
-              )}
             </Swiper>
           )}
         </div>
