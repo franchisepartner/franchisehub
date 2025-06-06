@@ -68,12 +68,16 @@ export default function DashboardFranchisor() {
 
       // Statistik kunjungan harian (dari fungsi Supabase)
       setLoadingStats(true);
-      const { data: visits, error: errVisits } = await supabase.rpc('get_daily_visits_by_owner', { owner_id: user.id });
-      if (errVisits) console.log("Stat error:", errVisits);
-      setVisitStats(visits || []);
+      const { data, error } = await supabase.rpc('get_daily_visits_by_owner', { owner_id: user.id });
+      if (error) {
+        console.log("Statistik Error:", error);
+        setVisitStats([]);
+      } else {
+        setVisitStats(data || []);
+      }
       setLoadingStats(false);
 
-      // Carousel: listing + blog
+      // Showcase carousel: listing + blog
       const { data: rawListings } = await supabase
         .from('franchise_listings')
         .select('id, franchise_name, logo_url, slug, created_at')
@@ -98,7 +102,7 @@ export default function DashboardFranchisor() {
       const blogItems = (blogs || []).map(item => ({
         ...item,
         type: 'blog',
-        logo_url: '', // tidak ada logo, pakai cover_url
+        logo_url: '',
         cover_url: item.cover_url,
         title: item.title,
       }));
@@ -224,7 +228,6 @@ export default function DashboardFranchisor() {
                   <Bar dataKey="visit_count" fill="#3b82f6" />
                 </BarChart>
               </ResponsiveContainer>
-              {/* TABEL juga tampilkan jika ingin */}
               <table className="w-full mt-6 border text-sm">
                 <thead>
                   <tr>
