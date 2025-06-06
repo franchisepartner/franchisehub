@@ -67,10 +67,11 @@ export default function DashboardFranchisor() {
           <button
             key={label}
             onClick={() => handleClick(route)}
-            className="bg-white text-gray-800 font-semibold rounded-lg shadow-md hover:shadow-lg transition aspect-square min-w-[180px] min-h-[180px] flex flex-col items-center justify-center px-4 py-3 flex-shrink-0"
+            className="bg-white text-gray-800 font-semibold rounded-lg shadow-md hover:shadow-lg transition flex flex-col items-center justify-start text-center text-lg flex-shrink-0"
+            style={{ width: 160, height: 160 }}
           >
             <div className="mb-3">{icon}</div>
-            <span className="text-center text-lg leading-snug break-words">{label}</span>
+            <span className="overflow-hidden text-ellipsis max-h-[4.5rem] block">{label}</span>
           </button>
         ))}
       </div>
