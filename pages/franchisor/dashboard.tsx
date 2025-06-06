@@ -97,15 +97,20 @@ export default function DashboardFranchisor() {
         <p className="text-gray-700 mb-6">Selamat Datang, {fullName} 👋</p>
 
         {/* CAROUSEL KARYA FRANCHISOR */}
-        <div className="w-full h-44 bg-gray-200 rounded-lg flex items-center justify-center mb-8 overflow-hidden">
+        <div className="w-full h-48 bg-gray-200 rounded-lg flex items-center justify-center mb-8 overflow-hidden">
           {carouselItems.length === 0 ? (
             <span className="text-gray-500">Belum ada karya yang ditampilkan</span>
           ) : (
-            <Swiper slidesPerView={2} spaceBetween={16}>
+            <Swiper
+              slidesPerView={2}
+              spaceBetween={24}
+              style={{ width: '100%', height: '100%' }}
+            >
               {carouselItems.map(item => (
-                <SwiperSlide key={item.id}>
+                <SwiperSlide key={item.id} style={{ height: '100%' }}>
                   <div
-                    className="bg-white h-40 w-64 rounded-lg shadow-md flex flex-col overflow-hidden cursor-pointer transition hover:shadow-lg"
+                    className="bg-white h-full w-full rounded-lg shadow-md flex flex-col overflow-hidden cursor-pointer transition hover:shadow-lg"
+                    style={{ height: '176px', width: '260px', margin: 'auto' }}
                     onClick={() =>
                       item.type === 'listing'
                         ? router.push(`/listing/${item.id}`)
@@ -115,7 +120,7 @@ export default function DashboardFranchisor() {
                     <img
                       src={item.cover_url || item.image_url || '/logo192.png'}
                       alt={item.title || item.brand_name}
-                      className="h-24 w-full object-cover"
+                      className="h-24 w-full object-cover rounded-t-lg"
                     />
                     <div className="flex-1 px-3 py-2 flex flex-col justify-between">
                       <div className="font-bold text-sm truncate">{item.title || item.brand_name}</div>
