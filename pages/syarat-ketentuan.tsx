@@ -32,7 +32,7 @@ export default function SyaratKetentuan() {
 
         <h2 className="font-semibold text-xl">4. Transaksi Pembayaran</h2>
         <p>
-          Semua pembayaran diproses melalui penyedia pihak ketiga yang terpercaya (Xendit/Midtrans). FranchiseHub tidak menyimpan detail sensitif pembayaran Anda.
+          Semua pembayaran diproses melalui penyedia pihak ketiga yang terpercaya. FranchiseHub tidak menyimpan detail sensitif pembayaran Anda.
         </p>
 
         <h2 className="font-semibold text-xl">5. Konten dan Interaksi Pengguna</h2>
