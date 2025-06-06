@@ -40,10 +40,10 @@ export default function DashboardFranchisor() {
       setVisitStats(visits || []);
       setLoading(false);
 
-      // --- Ambil listing dan konversi logo_url ke public URL ---
+      // --- Ambil listing: SELECT slug, logo_url, dst ---
       const { data: rawListings } = await supabase
         .from('franchise_listings')
-        .select('id, franchise_name, logo_url, created_at')
+        .select('id, franchise_name, logo_url, slug, created_at')
         .eq('created_by', user.id)
         .order('created_at', { ascending: false })
         .limit(4);
@@ -92,7 +92,7 @@ export default function DashboardFranchisor() {
       {/* Motif batik layer di bawah navbar */}
       <div className="absolute top-0 left-0 w-full h-44 z-0">
         <Image
-          src="/batik-dashboard-bar.PNG" // Pastikan file ini ada di /public
+          src="/batik-dashboard-bar.PNG"
           alt="Motif Batik"
           fill
           className="object-cover"
@@ -101,12 +101,11 @@ export default function DashboardFranchisor() {
         />
       </div>
 
-      {/* Konten dashboard */}
       <div className="relative z-10 p-6 max-w-6xl mx-auto">
         <h1 className="text-3xl font-bold mb-1">Dashboard Franchisor</h1>
         <p className="text-gray-700 mb-6">Selamat Datang, {fullName} 👋</p>
 
-        {/* CAROUSEL KARYA FRANCHISOR */}
+        {/* CAROUSEL */}
         <div className="w-full h-48 bg-gray-200 rounded-lg flex items-center justify-center mb-8 overflow-hidden">
           {carouselItems.length === 0 ? (
             <span className="text-gray-500">Belum ada karya yang ditampilkan</span>
@@ -124,7 +123,7 @@ export default function DashboardFranchisor() {
                     style={{ height: '176px', width: '260px', margin: 'auto' }}
                     onClick={() =>
                       item.type === 'listing'
-                        ? router.push(`/franchise/${item.id}`)
+                        ? router.push(`/franchise/${item.slug}`)
                         : router.push(`/detail/${item.slug}`)
                     }
                   >
@@ -135,7 +134,7 @@ export default function DashboardFranchisor() {
                           : item.cover_url || '/logo192.png'
                       }
                       alt={item.title || item.franchise_name}
-                      className="h-24 w-full object-contain rounded-t-lg bg-white"
+                      className="h-24 w-full object-cover rounded-t-lg bg-white"
                     />
                     <div className="flex-1 px-2 pt-2 flex flex-col justify-between">
                       <div className="font-bold text-base truncate">{item.title || item.franchise_name}</div>
@@ -146,7 +145,6 @@ export default function DashboardFranchisor() {
                   </div>
                 </SwiperSlide>
               ))}
-              {/* Tambah dummy slide agar selalu penuh kalau item cuma 1 */}
               {carouselItems.length === 1 && (
                 <SwiperSlide style={{ height: '100%' }}>
                   <div className="bg-transparent h-full w-full"></div>
@@ -156,7 +154,7 @@ export default function DashboardFranchisor() {
           )}
         </div>
 
-        {/* Tombol fitur horizontal scroll */}
+        {/* Tombol fitur */}
         <div className="flex space-x-6 overflow-x-auto no-scrollbar py-2 mb-10">
           {features.map(({ label, icon, route }) => (
             <button
