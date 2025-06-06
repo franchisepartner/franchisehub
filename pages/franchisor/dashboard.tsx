@@ -143,7 +143,7 @@ export default function DashboardFranchisor() {
     { label: 'Panduan Regulasi Waralaba', icon: <FaBook size={48} />, route: '/franchisor/panduan-waralaba' },
     { label: 'Posting Blog Bisnis', icon: <FaPenNib size={48} />, route: '/blog/manage' },
     {
-      label: 'Kalkulator Canggih',
+      label: 'Kalkulator',
       icon: <FaCalculator size={48} />,
       isModal: true, // gunakan modal, bukan route
     },
