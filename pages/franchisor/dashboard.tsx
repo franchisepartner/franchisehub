@@ -9,8 +9,8 @@ import { Navigation, Autoplay } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { StatsTable } from '../components/StatsTable'; // Pastikan path sesuai struktur project kamu
 
-// Modal kalkulator (bisa copy-paste dari kode kamu sebelumnya)
 function AdvancedCalculatorModal({ show, onClose }: { show: boolean, onClose: () => void }) {
   const [display, setDisplay] = useState<string>('0');
 
@@ -19,7 +19,7 @@ function AdvancedCalculatorModal({ show, onClose }: { show: boolean, onClose: ()
       setDisplay('0');
     } else if (val === '=') {
       try {
-        // eval sederhana (untuk demo)
+        // eval sederhana (hanya untuk demo)
         // eslint-disable-next-line no-eval
         const result = eval(display.replace(/×/g, '*').replace(/÷/g, '/'));
         setDisplay(String(result));
@@ -97,13 +97,13 @@ export default function DashboardFranchisor() {
 
       setFullName(profile?.full_name || 'Franchisor');
 
-      // Statistik kunjungan
+      // Statistik kunjungan harian (BarChart utama)
       setLoadingStats(true);
       const { data: visits } = await supabase.rpc('get_daily_visits_by_owner', { owner_id: user.id });
       setVisitStats(visits || []);
       setLoadingStats(false);
 
-      // Carousel listing
+      // Carousel: listing + blog
       const { data: rawListings } = await supabase
         .from('franchise_listings')
         .select('id, franchise_name, logo_url, slug, created_at')
@@ -120,17 +120,24 @@ export default function DashboardFranchisor() {
         title: item.franchise_name,
       }));
 
-      // Carousel blog
       const { data: blogs } = await supabase
         .from('blogs')
-        .select('*')
+        .select('id, title, cover_url, slug, created_at')
         .eq('created_by', user.id)
         .order('created_at', { ascending: false })
         .limit(4);
 
+      const blogItems = (blogs || []).map(item => ({
+        ...item,
+        type: 'blog',
+        logo_url: '', // tidak ada logo, pakai cover_url
+        cover_url: item.cover_url,
+        title: item.title,
+      }));
+
       const combined = [
         ...listings,
-        ...(blogs || []).map(item => ({ ...item, type: 'blog' })),
+        ...blogItems,
       ];
       combined.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
       setCarouselItems(combined.slice(0, 8));
@@ -213,14 +220,15 @@ export default function DashboardFranchisor() {
                           ? item.logo_url || '/logo192.png'
                           : item.cover_url || '/logo192.png'
                       }
-                      alt={item.title || item.franchise_name}
+                      alt={item.title}
                       className="h-24 w-full object-cover rounded-t-lg bg-white"
                     />
                     <div className="flex-1 px-2 pt-2 flex flex-col justify-between">
-                      <div className="font-bold text-base truncate">{item.title || item.franchise_name}</div>
+                      <div className="font-bold text-base truncate">{item.title}</div>
                       <div className="text-xs text-gray-500 mt-1 px-2 py-0.5 bg-gray-100 rounded inline-block w-max">
                         {item.type === 'listing' ? 'Listing' : 'Blog'}
                       </div>
+                      <StatsTable contentId={item.id} />
                     </div>
                   </div>
                 </SwiperSlide>
@@ -244,7 +252,7 @@ export default function DashboardFranchisor() {
           ))}
         </div>
 
-        {/* Statistik Kunjungan */}
+        {/* Statistik Kunjungan Utama */}
         <h2 className="text-xl font-semibold mb-4">Statistik Kunjungan</h2>
         <div className="bg-white shadow p-6 rounded-lg min-h-[320px]">
           {loadingStats ? (
@@ -263,7 +271,6 @@ export default function DashboardFranchisor() {
           )}
         </div>
       </div>
-      {/* Modal kalkulator */}
       <AdvancedCalculatorModal show={showCalc} onClose={() => setShowCalc(false)} />
     </div>
   );
