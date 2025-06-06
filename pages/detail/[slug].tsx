@@ -133,6 +133,15 @@ export default function DetailPage() {
     }
   }
 
+  async function handleDelete(commentId: string) {
+    const { error } = await supabase.from('comments').delete().eq('id', commentId);
+    if (!error) {
+      fetchComments();
+    } else {
+      setErrorMsg('Gagal menghapus komentar.');
+    }
+  }
+
   return (
     <>
       <Head>
@@ -196,11 +205,21 @@ export default function DetailPage() {
 
           <div className="mt-6">
             {comments.map((comment) => (
-              <div key={comment.id} className="border-b py-2">
-                <p>{comment.content}</p>
-                <small className="text-gray-500">
-                  {comment.created_by} pada {new Date(comment.created_at).toLocaleString()}
-                </small>
+              <div key={comment.id} className="border-b py-2 flex justify-between items-center">
+                <div>
+                  <p>{comment.content}</p>
+                  <small className="text-gray-500">
+                    {comment.created_by} pada {new Date(comment.created_at).toLocaleString()}
+                  </small>
+                </div>
+                {userName === comment.created_by && (
+                  <button
+                    className="text-red-500 hover:underline ml-4 text-xs"
+                    onClick={() => handleDelete(comment.id)}
+                  >
+                    Hapus
+                  </button>
+                )}
               </div>
             ))}
           </div>
