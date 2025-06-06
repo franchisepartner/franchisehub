@@ -5,14 +5,36 @@ import Navbar from '../components/Navbar';
 import { useRouter } from 'next/router';
 import { SessionContextProvider } from '@supabase/auth-helpers-react';
 import { supabase } from '../lib/supabaseClient';
-import { useState } from 'react';
+import { useState, useEffect } from 'react'; // Tambah useEffect di sini!
 import ChatPasarPopup from '../components/ChatPasarPopup';
 
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
   const isHome = router.pathname === '/';
-  
   const [isChatOpen, setChatOpen] = useState(false);
+
+  // Fallback insert profil jika login Google (role: franchisee)
+  useEffect(() => {
+    const checkAndInsertProfile = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user;
+      if (!user) return;
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .single();
+      if (!profile) {
+        await supabase.from('profiles').insert({
+          id: user.id,
+          email: user.email,
+          full_name: user.user_metadata?.full_name || '',
+          role: 'franchisee'
+        });
+      }
+    };
+    checkAndInsertProfile();
+  }, []);
 
   return (
     <SessionContextProvider supabaseClient={supabase}>
