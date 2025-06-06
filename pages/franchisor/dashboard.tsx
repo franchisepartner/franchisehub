@@ -9,7 +9,7 @@ import { Navigation, Autoplay } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { StatsTable } from '../components/StatsTable'; // Pastikan path sesuai struktur project kamu
+import { StatsTable } from '../../components/StatsTable';
 
 function AdvancedCalculatorModal({ show, onClose }: { show: boolean, onClose: () => void }) {
   const [display, setDisplay] = useState<string>('0');
