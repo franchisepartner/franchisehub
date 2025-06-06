@@ -313,7 +313,7 @@ export default function BlogManage() {
           <div className="space-y-4">
             {blogs.map(blog => (
               <div key={blog.id} className="relative group">
-                <Link href={`/blog/${blog.slug}`} className="block">
+                <Link href={`/detail/${blog.slug}`} className="block">
                   <div className="border p-3 rounded flex flex-col md:flex-row md:items-center gap-3 bg-white hover:bg-gray-50 cursor-pointer transition">
                     {blog.cover_url && (
                       <img src={blog.cover_url} alt={blog.title} className="h-16 w-28 object-cover rounded" />
