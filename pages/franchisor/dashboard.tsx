@@ -57,7 +57,7 @@ export default function DashboardFranchisor() {
       {/* Motif batik layer di bawah navbar */}
       <div className="absolute top-0 left-0 w-full h-44 z-0">
         <Image
-          src="/batik-dashboard-bar.png" // Pastikan file ini ada di /public
+          src="/batik-dashboard-bar.PNG" // Pastikan file ini ada di /public
           alt="Motif Batik"
           fill
           className="object-cover"
