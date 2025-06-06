@@ -3,7 +3,7 @@ import { supabase } from '../../lib/supabaseClient';
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
-import { FaListAlt, FaPlus, FaBook, FaPenNib } from 'react-icons/fa';
+import { FaListAlt, FaPlus, FaBook, FaPenNib, FaCalculator, FaRegClock } from 'react-icons/fa';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Autoplay } from 'swiper/modules';
 import 'swiper/css';
@@ -83,6 +83,8 @@ export default function DashboardFranchisor() {
     { label: 'Tambah Listing Baru', icon: <FaPlus size={48} />, route: '/franchisor/manage-listings/new' },
     { label: 'Panduan Regulasi Waralaba', icon: <FaBook size={48} />, route: '/franchisor/panduan-waralaba' },
     { label: 'Posting Blog Bisnis', icon: <FaPenNib size={48} />, route: '/blog/manage' },
+    { label: 'Kalkulator Canggih', icon: <FaCalculator size={48} />, route: '/franchisor/advanced-calculator' },
+    { label: 'Masa Langganan', icon: <FaRegClock size={48} />, route: '/franchisor/subscription-status' },
   ];
 
   const handleClick = (route: string) => {
