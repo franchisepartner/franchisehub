@@ -45,7 +45,7 @@ export default function DashboardFranchisor() {
   const features = [
     { label: 'Kelola Listing', icon: <FaListAlt size={48} />, route: '/franchisor/manage-listings' },
     { label: 'Tambah Listing Baru', icon: <FaPlus size={48} />, route: '/franchisor/manage-listings/new' },
-    { label: 'Panduan Regulasi Waralaba', icon: <FaBook size={48} />, route: '/panduan-regulasi-waralaba' },
+    { label: 'Panduan Regulasi Waralaba', icon: <FaBook size={48} />, route: 'franchisor/panduan-regulasi-waralaba' },
     { label: 'Posting Blog Bisnis', icon: <FaPenNib size={48} />, route: '/blog/manage' },
   ];
 
