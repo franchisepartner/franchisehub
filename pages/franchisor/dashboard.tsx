@@ -8,9 +8,9 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Autoplay } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
-const BarChart = dynamic(() => import('../../components/BarChart'), { ssr: false });
-
+// Modal kalkulator (bisa copy-paste dari kode kamu sebelumnya)
 function AdvancedCalculatorModal({ show, onClose }: { show: boolean, onClose: () => void }) {
   const [display, setDisplay] = useState<string>('0');
 
@@ -49,7 +49,7 @@ function AdvancedCalculatorModal({ show, onClose }: { show: boolean, onClose: ()
         <button className="absolute top-3 right-3 text-gray-600 hover:text-red-600 text-xl" onClick={onClose}>
           ×
         </button>
-        <h2 className="text-xl font-semibold mb-3">Kalkulator Canggih</h2>
+        <h2 className="text-xl font-semibold mb-3">Kalkulator</h2>
         <div className="bg-gray-100 rounded-md p-3 text-right text-2xl font-mono mb-4">{display}</div>
         <div className="w-full grid grid-cols-4 gap-2">
           {buttons.flat().map((btn, idx) =>
@@ -72,7 +72,7 @@ function AdvancedCalculatorModal({ show, onClose }: { show: boolean, onClose: ()
 export default function DashboardFranchisor() {
   const [fullName, setFullName] = useState('');
   const [visitStats, setVisitStats] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingStats, setLoadingStats] = useState(true);
   const [carouselItems, setCarouselItems] = useState<any[]>([]);
   const [showCalc, setShowCalc] = useState(false);
 
@@ -88,6 +88,7 @@ export default function DashboardFranchisor() {
 
       const { user } = session;
 
+      // Profile
       const { data: profile } = await supabase
         .from('profiles')
         .select('full_name')
@@ -96,12 +97,13 @@ export default function DashboardFranchisor() {
 
       setFullName(profile?.full_name || 'Franchisor');
 
-      const { data: visits } = await supabase.rpc('get_visit_stats', { owner: user.id });
-
+      // Statistik kunjungan
+      setLoadingStats(true);
+      const { data: visits } = await supabase.rpc('get_daily_visits_by_owner', { owner_id: user.id });
       setVisitStats(visits || []);
-      setLoading(false);
+      setLoadingStats(false);
 
-      // Ambil listing: SELECT slug, logo_url, dst
+      // Carousel listing
       const { data: rawListings } = await supabase
         .from('franchise_listings')
         .select('id, franchise_name, logo_url, slug, created_at')
@@ -118,7 +120,7 @@ export default function DashboardFranchisor() {
         title: item.franchise_name,
       }));
 
-      // Ambil blog
+      // Carousel blog
       const { data: blogs } = await supabase
         .from('blogs')
         .select('*')
@@ -145,7 +147,7 @@ export default function DashboardFranchisor() {
     {
       label: 'Kalkulator',
       icon: <FaCalculator size={48} />,
-      isModal: true, // gunakan modal, bukan route
+      isModal: true,
     },
     { label: 'Masa Langganan', icon: <FaRegClock size={48} />, route: '/franchisor/subscription-status' },
   ];
@@ -189,8 +191,8 @@ export default function DashboardFranchisor() {
               loop={true}
               spaceBetween={16}
               breakpoints={{
-                0:    { slidesPerView: 1 },  // mobile: 1
-                640:  { slidesPerView: 3 },  // tablet ke atas: 3
+                0:    { slidesPerView: 1 },
+                640:  { slidesPerView: 3 },
               }}
               style={{ width: '100%', height: '100%' }}
             >
@@ -245,27 +247,23 @@ export default function DashboardFranchisor() {
         {/* Statistik Kunjungan */}
         <h2 className="text-xl font-semibold mb-4">Statistik Kunjungan</h2>
         <div className="bg-white shadow p-6 rounded-lg min-h-[320px]">
-          {loading ? (
-            <p>Memuat grafik...</p>
+          {loadingStats ? (
+            <p>Memuat grafik statistik kunjungan...</p>
+          ) : visitStats.length === 0 ? (
+            <p>Belum ada data kunjungan.</p>
           ) : (
-            <>
-              <BarChart data={visitStats} />
-              <ul className="mt-6 space-y-2 text-gray-700 text-base">
-                {visitStats.map((v, i) => (
-                  <li key={i}>
-                    {v.role === 'calon_franchisee'
-                      ? 'Calon Franchisee'
-                      : v.role.charAt(0).toUpperCase() + v.role.slice(1)}{' '}
-                    {v.count} 👁️
-                  </li>
-                ))}
-              </ul>
-            </>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={visitStats.slice().reverse()}>
+                <XAxis dataKey="date" />
+                <YAxis allowDecimals={false} />
+                <Tooltip />
+                <Bar dataKey="visits" fill="#3b82f6" />
+              </BarChart>
+            </ResponsiveContainer>
           )}
         </div>
       </div>
-
-      {/* Kalkulator Canggih Modal */}
+      {/* Modal kalkulator */}
       <AdvancedCalculatorModal show={showCalc} onClose={() => setShowCalc(false)} />
     </div>
   );
