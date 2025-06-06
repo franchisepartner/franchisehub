@@ -53,12 +53,44 @@ export default function FranchiseDetail() {
 
         setFranchise({ ...data, logo_url: logoPublicUrl, cover_url: coverPublicUrl });
 
-        // Catat kunjungan ke listing
-        await supabase.from('visit_logs').insert({
+        // === Kode Insert Statistik Kunjungan ===
+        // Dapatkan role user viewer (atau anon)
+        let viewerRole = 'calon_franchisee';
+        let userId = null;
+        try {
+          const { data: sessionData } = await supabase.auth.getSession();
+          userId = sessionData?.session?.user?.id || null;
+          if (userId) {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('role')
+              .eq('id', userId)
+              .single();
+            viewerRole = profile?.role || 'calon_franchisee';
+          }
+        } catch (e) {
+          // abaikan, fallback ke calon_franchisee
+        }
+
+        // Insert visit_logs
+        const { error: logError } = await supabase.from('visit_logs').insert({
           content_type: 'listing',
           content_id: data.id,
           owner_id: data.created_by,
+          viewer_role: viewerRole,
         });
+
+        if (logError) {
+          console.log('Error insert visit_logs:', logError);
+        } else {
+          console.log('Kunjungan berhasil dicatat:', {
+            content_type: 'listing',
+            content_id: data.id,
+            owner_id: data.created_by,
+            viewer_role: viewerRole,
+          });
+        }
+        // === END Kode Insert Statistik Kunjungan ===
       }
       setLoading(false);
     };
