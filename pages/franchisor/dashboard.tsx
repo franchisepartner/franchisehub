@@ -104,6 +104,7 @@ export default function DashboardFranchisor() {
             <Swiper
               slidesPerView={2}
               spaceBetween={24}
+              centeredSlides={carouselItems.length === 1}
               style={{ width: '100%', height: '100%' }}
             >
               {carouselItems.map(item => (
@@ -113,7 +114,7 @@ export default function DashboardFranchisor() {
                     style={{ height: '176px', width: '260px', margin: 'auto' }}
                     onClick={() =>
                       item.type === 'listing'
-                        ? router.push(`/listing/${item.id}`)
+                        ? router.push(`/franchise/${item.id}`)
                         : router.push(`/detail/${item.slug}`)
                     }
                   >
@@ -131,6 +132,12 @@ export default function DashboardFranchisor() {
                   </div>
                 </SwiperSlide>
               ))}
+              {/* Tambah dummy slide agar selalu penuh kalau item cuma 1 */}
+              {carouselItems.length === 1 && (
+                <SwiperSlide style={{ height: '100%' }}>
+                  <div className="bg-transparent h-full w-full"></div>
+                </SwiperSlide>
+              )}
             </Swiper>
           )}
         </div>
