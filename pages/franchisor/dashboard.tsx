@@ -1,36 +1,25 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { useRouter } from 'next/router';
-import dynamic from 'next/dynamic';
 import Image from 'next/image';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { FaListAlt, FaPlus, FaBook, FaPenNib, FaCalculator, FaRegClock } from 'react-icons/fa';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Autoplay } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { StatsTable } from '../../components/StatsTable';
 
 function AdvancedCalculatorModal({ show, onClose }: { show: boolean, onClose: () => void }) {
   const [display, setDisplay] = useState<string>('0');
-
   const handleButton = (val: string) => {
-    if (val === 'C') {
-      setDisplay('0');
-    } else if (val === '=') {
+    if (val === 'C') setDisplay('0');
+    else if (val === '=') {
       try {
-        // eval sederhana (hanya untuk demo)
         // eslint-disable-next-line no-eval
-        const result = eval(display.replace(/×/g, '*').replace(/÷/g, '/'));
-        setDisplay(String(result));
-      } catch {
-        setDisplay('Error');
-      }
-    } else {
-      setDisplay(display === '0' ? val : display + val);
-    }
+        setDisplay(String(eval(display.replace(/×/g, '*').replace(/÷/g, '/'))));
+      } catch { setDisplay('Error'); }
+    } else setDisplay(display === '0' ? val : display + val);
   };
-
   const buttons: string[][] = [
     ['7', '8', '9', '÷'],
     ['4', '5', '6', '×'],
@@ -38,29 +27,18 @@ function AdvancedCalculatorModal({ show, onClose }: { show: boolean, onClose: ()
     ['0', '.', 'C', '+'],
     ['(', ')', '=', '']
   ];
-
   if (!show) return null;
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center" onClick={onClose}>
-      <div
-        className="bg-white max-w-sm w-full rounded-xl shadow-xl p-6 relative"
-        onClick={e => e.stopPropagation()}
-      >
-        <button className="absolute top-3 right-3 text-gray-600 hover:text-red-600 text-xl" onClick={onClose}>
-          ×
-        </button>
+      <div className="bg-white max-w-sm w-full rounded-xl shadow-xl p-6 relative" onClick={e => e.stopPropagation()}>
+        <button className="absolute top-3 right-3 text-gray-600 hover:text-red-600 text-xl" onClick={onClose}>×</button>
         <h2 className="text-xl font-semibold mb-3">Kalkulator</h2>
         <div className="bg-gray-100 rounded-md p-3 text-right text-2xl font-mono mb-4">{display}</div>
         <div className="w-full grid grid-cols-4 gap-2">
           {buttons.flat().map((btn, idx) =>
             btn === '' ? <div key={idx} /> : (
-              <button
-                key={idx}
-                onClick={() => handleButton(btn)}
-                className="bg-gray-200 hover:bg-blue-200 rounded-md py-2 text-lg font-medium"
-              >
-                {btn}
-              </button>
+              <button key={idx} onClick={() => handleButton(btn)}
+                className="bg-gray-200 hover:bg-blue-200 rounded-md py-2 text-lg font-medium">{btn}</button>
             )
           )}
         </div>
@@ -80,26 +58,18 @@ export default function DashboardFranchisor() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
+      const { data: { session } } = await supabase.auth.getSession();
       if (!session) return router.push('/');
-
       const { user } = session;
 
-      // Profile
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('full_name')
-        .eq('id', user.id)
-        .single();
-
+      // Profile franchisor
+      const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', user.id).single();
       setFullName(profile?.full_name || 'Franchisor');
 
-      // Statistik kunjungan harian (BarChart utama)
+      // Statistik kunjungan harian (dari fungsi Supabase)
       setLoadingStats(true);
-      const { data: visits } = await supabase.rpc('get_daily_visits_by_owner', { owner_id: user.id });
+      const { data: visits, error: errVisits } = await supabase.rpc('get_daily_visits_by_owner', { owner_id: user.id });
+      if (errVisits) console.log("Stat error:", errVisits);
       setVisitStats(visits || []);
       setLoadingStats(false);
 
@@ -113,9 +83,7 @@ export default function DashboardFranchisor() {
 
       const listings = (rawListings || []).map(item => ({
         ...item,
-        logo_url: item.logo_url
-          ? supabase.storage.from('listing-images').getPublicUrl(item.logo_url).data.publicUrl
-          : '',
+        logo_url: item.logo_url ? supabase.storage.from('listing-images').getPublicUrl(item.logo_url).data.publicUrl : '',
         type: 'listing',
         title: item.franchise_name,
       }));
@@ -135,14 +103,10 @@ export default function DashboardFranchisor() {
         title: item.title,
       }));
 
-      const combined = [
-        ...listings,
-        ...blogItems,
-      ];
+      const combined = [...listings, ...blogItems];
       combined.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
       setCarouselItems(combined.slice(0, 8));
     };
-
     fetchData();
   }, []);
 
@@ -151,20 +115,13 @@ export default function DashboardFranchisor() {
     { label: 'Tambah Listing Baru', icon: <FaPlus size={48} />, route: '/franchisor/manage-listings/new' },
     { label: 'Panduan Regulasi Waralaba', icon: <FaBook size={48} />, route: '/franchisor/panduan-waralaba' },
     { label: 'Posting Blog Bisnis', icon: <FaPenNib size={48} />, route: '/blog/manage' },
-    {
-      label: 'Kalkulator',
-      icon: <FaCalculator size={48} />,
-      isModal: true,
-    },
+    { label: 'Kalkulator', icon: <FaCalculator size={48} />, isModal: true },
     { label: 'Masa Langganan', icon: <FaRegClock size={48} />, route: '/franchisor/subscription-status' },
   ];
 
   const handleClick = (route: string | undefined, isModal?: boolean) => {
-    if (isModal) {
-      setShowCalc(true);
-    } else if (route) {
-      router.push(route);
-    }
+    if (isModal) setShowCalc(true);
+    else if (route) router.push(route);
   };
 
   return (
@@ -184,8 +141,7 @@ export default function DashboardFranchisor() {
       <div className="relative z-10 p-6 max-w-6xl mx-auto">
         <h1 className="text-3xl font-bold mb-1">Dashboard Franchisor</h1>
         <p className="text-gray-700 mb-6">Selamat Datang, {fullName} 👋</p>
-
-        {/* Judul Showcase */}
+        {/* Showcase Karya */}
         <h2 className="text-xl font-semibold mb-2">Showcase Karya</h2>
         <div className="w-full h-48 bg-white/30 backdrop-blur-md rounded-lg flex items-center justify-center mb-8 overflow-hidden shadow-inner relative">
           {carouselItems.length === 0 ? (
@@ -228,7 +184,6 @@ export default function DashboardFranchisor() {
                       <div className="text-xs text-gray-500 mt-1 px-2 py-0.5 bg-gray-100 rounded inline-block w-max">
                         {item.type === 'listing' ? 'Listing' : 'Blog'}
                       </div>
-                      <StatsTable contentId={item.id} />
                     </div>
                   </div>
                 </SwiperSlide>
@@ -260,14 +215,33 @@ export default function DashboardFranchisor() {
           ) : visitStats.length === 0 ? (
             <p>Belum ada data kunjungan.</p>
           ) : (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={visitStats.slice().reverse()}>
-                <XAxis dataKey="date" />
-                <YAxis allowDecimals={false} />
-                <Tooltip />
-                <Bar dataKey="visits" fill="#3b82f6" />
-              </BarChart>
-            </ResponsiveContainer>
+            <>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={visitStats}>
+                  <XAxis dataKey="visit_date" tickFormatter={d => new Date(d).toLocaleDateString()} />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip />
+                  <Bar dataKey="visit_count" fill="#3b82f6" />
+                </BarChart>
+              </ResponsiveContainer>
+              {/* TABEL juga tampilkan jika ingin */}
+              <table className="w-full mt-6 border text-sm">
+                <thead>
+                  <tr>
+                    <th className="border px-2">Tanggal</th>
+                    <th className="border px-2">Jumlah Kunjungan</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {visitStats.map(({ visit_date, visit_count }) => (
+                    <tr key={visit_date}>
+                      <td className="border px-2">{new Date(visit_date).toLocaleDateString()}</td>
+                      <td className="border px-2">{visit_count}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
           )}
         </div>
       </div>
