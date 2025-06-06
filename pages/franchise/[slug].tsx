@@ -20,6 +20,7 @@ interface Franchise {
   google_maps_url?: string;
   notes?: string;
   tags?: string;
+  created_by: string;
 }
 
 export default function FranchiseDetail() {
@@ -52,8 +53,12 @@ export default function FranchiseDetail() {
 
         setFranchise({ ...data, logo_url: logoPublicUrl, cover_url: coverPublicUrl });
 
-        // Catat statistik kunjungan
-        await supabase.from('visit_logs').insert({ franchise_id: data.id });
+        // Catat kunjungan ke listing
+        await supabase.from('visit_logs').insert({
+          content_type: 'listing',
+          content_id: data.id,
+          owner_id: data.created_by,
+        });
       }
       setLoading(false);
     };
