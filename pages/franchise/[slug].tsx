@@ -50,7 +50,6 @@ export default function FranchiseDetail() {
     setLoading(true);
 
     const fetchAll = async () => {
-      // Franchise
       const { data, error } = await supabase
         .from('franchise_listings')
         .select('*')
@@ -63,32 +62,22 @@ export default function FranchiseDetail() {
       }
       setFranchise(data);
 
-      // Legal Documents
       const { data: docs } = await supabase
         .from('legal_documents')
         .select('*')
         .eq('listing_id', data.id);
       setLegalDocs(docs || []);
 
-      // Showcase images (max 5, hanya folder showcase)
       const { data: images } = await supabase
         .from('listing_images')
         .select('*')
         .eq('listing_id', data.id)
         .order('id')
         .limit(5);
-
-      // DEBUG LOG
-      console.log('IMAGES:', images);
-
       const urls =
         (images || [])
           .filter(img => img.image_url?.startsWith('showcase/'))
           .map(img => supabase.storage.from('listing-images').getPublicUrl(img.image_url).data.publicUrl) || [];
-
-      // DEBUG LOG
-      console.log('showcaseUrls:', urls);
-
       setShowcaseUrls(urls);
 
       setLoading(false);
@@ -96,7 +85,6 @@ export default function FranchiseDetail() {
     fetchAll();
   }, [slug, router]);
 
-  // Slider otomatis
   useEffect(() => {
     if (showcaseUrls.length < 2) return;
     if (intervalRef.current) clearInterval(intervalRef.current);
@@ -111,7 +99,7 @@ export default function FranchiseDetail() {
 
   return (
     <div className="max-w-3xl mx-auto px-2 py-8">
-      {/* Cover Slider (dari showcase, max 5 gambar) */}
+      {/* COVER SLIDER */}
       {showcaseUrls.length > 0 && (
         <div className="mb-6 relative rounded-2xl shadow overflow-hidden" style={{height: '220px'}}>
           {showcaseUrls.map((url, idx) => (
@@ -136,14 +124,31 @@ export default function FranchiseDetail() {
         </div>
       )}
 
-      {/* Nama Franchise */}
-      <h1 className="text-2xl sm:text-3xl font-bold mb-1">{franchise.franchise_name}</h1>
-
-      {/* Badge info */}
-      <div className="flex flex-wrap gap-2 mb-4">
-        <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-lg text-sm">{franchise.category}</span>
-        <span className="bg-green-100 text-green-700 px-3 py-1 rounded-lg text-sm">{franchise.location}</span>
-        <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-lg text-sm">Investasi Mulai Rp {franchise.investment_min.toLocaleString('id-ID')}</span>
+      {/* --- STRUKTUR SESUAI PERMINTAAN --- */}
+      <div className="mb-4">
+        {/* Nama Franchise */}
+        <h1 className="text-3xl font-bold mb-1">{franchise.franchise_name}</h1>
+        {/* Kategori */}
+        <div className="mb-1">
+          <span className="inline-block bg-blue-100 text-blue-700 px-3 py-1 rounded-lg text-sm mr-2">{franchise.category}</span>
+        </div>
+        {/* Lokasi */}
+        <div className="mb-1">
+          <span className="inline-block bg-green-100 text-green-700 px-3 py-1 rounded-lg text-sm mr-2">{franchise.location}</span>
+        </div>
+        {/* Minimal Investasi */}
+        <div className="mb-1">
+          <span className="inline-block bg-yellow-100 text-yellow-700 px-3 py-1 rounded-lg text-sm">Investasi Mulai Rp {franchise.investment_min.toLocaleString('id-ID')}</span>
+        </div>
+        {/* Model Usaha */}
+        <div className="mb-2">
+          <span className="font-semibold">{franchise.operation_mode === 'autopilot' ? 'Autopilot' : 'Semi Autopilot'}</span>
+          {franchise.operation_mode === 'autopilot' ? (
+            <span className="text-gray-600"> — Mitra tidak perlu ikut terlibat langsung dalam operasional harian.</span>
+          ) : (
+            <span className="text-gray-600"> — Mitra tetap punya peran namun sebagian operasional dibantu tim pusat.</span>
+          )}
+        </div>
       </div>
 
       {/* Deskripsi */}
@@ -154,7 +159,7 @@ export default function FranchiseDetail() {
         </div>
       </div>
 
-      {/* Tabel Checklist Dokumen Hukum */}
+      {/* Status Dokumen Hukum */}
       <div className="mb-6">
         <h2 className="text-lg font-semibold mb-1">Status Dokumen Hukum</h2>
         <table className="w-full border rounded-lg text-sm">
@@ -188,52 +193,10 @@ export default function FranchiseDetail() {
         </table>
       </div>
 
-      {/* Showcase Karya (grid, di bawah checklist, dari showcase juga) */}
-      {showcaseUrls.length > 0 && (
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold mb-1">Showcase Karya</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {showcaseUrls.map((url, idx) => (
-              <img key={idx} src={url} className="w-full h-32 object-cover rounded-xl shadow" alt={`Showcase ${idx+1}`} />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Mode Operasional */}
-      <div className="mb-4">
-        <h2 className="text-lg font-semibold mb-1">Mode Operasional</h2>
-        <div>
-          <span className="font-semibold">{franchise.operation_mode === 'autopilot' ? 'Autopilot' : 'Semi Autopilot'}</span>
-          {franchise.operation_mode === 'autopilot' ? (
-            <span className="text-gray-600"> — Mitra tidak perlu ikut terlibat langsung dalam operasional harian.</span>
-          ) : (
-            <span className="text-gray-600"> — Mitra tetap punya peran namun sebagian operasional dibantu tim pusat.</span>
-          )}
-        </div>
-      </div>
-
-      {/* Tag, Website, Google Maps */}
-      <div className="flex flex-wrap gap-3 items-center mb-4">
-        {franchise.tags && (
-          <span className="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-xs">#{franchise.tags}</span>
-        )}
-        {franchise.website_url && (
-          <a href={franchise.website_url} className="text-blue-500 underline text-sm" target="_blank" rel="noopener noreferrer">
-            Website
-          </a>
-        )}
-        {franchise.google_maps_url && (
-          <a href={franchise.google_maps_url} className="text-blue-500 underline text-sm" target="_blank" rel="noopener noreferrer">
-            Google Maps
-          </a>
-        )}
-      </div>
-
-      {/* Kontak Franchisor */}
+      {/* Kontak & Tautan */}
       <div className="mb-6">
-        <h2 className="text-lg font-semibold mb-1">Kontak Franchisor</h2>
-        <div className="flex flex-wrap items-center gap-4">
+        <h2 className="text-lg font-semibold mb-1">Kontak & Tautan</h2>
+        <div className="flex flex-wrap gap-3 items-center mb-3">
           {franchise.whatsapp_contact && (
             <a
               href={`https://wa.me/${franchise.whatsapp_contact.replace(/^0/, '62')}`}
@@ -252,18 +215,24 @@ export default function FranchiseDetail() {
               Email
             </a>
           )}
+          {franchise.website_url && (
+            <a href={franchise.website_url} className="px-4 py-2 bg-gray-300 text-blue-700 rounded-full font-semibold shadow hover:bg-blue-200" target="_blank" rel="noopener noreferrer">
+              Website
+            </a>
+          )}
+          {franchise.google_maps_url && (
+            <a href={franchise.google_maps_url} className="px-4 py-2 bg-gray-300 text-blue-700 rounded-full font-semibold shadow hover:bg-blue-200" target="_blank" rel="noopener noreferrer">
+              Google Maps
+            </a>
+          )}
         </div>
-      </div>
-
-      {/* Catatan Tambahan */}
-      {franchise.notes && (
-        <div className="mb-3">
-          <h2 className="text-lg font-semibold mb-1">Catatan Tambahan</h2>
-          <div className="bg-yellow-50 border-l-4 border-yellow-400 px-4 py-2 rounded">
-            {franchise.notes}
+        {/* Tag */}
+        {franchise.tags && (
+          <div>
+            <span className="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-xs">#{franchise.tags}</span>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
