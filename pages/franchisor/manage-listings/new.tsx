@@ -4,9 +4,22 @@ import { supabase } from '../../../lib/supabaseClient';
 import { v4 as uuidv4 } from 'uuid';
 import type { User } from '@supabase/supabase-js';
 
+// --- mapping dokumen hukum & status (bisa dipindah ke lib/legalDocuments.ts) ---
+const LEGAL_DOCUMENTS = [
+  { key: 'stpw', label: 'STPW (Surat Tanda Pendaftaran Waralaba)' },
+  { key: 'legalitas', label: 'Legalitas Badan Usaha (PT/CV, NIB, NPWP)' },
+  { key: 'merek', label: 'Sertifikat Merek' },
+  { key: 'prospektus', label: 'Prospektus Penawaran' },
+  { key: 'perjanjian', label: 'Perjanjian Waralaba' }
+] as const;
+
+const LEGAL_STATUSES = [
+  { key: 'sudah', label: 'Sudah Memiliki' },
+  { key: 'sedang', label: 'Akan/Sedang diurus' }
+] as const;
+
 export default function NewListing() {
   const router = useRouter();
-
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
@@ -20,13 +33,18 @@ export default function NewListing() {
     email_contact: '',
     website_url: '',
     google_maps_url: '',
-    dokumen_hukum_sudah_punya: false,
-    dokumen_hukum_akan_diurus: false,
     notes: '',
     tags: '',
-    logo_file: null,
-    cover_file: null,
+    logo_file: null as File | null,
+    cover_file: null as File | null,
   });
+  // State untuk checklist dokumen
+  const [legalDocs, setLegalDocs] = useState(
+    LEGAL_DOCUMENTS.map(doc => ({ document_type: doc.key, status: '' }))
+  );
+
+  // Validasi semua dokumen terisi
+  const allDocsFilled = legalDocs.every(doc => !!doc.status);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -39,10 +57,8 @@ export default function NewListing() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const target = e.target as HTMLInputElement;
-    const { name, value, type, checked, files } = target;
-    if (type === 'checkbox') {
-      setForm((prev) => ({ ...prev, [name]: checked }));
-    } else if (type === 'file') {
+    const { name, value, type, files } = target;
+    if (type === 'file') {
       setForm((prev) => ({ ...prev, [name]: files![0] }));
     } else {
       setForm((prev) => ({ ...prev, [name]: value }));
@@ -53,26 +69,29 @@ export default function NewListing() {
     const fileExt = file.name.split('.').pop();
     const fileName = `${pathPrefix}/${uuidv4()}.${fileExt}`;
     const { error } = await supabase.storage.from('listing-images').upload(fileName, file);
-
     if (error) {
       alert(`Upload gagal: ${JSON.stringify(error)}`);
       throw error;
     }
-
     return fileName;
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!allDocsFilled) {
+      alert('Checklist dokumen hukum harus lengkap!');
+      return;
+    }
     setLoading(true);
 
     try {
+      // Upload logo & cover ke Supabase Storage
       const logoPath = form.logo_file ? await uploadImage(form.logo_file, 'logo') : null;
       const coverPath = form.cover_file ? await uploadImage(form.cover_file, 'cover') : null;
-
       const slug = form.franchise_name.toLowerCase().replace(/\s+/g, '-');
 
-      const { error } = await supabase.from('franchise_listings').insert({
+      // Insert ke franchise_listings, ambil id-nya
+      const { data, error } = await supabase.from('franchise_listings').insert([{
         user_id: user?.id,
         franchise_name: form.franchise_name,
         description: form.description,
@@ -84,17 +103,27 @@ export default function NewListing() {
         email_contact: form.email_contact,
         website_url: form.website_url,
         google_maps_url: form.google_maps_url,
-        dokumen_hukum_sudah_punya: form.dokumen_hukum_sudah_punya,
-        dokumen_hukum_akan_diurus: form.dokumen_hukum_akan_diurus,
         notes: form.notes,
         tags: form.tags,
         slug,
         logo_url: logoPath,
         cover_url: coverPath,
-      });
+      }]).select('id').single();
 
       if (error) throw error;
-      alert('Listing berhasil ditambahkan');
+
+      // Insert checklist dokumen legal
+      await Promise.all(
+        legalDocs.map(doc =>
+          supabase.from('legal_documents').insert({
+            listing_id: data.id,
+            document_type: doc.document_type,
+            status: doc.status
+          })
+        )
+      );
+
+      alert('Listing berhasil ditambahkan!');
       router.push('/franchisor/manage-listings');
     } catch (err: any) {
       console.error('Error saat menambahkan listing:', err);
@@ -120,7 +149,12 @@ export default function NewListing() {
             </tr>
             <tr>
               <td className="font-medium">Investasi Minimal</td>
-              <td><div className="flex items-center gap-2"><span>Rp</span><input required type="number" name="investment_min" value={form.investment_min} onChange={handleChange} className="input w-full" /></div></td>
+              <td>
+                <div className="flex items-center gap-2">
+                  <span>Rp</span>
+                  <input required type="number" name="investment_min" value={form.investment_min} onChange={handleChange} className="input w-full" />
+                </div>
+              </td>
             </tr>
             <tr>
               <td className="font-medium">Lokasi</td>
@@ -161,17 +195,35 @@ export default function NewListing() {
                 <p className="text-sm text-gray-500 mt-1">Autopilot berarti mitra tidak perlu ikut terlibat langsung dalam operasional harian. Semi-autopilot berarti mitra tetap punya peran namun sebagian operasional dibantu tim pusat.</p>
               </td>
             </tr>
+            {/* Checklist Dokumen Hukum */}
             <tr>
-              <td className="font-medium align-top">Dokumen Hukum</td>
+              <td className="font-medium align-top">Checklist Dokumen Hukum</td>
               <td>
-                <label className="flex items-start gap-2 mb-2">
-                  <input type="checkbox" name="dokumen_hukum_sudah_punya" checked={form.dokumen_hukum_sudah_punya} onChange={handleChange} />
-                  <span>Sudah punya perjanjian waralaba notariil sesuai UU No. 42 Tahun 2007</span>
-                </label>
-                <label className="flex items-start gap-2">
-                  <input type="checkbox" name="dokumen_hukum_akan_diurus" checked={form.dokumen_hukum_akan_diurus} onChange={handleChange} />
-                  <span>Akan mengurus perjanjian waralaba sesuai peraturan perundang-undangan</span>
-                </label>
+                <div className="flex flex-col gap-2">
+                  {LEGAL_DOCUMENTS.map((doc, idx) => (
+                    <div key={doc.key} className="flex items-center gap-3">
+                      <span className="w-56">{doc.label}</span>
+                      {LEGAL_STATUSES.map(status => (
+                        <label key={status.key} className="inline-flex items-center mr-4">
+                          <input
+                            type="radio"
+                            name={`doc-status-${doc.key}`}
+                            value={status.key}
+                            checked={legalDocs[idx].status === status.key}
+                            onChange={() => {
+                              const next = [...legalDocs];
+                              next[idx].status = status.key;
+                              setLegalDocs(next);
+                            }}
+                            required
+                          />
+                          <span className="ml-1">{status.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+                {!allDocsFilled && <p className="text-red-500 text-xs mt-2">Semua dokumen harus dipilih statusnya.</p>}
               </td>
             </tr>
             <tr>
