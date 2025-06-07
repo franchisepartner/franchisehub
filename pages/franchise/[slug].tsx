@@ -1,8 +1,8 @@
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 
-// Tambahkan LEGAL_DOCUMENTS di sini!
+// --- legal docs dan interface sama seperti sebelumnya ---
 const LEGAL_DOCUMENTS = [
   { key: 'stpw', label: 'STPW (Surat Tanda Pendaftaran Waralaba)' },
   { key: 'legalitas', label: 'Legalitas Badan Usaha (PT/CV, NIB, NPWP)' },
@@ -18,8 +18,7 @@ interface Franchise {
   category: string;
   investment_min: number;
   location: string;
-  logo_url: string;
-  cover_url: string;
+  cover_url: string; // Deprecated, pakai showcase
   operation_mode: string;
   whatsapp_contact: string;
   email_contact: string;
@@ -38,16 +37,6 @@ interface LegalDoc {
   status: string;
 }
 
-interface ListingImage {
-  id: string;
-  listing_id: string;
-  image_url: string;
-}
-
-function formatRupiah(num: number) {
-  return num.toLocaleString('id-ID');
-}
-
 export default function FranchiseDetail() {
   const router = useRouter();
   const { slug } = router.query;
@@ -55,13 +44,15 @@ export default function FranchiseDetail() {
   const [legalDocs, setLegalDocs] = useState<LegalDoc[]>([]);
   const [showcaseUrls, setShowcaseUrls] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeSlide, setActiveSlide] = useState(0);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (!slug || typeof slug !== 'string') return;
     setLoading(true);
 
     const fetchAll = async () => {
-      // 1. Franchise data
+      // Franchise
       const { data, error } = await supabase
         .from('franchise_listings')
         .select('*')
@@ -72,31 +63,22 @@ export default function FranchiseDetail() {
         router.replace('/404');
         return;
       }
+      setFranchise(data);
 
-      // 2. Public url logo, cover
-      const logoUrl = data.logo_url
-        ? supabase.storage.from('listing-images').getPublicUrl(data.logo_url).data.publicUrl
-        : '';
-      const coverUrl = data.cover_url
-        ? supabase.storage.from('listing-images').getPublicUrl(data.cover_url).data.publicUrl
-        : '';
-
-      setFranchise({ ...data, logo_url: logoUrl, cover_url: coverUrl });
-
-      // 3. Legal Documents
+      // Legal Documents
       const { data: docs } = await supabase
         .from('legal_documents')
         .select('*')
         .eq('listing_id', data.id);
-
       setLegalDocs(docs || []);
 
-      // 4. Showcase images
+      // Showcase images (max 5, urutkan sesuai upload/id)
       const { data: images } = await supabase
         .from('listing_images')
         .select('*')
         .eq('listing_id', data.id)
-        .order('id');
+        .order('id')
+        .limit(5);
       // Get public url
       const urls =
         (images || []).map(img =>
@@ -109,42 +91,60 @@ export default function FranchiseDetail() {
     fetchAll();
   }, [slug, router]);
 
+  // --- Otomatis slide showcase cover ---
+  useEffect(() => {
+    if (showcaseUrls.length < 2) return;
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    intervalRef.current = setInterval(() => {
+      setActiveSlide(prev =>
+        prev + 1 >= showcaseUrls.length ? 0 : prev + 1
+      );
+    }, 3000);
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+  }, [showcaseUrls]);
+
   if (loading) return <div className="p-8 text-center">Memuat detail franchise...</div>;
   if (!franchise) return <div className="p-8 text-center text-red-500">Franchise tidak ditemukan.</div>;
 
   return (
     <div className="max-w-3xl mx-auto px-2 py-8">
-      {/* 1. Cover */}
-      {franchise.cover_url && (
-        <div className="mb-6">
-          <img
-            src={franchise.cover_url}
-            alt={`${franchise.franchise_name} Cover`}
-            className="w-full max-h-72 object-cover rounded-2xl shadow"
-          />
+      {/* --- Cover Slider (Showcase #1-5, bergerak otomatis) --- */}
+      {showcaseUrls.length > 0 && (
+        <div className="mb-6 relative rounded-2xl shadow overflow-hidden" style={{height: '220px'}}>
+          {showcaseUrls.map((url, idx) => (
+            <img
+              key={idx}
+              src={url}
+              alt={`Cover ${idx + 1}`}
+              className={`absolute w-full h-full object-cover transition-opacity duration-500 ${idx === activeSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
+              style={{borderRadius: 16}}
+            />
+          ))}
+          {/* Dots */}
+          <div className="absolute bottom-2 left-1/2 flex gap-2 -translate-x-1/2 z-20">
+            {showcaseUrls.map((_, idx) => (
+              <button
+                key={idx}
+                className={`w-2.5 h-2.5 rounded-full ${idx === activeSlide ? 'bg-white/90 border border-gray-500' : 'bg-gray-300/70'}`}
+                onClick={() => setActiveSlide(idx)}
+                style={{ outline: 'none', border: 0 }}
+              />
+            ))}
+          </div>
         </div>
       )}
 
-      {/* 2. Logo & Nama */}
-      <div className="flex items-center gap-4 mb-3">
-        {franchise.logo_url && (
-          <img
-            src={franchise.logo_url}
-            alt={`${franchise.franchise_name} Logo`}
-            className="w-16 h-16 sm:w-24 sm:h-24 object-contain rounded-xl bg-white border"
-          />
-        )}
-        <h1 className="text-2xl sm:text-3xl font-bold">{franchise.franchise_name}</h1>
-      </div>
+      {/* --- Nama Franchise --- */}
+      <h1 className="text-2xl sm:text-3xl font-bold mb-1">{franchise.franchise_name}</h1>
 
-      {/* 3. Badge info */}
+      {/* --- Badge kategori, lokasi, investasi --- */}
       <div className="flex flex-wrap gap-2 mb-4">
         <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-lg text-sm">{franchise.category}</span>
         <span className="bg-green-100 text-green-700 px-3 py-1 rounded-lg text-sm">{franchise.location}</span>
-        <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-lg text-sm">Investasi Mulai Rp {formatRupiah(franchise.investment_min)}</span>
+        <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-lg text-sm">Investasi Mulai Rp {franchise.investment_min.toLocaleString('id-ID')}</span>
       </div>
 
-      {/* 4. Deskripsi */}
+      {/* --- Deskripsi --- */}
       <div className="mb-6">
         <h2 className="text-lg font-semibold mb-1">Deskripsi</h2>
         <div className="bg-gray-50 rounded-xl border px-4 py-3 text-gray-800 leading-relaxed whitespace-pre-line">
@@ -152,14 +152,15 @@ export default function FranchiseDetail() {
         </div>
       </div>
 
-      {/* 5. Checklist Dokumen Hukum */}
+      {/* --- Tabel Checklist Dokumen Hukum (kotak 2 kolom: Sudah Punya, Akan/Sedang Diurus) --- */}
       <div className="mb-6">
         <h2 className="text-lg font-semibold mb-1">Status Dokumen Hukum</h2>
         <table className="w-full border rounded-lg text-sm">
           <thead>
             <tr className="bg-gray-100">
               <th className="py-2 px-4 text-left rounded-tl-lg">Dokumen</th>
-              <th className="py-2 px-4 text-left rounded-tr-lg">Status</th>
+              <th className="py-2 px-4 text-center">Sudah Punya</th>
+              <th className="py-2 px-4 text-center rounded-tr-lg">Akan/Sedang Diurus</th>
             </tr>
           </thead>
           <tbody>
@@ -168,15 +169,14 @@ export default function FranchiseDetail() {
               return (
                 <tr key={doc.key} className="border-t">
                   <td className="py-2 px-4">{doc.label}</td>
-                  <td className="py-2 px-4">
-                    {found ? (
-                      found.status === 'sudah' ? (
-                        <span className="bg-green-100 text-green-700 px-2 py-1 rounded">Sudah Memiliki</span>
-                      ) : (
-                        <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded">Akan/Sedang Diurus</span>
-                      )
-                    ) : (
-                      <span className="text-gray-400 italic">-</span>
+                  <td className="py-2 px-4 text-center">
+                    {found?.status === 'sudah' && (
+                      <span className="inline-block w-6 h-6 bg-green-500 rounded-full text-white font-bold">✓</span>
+                    )}
+                  </td>
+                  <td className="py-2 px-4 text-center">
+                    {found?.status === 'sedang' && (
+                      <span className="inline-block w-6 h-6 bg-yellow-400 rounded-full text-white font-bold">⏳</span>
                     )}
                   </td>
                 </tr>
@@ -186,19 +186,19 @@ export default function FranchiseDetail() {
         </table>
       </div>
 
-      {/* 6. Showcase Galeri */}
+      {/* --- Showcase Karya (grid di bawah checklist, sesuai sketsa) --- */}
       {showcaseUrls.length > 0 && (
         <div className="mb-6">
-          <h2 className="text-lg font-semibold mb-1">Galeri Showcase</h2>
-          <div className="flex gap-3 overflow-x-auto py-2">
+          <h2 className="text-lg font-semibold mb-1">Showcase Karya</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {showcaseUrls.map((url, idx) => (
-              <img key={idx} src={url} className="w-40 h-28 object-cover rounded-xl shadow" alt={`Showcase ${idx+1}`} />
+              <img key={idx} src={url} className="w-full h-32 object-cover rounded-xl shadow" alt={`Showcase ${idx+1}`} />
             ))}
           </div>
         </div>
       )}
 
-      {/* 7. Mode Operasional */}
+      {/* --- Mode Operasional + penjelasan --- */}
       <div className="mb-4">
         <h2 className="text-lg font-semibold mb-1">Mode Operasional</h2>
         <div>
@@ -211,7 +211,7 @@ export default function FranchiseDetail() {
         </div>
       </div>
 
-      {/* 8. Tag, Website, Google Maps */}
+      {/* --- Tag, Website, Google Maps --- */}
       <div className="flex flex-wrap gap-3 items-center mb-4">
         {franchise.tags && (
           <span className="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-xs">#{franchise.tags}</span>
@@ -228,7 +228,7 @@ export default function FranchiseDetail() {
         )}
       </div>
 
-      {/* 9. Kontak Franchisor */}
+      {/* --- Kontak Franchisor --- */}
       <div className="mb-6">
         <h2 className="text-lg font-semibold mb-1">Kontak Franchisor</h2>
         <div className="flex flex-wrap items-center gap-4">
@@ -253,7 +253,7 @@ export default function FranchiseDetail() {
         </div>
       </div>
 
-      {/* 10. Catatan Tambahan */}
+      {/* --- Catatan Tambahan --- */}
       {franchise.notes && (
         <div className="mb-3">
           <h2 className="text-lg font-semibold mb-1">Catatan Tambahan</h2>
@@ -262,7 +262,6 @@ export default function FranchiseDetail() {
           </div>
         </div>
       )}
-
     </div>
   );
 }
