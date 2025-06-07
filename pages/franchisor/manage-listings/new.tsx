@@ -167,6 +167,7 @@ export default function NewListing() {
     }
   };
 
+  // Colon (:) row (sejajar label)
   const ColonInputRow = ({
     label,
     children,
@@ -232,7 +233,7 @@ export default function NewListing() {
         </ColonInputRow>
       </div>
 
-      {/* FORM HANYA FIELD BIASA, TIDAK ADA FILE */}
+      {/* FORM HANYA FIELD BIASA, TIDAK ADA FILE, DAN TANPA UNDERLINE */}
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
           <table className="w-full table-auto border-separate border-spacing-y-4">
@@ -243,7 +244,7 @@ export default function NewListing() {
                   name="franchise_name"
                   value={form.franchise_name}
                   onChange={handleChange}
-                  className="block w-full border-b border-gray-400 focus:border-blue-500 outline-none py-2 px-1 transition"
+                  className="block w-full py-2 px-2 rounded focus:ring focus:ring-blue-100 border border-gray-300 transition"
                   placeholder="Tulis nama franchise..."
                   autoComplete="off"
                 />
@@ -254,7 +255,7 @@ export default function NewListing() {
                   name="description"
                   value={form.description}
                   onChange={handleChange}
-                  className="block w-full border-b border-gray-400 focus:border-blue-500 outline-none py-2 px-1 transition resize-none"
+                  className="block w-full py-2 px-2 rounded focus:ring focus:ring-blue-100 border border-gray-300 transition resize-none"
                   rows={3}
                   placeholder="Tuliskan deskripsi usaha..."
                   autoComplete="off"
@@ -266,7 +267,7 @@ export default function NewListing() {
                   name="category"
                   value={form.category}
                   onChange={handleChange}
-                  className="block w-full border-b border-gray-400 focus:border-blue-500 outline-none py-2 px-1 transition"
+                  className="block w-full py-2 px-2 rounded focus:ring focus:ring-blue-100 border border-gray-300 transition"
                   placeholder="Pilih/isi kategori usaha"
                   autoComplete="off"
                 />
@@ -280,7 +281,7 @@ export default function NewListing() {
                     name="investment_min"
                     value={form.investment_min}
                     onChange={handleChange}
-                    className="block w-full border-b border-gray-400 focus:border-blue-500 outline-none py-2 px-1 transition"
+                    className="block w-full py-2 px-2 rounded focus:ring focus:ring-blue-100 border border-gray-300 transition"
                     placeholder="Jumlah"
                     autoComplete="off"
                   />
@@ -292,7 +293,7 @@ export default function NewListing() {
                   name="location"
                   value={form.location}
                   onChange={handleChange}
-                  className="block w-full border-b border-gray-400 focus:border-blue-500 outline-none py-2 px-1 transition"
+                  className="block w-full py-2 px-2 rounded focus:ring focus:ring-blue-100 border border-gray-300 transition"
                   placeholder="Lokasi usaha"
                   autoComplete="off"
                 />
@@ -303,7 +304,7 @@ export default function NewListing() {
                   name="whatsapp_contact"
                   value={form.whatsapp_contact}
                   onChange={handleChange}
-                  className="block w-full border-b border-gray-400 focus:border-blue-500 outline-none py-2 px-1 transition"
+                  className="block w-full py-2 px-2 rounded focus:ring focus:ring-blue-100 border border-gray-300 transition"
                   placeholder="08xxxxxxxxxx"
                   autoComplete="off"
                 />
@@ -314,7 +315,7 @@ export default function NewListing() {
                   name="email_contact"
                   value={form.email_contact}
                   onChange={handleChange}
-                  className="block w-full border-b border-gray-400 focus:border-blue-500 outline-none py-2 px-1 transition"
+                  className="block w-full py-2 px-2 rounded focus:ring focus:ring-blue-100 border border-gray-300 transition"
                   placeholder="nama@email.com"
                   autoComplete="off"
                 />
@@ -324,7 +325,7 @@ export default function NewListing() {
                   name="website_url"
                   value={form.website_url}
                   onChange={handleChange}
-                  className="block w-full border-b border-gray-400 focus:border-blue-500 outline-none py-2 px-1 transition"
+                  className="block w-full py-2 px-2 rounded focus:ring focus:ring-blue-100 border border-gray-300 transition"
                   placeholder="https://"
                   autoComplete="off"
                 />
@@ -334,7 +335,7 @@ export default function NewListing() {
                   name="google_maps_url"
                   value={form.google_maps_url}
                   onChange={handleChange}
-                  className="block w-full border-b border-gray-400 focus:border-blue-500 outline-none py-2 px-1 transition"
+                  className="block w-full py-2 px-2 rounded focus:ring focus:ring-blue-100 border border-gray-300 transition"
                   placeholder="https://maps.google.com/..."
                   autoComplete="off"
                 />
@@ -344,7 +345,7 @@ export default function NewListing() {
                   name="tags"
                   value={form.tags}
                   onChange={handleChange}
-                  className="block w-full border-b border-gray-400 focus:border-blue-500 outline-none py-2 px-1 transition"
+                  className="block w-full py-2 px-2 rounded focus:ring focus:ring-blue-100 border border-gray-300 transition"
                   placeholder="Pisahkan dengan koma (,) jika lebih dari satu"
                   autoComplete="off"
                 />
@@ -355,7 +356,7 @@ export default function NewListing() {
                   name="operation_mode"
                   value={form.operation_mode}
                   onChange={handleChange}
-                  className="block w-full border-b border-gray-400 focus:border-blue-500 outline-none py-2 px-1 transition"
+                  className="block w-full py-2 px-2 rounded focus:ring focus:ring-blue-100 border border-gray-300 transition"
                 >
                   <option value="">Pilih...</option>
                   <option value="autopilot">Autopilot</option>
@@ -414,7 +415,7 @@ export default function NewListing() {
                   name="notes"
                   value={form.notes}
                   onChange={handleChange}
-                  className="block w-full border-b border-gray-400 focus:border-blue-500 outline-none py-2 px-1 transition resize-none"
+                  className="block w-full py-2 px-2 rounded focus:ring focus:ring-blue-100 border border-gray-300 transition resize-none"
                   rows={2}
                   placeholder="Catatan (opsional)"
                   autoComplete="off"
