@@ -80,7 +80,7 @@ export default function EditBlog() {
     const fileName = `cover/${uuidv4()}.${ext}`;
     const { error } = await supabase.storage.from('blog-assets').upload(fileName, file);
     if (error) throw error;
-    return fileName;
+    return fileName; // <-- yang disimpan ke DB hanya "cover/xxxx.jpg"
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -117,6 +117,33 @@ export default function EditBlog() {
     }
   };
 
+  // Untuk render img dengan fallback jika gagal
+  const renderCoverImg = (coverUrl: string) => {
+    if (!coverUrl) return null;
+    const url = supabase.storage.from('blog-assets').getPublicUrl(coverUrl).data.publicUrl;
+    return (
+      <div className="mb-2 relative flex flex-col items-start">
+        <img
+          src={url}
+          alt="Cover"
+          className="w-32 h-24 object-cover rounded border"
+          onError={e => { (e.target as HTMLImageElement).src = "/placeholder.png"; }}
+        />
+        <button
+          type="button"
+          className="absolute top-0 right-0 bg-white rounded-full shadow px-2 text-lg text-red-600 hover:bg-red-100"
+          style={{ fontWeight: 'bold', lineHeight: '1' }}
+          onClick={handleRemoveCover}
+          disabled={loading}
+          title="Hapus cover"
+        >
+          ×
+        </button>
+        <div className="text-xs text-gray-500 mt-1">Cover saat ini, upload baru untuk mengganti.</div>
+      </div>
+    );
+  };
+
   return (
     <div className="p-6 max-w-xl mx-auto">
       <h1 className="text-2xl font-semibold mb-6">Edit Blog Bisnis</h1>
@@ -145,26 +172,7 @@ export default function EditBlog() {
         </div>
         <div>
           <label className="font-bold mb-1 block">Cover (opsional)</label>
-          {form.cover_url && (
-            <div className="mb-2 relative flex flex-col items-start">
-              <img
-                src={supabase.storage.from('blog-assets').getPublicUrl(form.cover_url).data.publicUrl}
-                alt="Cover"
-                className="w-32 h-24 object-cover rounded border"
-              />
-              <button
-                type="button"
-                className="absolute top-0 right-0 bg-white rounded-full shadow px-2 text-lg text-red-600 hover:bg-red-100"
-                style={{ fontWeight: 'bold', lineHeight: '1' }}
-                onClick={handleRemoveCover}
-                disabled={loading}
-                title="Hapus cover"
-              >
-                ×
-              </button>
-              <div className="text-xs text-gray-500 mt-1">Cover saat ini, upload baru untuk mengganti.</div>
-            </div>
-          )}
+          {form.cover_url && renderCoverImg(form.cover_url)}
           <input
             type="file"
             accept="image/*"
