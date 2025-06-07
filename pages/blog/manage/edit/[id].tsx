@@ -12,6 +12,7 @@ export default function EditBlog() {
     category: '',
     content: '',
     cover_url: '',
+    slug: '',
   });
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [oldCoverUrl, setOldCoverUrl] = useState('');
@@ -38,10 +39,12 @@ export default function EditBlog() {
         category: data.category || '',
         content: data.content || '',
         cover_url: data.cover_url || '',
+        slug: data.slug || '',
       });
       setOldCoverUrl(data.cover_url || '');
+
       // Hanya admin/pemilik yang boleh edit
-      if (data.created_by !== user.id && !user.user_metadata?.role?.includes('admin')) {
+      if (data.created_by !== user.id && !(user.user_metadata?.role?.includes('admin') || user.user_metadata?.is_admin)) {
         alert('Anda tidak punya akses edit blog ini!');
         router.push('/franchisor/manage-listings');
       }
@@ -59,6 +62,17 @@ export default function EditBlog() {
 
   const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) setCoverFile(e.target.files[0]);
+  };
+
+  const handleRemoveCover = async () => {
+    if (!form.cover_url) return;
+    if (!window.confirm('Hapus cover blog ini?')) return;
+    setLoading(true);
+    await supabase.storage.from('blog-assets').remove([form.cover_url]);
+    setForm(prev => ({ ...prev, cover_url: '' }));
+    setCoverFile(null);
+    setOldCoverUrl('');
+    setLoading(false);
   };
 
   const uploadCover = async (file: File) => {
@@ -95,7 +109,7 @@ export default function EditBlog() {
 
       alert('Blog berhasil diupdate!');
       // Redirect ke halaman detail
-      router.push(`/detail/${form.title.toLowerCase().replace(/\s+/g, '-')}`);
+      router.push(`/detail/${form.slug || form.title.toLowerCase().replace(/\s+/g, '-')}`);
     } catch (err: any) {
       alert('Error updating blog: ' + JSON.stringify(err));
     } finally {
@@ -132,15 +146,23 @@ export default function EditBlog() {
         <div>
           <label className="font-bold mb-1 block">Cover (opsional)</label>
           {form.cover_url && (
-            <div className="mb-2">
+            <div className="mb-2 relative flex flex-col items-start">
               <img
                 src={supabase.storage.from('blog-assets').getPublicUrl(form.cover_url).data.publicUrl}
                 alt="Cover"
                 className="w-32 h-24 object-cover rounded border"
               />
-              <div className="text-xs text-gray-500 mb-1">
-                Cover saat ini, upload baru untuk mengganti.
-              </div>
+              <button
+                type="button"
+                className="absolute top-0 right-0 bg-white rounded-full shadow px-2 text-lg text-red-600 hover:bg-red-100"
+                style={{ fontWeight: 'bold', lineHeight: '1' }}
+                onClick={handleRemoveCover}
+                disabled={loading}
+                title="Hapus cover"
+              >
+                ×
+              </button>
+              <div className="text-xs text-gray-500 mt-1">Cover saat ini, upload baru untuk mengganti.</div>
             </div>
           )}
           <input
@@ -148,6 +170,7 @@ export default function EditBlog() {
             accept="image/*"
             onChange={handleCoverChange}
             className="file-input file-input-bordered w-full max-w-xs"
+            disabled={loading}
           />
         </div>
         <div>
