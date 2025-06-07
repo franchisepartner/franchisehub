@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
+import { FaShareAlt } from 'react-icons/fa';
 
 interface Blog {
   id: string;
@@ -31,6 +32,7 @@ export default function DetailPage() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [user, setUser] = useState<any>(null);
+  const [shareMsg, setShareMsg] = useState('');
 
   useEffect(() => {
     async function fetchBlog() {
@@ -60,22 +62,12 @@ export default function DetailPage() {
             viewerRole = profile?.role || 'calon_franchisee';
           }
         } catch (e) {}
-        const { error: logError } = await supabase.from('visit_logs').insert({
+        await supabase.from('visit_logs').insert({
           content_type: 'blog',
           content_id: data.id,
           owner_id: data.created_by,
           viewer_role: viewerRole,
         });
-        if (logError) {
-          console.log('Error insert visit_logs:', logError);
-        } else {
-          console.log('Kunjungan blog dicatat:', {
-            content_type: 'blog',
-            content_id: data.id,
-            owner_id: data.created_by,
-            viewer_role: viewerRole,
-          });
-        }
       }
     }
 
@@ -107,13 +99,11 @@ export default function DetailPage() {
     } else {
       setComments(data || []);
     }
-
     setLoading(false);
   }
 
   async function handleSubmit() {
     if (!newComment.trim()) return;
-
     if (!user) {
       alert("Anda harus login untuk mengirim komentar!");
       return;
@@ -142,17 +132,57 @@ export default function DetailPage() {
     }
   }
 
+  // Share logic
+  const handleShare = async () => {
+    const url = typeof window !== 'undefined' ? window.location.href : '';
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: blog?.title || 'Blog',
+          url,
+        });
+        setShareMsg('Berhasil dibagikan!');
+      } catch {
+        setShareMsg('Gagal membagikan!');
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(url);
+        setShareMsg('Link disalin!');
+      } catch {
+        setShareMsg('Gagal menyalin link!');
+      }
+    }
+    setTimeout(() => setShareMsg(''), 1700);
+  };
+
   return (
     <>
       <Head>
         <title>{blog?.title || "Memuat..."} - FranchiseHub</title>
       </Head>
 
-      <div className="max-w-2xl mx-auto px-4 py-8">
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-2xl max-w-2xl mx-auto px-4 py-8 relative">
         {blog ? (
           <>
+            {/* Tombol share sticky di pojok kanan */}
+            <button
+              className="absolute top-3 right-4 z-30 bg-white/90 hover:bg-blue-600 hover:text-white text-blue-600 rounded-full shadow-lg p-2 transition"
+              onClick={handleShare}
+              aria-label="Bagikan"
+              title="Bagikan blog"
+              type="button"
+            >
+              <FaShareAlt size={22} />
+            </button>
+            {shareMsg && (
+              <div className="absolute top-16 right-4 z-40 bg-blue-700 text-white rounded-lg px-4 py-2 text-sm shadow">
+                {shareMsg}
+              </div>
+            )}
+
             <h1 className="text-2xl font-bold mb-2">{blog.title}</h1>
-            <div className="text-sm text-gray-500 mb-4 flex gap-x-3">
+            <div className="text-sm text-gray-500 mb-4 flex gap-x-3 flex-wrap">
               <span>{blog.category}</span>
               <span>|</span>
               <span>{new Date(blog.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
@@ -162,11 +192,14 @@ export default function DetailPage() {
             <hr className="border-black mb-6" />
 
             {blog.cover_url && (
-              <img
-                src={blog.cover_url}
-                alt={blog.title}
-                className="w-full rounded-lg mb-6 object-cover"
-              />
+              <div className="relative mb-6">
+                <img
+                  src={blog.cover_url}
+                  alt={blog.title}
+                  className="w-full rounded-lg object-cover max-h-[420px] mx-auto"
+                  style={{ boxShadow: "0 8px 32px 0 rgba(0,0,0,0.20)" }}
+                />
+              </div>
             )}
 
             <div className="text-gray-700 mb-4 whitespace-pre-wrap">
@@ -177,9 +210,9 @@ export default function DetailPage() {
           <p className="text-gray-500">Memuat konten...</p>
         )}
 
+        {/* Komentar */}
         <div className="mt-8 border-t pt-6">
           <h2 className="text-lg font-semibold mb-4">Komentar</h2>
-
           {user ? (
             <>
               <textarea
@@ -188,7 +221,6 @@ export default function DetailPage() {
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
               />
-
               <button
                 className="bg-blue-600 text-white px-4 py-2 rounded"
                 onClick={handleSubmit}
