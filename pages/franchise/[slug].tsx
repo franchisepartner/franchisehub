@@ -2,6 +2,15 @@ import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 
+// Tambahkan LEGAL_DOCUMENTS di sini!
+const LEGAL_DOCUMENTS = [
+  { key: 'stpw', label: 'STPW (Surat Tanda Pendaftaran Waralaba)' },
+  { key: 'legalitas', label: 'Legalitas Badan Usaha (PT/CV, NIB, NPWP)' },
+  { key: 'merek', label: 'Sertifikat Merek' },
+  { key: 'prospektus', label: 'Prospektus Penawaran' },
+  { key: 'perjanjian', label: 'Perjanjian Waralaba' }
+] as const;
+
 interface Franchise {
   id: string;
   franchise_name: string;
@@ -34,14 +43,6 @@ interface ListingImage {
   listing_id: string;
   image_url: string;
 }
-
-const DOC_LABELS: Record<string, string> = {
-  stpw: 'STPW',
-  legalitas: 'Legalitas Badan Usaha',
-  merek: 'Sertifikat Merek',
-  prospektus: 'Prospektus Penawaran',
-  perjanjian: 'Perjanjian Waralaba',
-};
 
 function formatRupiah(num: number) {
   return num.toLocaleString('id-ID');
