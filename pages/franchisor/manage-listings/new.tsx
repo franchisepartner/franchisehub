@@ -64,23 +64,25 @@ export default function NewListing() {
 
   const handleShowcaseChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    if (files.length > 5) {
-      alert("Maksimal 5 gambar yang akan digunakan. 5 file pertama diambil, sisanya diabaikan.");
-      setShowcaseFiles(files.slice(0, 5));
-    } else {
-      setShowcaseFiles(files);
-    }
+    setShowcaseFiles(files.slice(0, 5));
   };
 
-  const uploadImage = async (file: File, pathPrefix: string) => {
+  // Fungsi upload logo ke folder "logo/"
+  const uploadLogoImage = async (file: File) => {
     const fileExt = file.name.split('.').pop();
-    const fileName = `${pathPrefix}/${uuidv4()}.${fileExt}`;
+    const fileName = `logo/${uuidv4()}.${fileExt}`;
     const { error } = await supabase.storage.from('listing-images').upload(fileName, file);
-    if (error) {
-      alert(`Upload gagal: ${JSON.stringify(error)}`);
-      throw error;
-    }
+    if (error) throw error;
     return fileName;
+  };
+
+  // Fungsi upload showcase ke folder "showcase/"
+  const uploadShowcaseImage = async (file: File) => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `showcase/${uuidv4()}.${fileExt}`;
+    const { error } = await supabase.storage.from('listing-images').upload(fileName, file);
+    if (error) throw error;
+    return fileName; // Disimpan ke image_url di tabel listing_images
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -96,9 +98,10 @@ export default function NewListing() {
     setLoading(true);
 
     try {
-      const logoPath = form.logo_file ? await uploadImage(form.logo_file, 'logo') : null;
+      const logoPath = form.logo_file ? await uploadLogoImage(form.logo_file) : null;
       const slug = form.franchise_name.toLowerCase().replace(/\s+/g, '-');
 
+      // 1. Insert listing
       const { data, error } = await supabase.from('franchise_listings').insert([{
         user_id: user?.id,
         franchise_name: form.franchise_name,
@@ -116,27 +119,30 @@ export default function NewListing() {
         slug,
         logo_url: logoPath,
       }]).select('id').single();
-
       if (error) throw error;
 
+      const listingId = data.id;
+
+      // 2. Insert dokumen hukum
       await Promise.all(
         legalDocs.map(doc =>
           supabase.from('legal_documents').insert({
-            listing_id: data.id,
+            listing_id: listingId,
             document_type: doc.document_type,
             status: doc.status
           })
         )
       );
 
+      // 3. Upload & insert showcase images
       if (showcaseFiles.length > 0) {
         const showcasePaths = await Promise.all(
-          showcaseFiles.slice(0, 5).map(file => uploadImage(file, 'showcase'))
+          showcaseFiles.map(file => uploadShowcaseImage(file))
         );
         await Promise.all(
           showcasePaths.map(url =>
             supabase.from('listing_images').insert({
-              listing_id: data.id,
+              listing_id: listingId,
               image_url: url,
             })
           )
@@ -146,14 +152,12 @@ export default function NewListing() {
       alert('Listing berhasil ditambahkan!');
       router.push('/franchisor/manage-listings');
     } catch (err: any) {
-      console.error('Error saat menambahkan listing:', err);
       alert(`Gagal menambahkan listing. Detail Error: ${JSON.stringify(err)}`);
     } finally {
       setLoading(false);
     }
   };
 
-  // Label tanpa nowrap!
   const FormLabel = ({ children }: { children: string }) => (
     <span className="font-medium text-gray-700 break-words">
       {children}
@@ -168,8 +172,9 @@ export default function NewListing() {
         <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
           <table className="w-full table-fixed border-separate border-spacing-y-4">
             <tbody>
+              {/* --- Semua field utama form di sini --- */}
               <tr>
-                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px] sm:max-w-xs md:max-w-sm"><FormLabel>Nama Franchise</FormLabel></td>
+                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px]"><FormLabel>Nama Franchise</FormLabel></td>
                 <td className="align-middle w-[68%] sm:w-3/4">
                   <input
                     required
@@ -182,7 +187,7 @@ export default function NewListing() {
                 </td>
               </tr>
               <tr>
-                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px] sm:max-w-xs md:max-w-sm pt-2"><FormLabel>Deskripsi</FormLabel></td>
+                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px] pt-2"><FormLabel>Deskripsi</FormLabel></td>
                 <td className="align-top w-[68%] sm:w-3/4">
                   <textarea
                     required
@@ -196,7 +201,7 @@ export default function NewListing() {
                 </td>
               </tr>
               <tr>
-                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px] sm:max-w-xs md:max-w-sm"><FormLabel>Kategori</FormLabel></td>
+                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px]"><FormLabel>Kategori</FormLabel></td>
                 <td className="align-middle w-[68%] sm:w-3/4">
                   <input
                     required
@@ -209,7 +214,7 @@ export default function NewListing() {
                 </td>
               </tr>
               <tr>
-                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px] sm:max-w-xs md:max-w-sm"><FormLabel>Investasi Minimal</FormLabel></td>
+                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px]"><FormLabel>Investasi Minimal</FormLabel></td>
                 <td className="align-middle w-[68%] sm:w-3/4">
                   <div className="flex items-center gap-2">
                     <span>Rp</span>
@@ -226,7 +231,7 @@ export default function NewListing() {
                 </td>
               </tr>
               <tr>
-                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px] sm:max-w-xs md:max-w-sm"><FormLabel>Lokasi</FormLabel></td>
+                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px]"><FormLabel>Lokasi</FormLabel></td>
                 <td className="align-middle w-[68%] sm:w-3/4">
                   <input
                     required
@@ -239,7 +244,7 @@ export default function NewListing() {
                 </td>
               </tr>
               <tr>
-                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px] sm:max-w-xs md:max-w-sm"><FormLabel>No WhatsApp</FormLabel></td>
+                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px]"><FormLabel>No WhatsApp</FormLabel></td>
                 <td className="align-middle w-[68%] sm:w-3/4">
                   <input
                     required
@@ -252,7 +257,7 @@ export default function NewListing() {
                 </td>
               </tr>
               <tr>
-                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px] sm:max-w-xs md:max-w-sm"><FormLabel>Email Kontak</FormLabel></td>
+                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px]"><FormLabel>Email Kontak</FormLabel></td>
                 <td className="align-middle w-[68%] sm:w-3/4">
                   <input
                     required
@@ -265,7 +270,7 @@ export default function NewListing() {
                 </td>
               </tr>
               <tr>
-                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px] sm:max-w-xs md:max-w-sm"><FormLabel>Website (opsional)</FormLabel></td>
+                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px]"><FormLabel>Website (opsional)</FormLabel></td>
                 <td className="align-middle w-[68%] sm:w-3/4">
                   <input
                     name="website_url"
@@ -277,7 +282,7 @@ export default function NewListing() {
                 </td>
               </tr>
               <tr>
-                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px] sm:max-w-xs md:max-w-sm"><FormLabel>Google Maps URL (opsional)</FormLabel></td>
+                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px]"><FormLabel>Google Maps URL (opsional)</FormLabel></td>
                 <td className="align-middle w-[68%] sm:w-3/4">
                   <input
                     name="google_maps_url"
@@ -289,7 +294,7 @@ export default function NewListing() {
                 </td>
               </tr>
               <tr>
-                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px] sm:max-w-xs md:max-w-sm"><FormLabel>Tag</FormLabel></td>
+                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px]"><FormLabel>Tag</FormLabel></td>
                 <td className="align-middle w-[68%] sm:w-3/4">
                   <input
                     name="tags"
@@ -301,7 +306,7 @@ export default function NewListing() {
                 </td>
               </tr>
               <tr>
-                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px] sm:max-w-xs md:max-w-sm"><FormLabel>Mode Operasional</FormLabel></td>
+                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px]"><FormLabel>Mode Operasional</FormLabel></td>
                 <td className="align-middle w-[68%] sm:w-3/4">
                   <select
                     required
@@ -328,7 +333,7 @@ export default function NewListing() {
               </tr>
               {/* Checklist Dokumen Hukum */}
               <tr>
-                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px] sm:max-w-xs md:max-w-sm">
+                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px]">
                   <FormLabel>Checklist Dokumen Hukum</FormLabel>
                 </td>
                 <td className="align-top w-[68%] sm:w-3/4">
@@ -374,9 +379,7 @@ export default function NewListing() {
               </tr>
               {/* Upload Logo */}
               <tr>
-                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px] sm:max-w-xs md:max-w-sm">
-                  <FormLabel>Upload Logo</FormLabel>
-                </td>
+                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px]"><FormLabel>Upload Logo</FormLabel></td>
                 <td className="align-middle w-[68%] sm:w-3/4">
                   <input
                     required
@@ -389,9 +392,7 @@ export default function NewListing() {
               </tr>
               {/* Upload Showcase */}
               <tr>
-                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px] sm:max-w-xs md:max-w-sm">
-                  <FormLabel>Upload Showcase (max 5 gambar)</FormLabel>
-                </td>
+                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px]"><FormLabel>Upload Showcase (max 5 gambar)</FormLabel></td>
                 <td className="align-top w-[68%] sm:w-3/4">
                   <input
                     type="file"
@@ -417,9 +418,7 @@ export default function NewListing() {
               </tr>
               {/* Catatan Tambahan */}
               <tr>
-                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px] sm:max-w-xs md:max-w-sm">
-                  <FormLabel>Catatan Tambahan</FormLabel>
-                </td>
+                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px]"><FormLabel>Catatan Tambahan</FormLabel></td>
                 <td className="align-top w-[68%] sm:w-3/4">
                   <textarea
                     name="notes"
