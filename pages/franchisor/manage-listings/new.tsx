@@ -41,7 +41,6 @@ export default function NewListing() {
     LEGAL_DOCUMENTS.map(doc => ({ document_type: doc.key, status: '' }))
   );
   const allDocsFilled = legalDocs.every(doc => !!doc.status);
-
   const [showcaseFiles, setShowcaseFiles] = useState<File[]>([]);
 
   useEffect(() => {
@@ -169,48 +168,48 @@ export default function NewListing() {
           <table className="w-full table-fixed border-separate border-spacing-y-4">
             <tbody>
               <tr>
-                <td className="w-1/3 pr-2 align-middle"><FormLabel>Nama Franchise</FormLabel></td>
-                <td className="w-2/3">
+                <td className="align-middle w-[32%] sm:w-1/4 pr-2"><FormLabel>Nama Franchise</FormLabel></td>
+                <td className="align-middle w-[68%] sm:w-3/4">
                   <input
                     required
                     name="franchise_name"
                     value={form.franchise_name}
                     onChange={handleChange}
-                    className="block max-w-full bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
+                    className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
                     placeholder="Tulis nama franchise..."
                   />
                 </td>
               </tr>
               <tr>
-                <td className="w-1/3 pr-2 align-top pt-2"><FormLabel>Deskripsi</FormLabel></td>
-                <td className="w-2/3">
+                <td className="align-top w-[32%] sm:w-1/4 pr-2 pt-2"><FormLabel>Deskripsi</FormLabel></td>
+                <td className="align-top w-[68%] sm:w-3/4">
                   <textarea
                     required
                     name="description"
                     value={form.description}
                     onChange={handleChange}
-                    className="block max-w-full bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition resize-none"
+                    className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition resize-none"
                     rows={3}
                     placeholder="Tuliskan deskripsi usaha..."
                   />
                 </td>
               </tr>
               <tr>
-                <td className="w-1/3 pr-2 align-middle"><FormLabel>Kategori</FormLabel></td>
-                <td className="w-2/3">
+                <td className="align-middle w-[32%] sm:w-1/4 pr-2"><FormLabel>Kategori</FormLabel></td>
+                <td className="align-middle w-[68%] sm:w-3/4">
                   <input
                     required
                     name="category"
                     value={form.category}
                     onChange={handleChange}
-                    className="block max-w-full bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
+                    className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
                     placeholder="Pilih/isi kategori usaha"
                   />
                 </td>
               </tr>
               <tr>
-                <td className="w-1/3 pr-2 align-middle"><FormLabel>Investasi Minimal</FormLabel></td>
-                <td className="w-2/3">
+                <td className="align-middle w-[32%] sm:w-1/4 pr-2"><FormLabel>Investasi Minimal</FormLabel></td>
+                <td className="align-middle w-[68%] sm:w-3/4">
                   <div className="flex items-center gap-2">
                     <span>Rp</span>
                     <input
@@ -219,96 +218,96 @@ export default function NewListing() {
                       name="investment_min"
                       value={form.investment_min}
                       onChange={handleChange}
-                      className="block max-w-full bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
+                      className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
                       placeholder="Jumlah"
                     />
                   </div>
                 </td>
               </tr>
               <tr>
-                <td className="w-1/3 pr-2 align-middle"><FormLabel>Lokasi</FormLabel></td>
-                <td className="w-2/3">
+                <td className="align-middle w-[32%] sm:w-1/4 pr-2"><FormLabel>Lokasi</FormLabel></td>
+                <td className="align-middle w-[68%] sm:w-3/4">
                   <input
                     required
                     name="location"
                     value={form.location}
                     onChange={handleChange}
-                    className="block max-w-full bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
+                    className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
                     placeholder="Lokasi usaha"
                   />
                 </td>
               </tr>
               <tr>
-                <td className="w-1/3 pr-2 align-middle"><FormLabel>No WhatsApp</FormLabel></td>
-                <td className="w-2/3">
+                <td className="align-middle w-[32%] sm:w-1/4 pr-2"><FormLabel>No WhatsApp</FormLabel></td>
+                <td className="align-middle w-[68%] sm:w-3/4">
                   <input
                     required
                     name="whatsapp_contact"
                     value={form.whatsapp_contact}
                     onChange={handleChange}
-                    className="block max-w-full bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
+                    className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
                     placeholder="08xxxxxxxxxx"
                   />
                 </td>
               </tr>
               <tr>
-                <td className="w-1/3 pr-2 align-middle"><FormLabel>Email Kontak</FormLabel></td>
-                <td className="w-2/3">
+                <td className="align-middle w-[32%] sm:w-1/4 pr-2"><FormLabel>Email Kontak</FormLabel></td>
+                <td className="align-middle w-[68%] sm:w-3/4">
                   <input
                     required
                     name="email_contact"
                     value={form.email_contact}
                     onChange={handleChange}
-                    className="block max-w-full bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
+                    className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
                     placeholder="nama@email.com"
                   />
                 </td>
               </tr>
               <tr>
-                <td className="w-1/3 pr-2 align-middle"><FormLabel>Website (opsional)</FormLabel></td>
-                <td className="w-2/3">
+                <td className="align-middle w-[32%] sm:w-1/4 pr-2"><FormLabel>Website (opsional)</FormLabel></td>
+                <td className="align-middle w-[68%] sm:w-3/4">
                   <input
                     name="website_url"
                     value={form.website_url}
                     onChange={handleChange}
-                    className="block max-w-full bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
+                    className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
                     placeholder="https://"
                   />
                 </td>
               </tr>
               <tr>
-                <td className="w-1/3 pr-2 align-middle"><FormLabel>Google Maps URL (opsional)</FormLabel></td>
-                <td className="w-2/3">
+                <td className="align-middle w-[32%] sm:w-1/4 pr-2"><FormLabel>Google Maps URL (opsional)</FormLabel></td>
+                <td className="align-middle w-[68%] sm:w-3/4">
                   <input
                     name="google_maps_url"
                     value={form.google_maps_url}
                     onChange={handleChange}
-                    className="block max-w-full bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
+                    className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
                     placeholder="https://maps.google.com/..."
                   />
                 </td>
               </tr>
               <tr>
-                <td className="w-1/3 pr-2 align-middle"><FormLabel>Tag</FormLabel></td>
-                <td className="w-2/3">
+                <td className="align-middle w-[32%] sm:w-1/4 pr-2"><FormLabel>Tag</FormLabel></td>
+                <td className="align-middle w-[68%] sm:w-3/4">
                   <input
                     name="tags"
                     value={form.tags}
                     onChange={handleChange}
-                    className="block max-w-full bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
+                    className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
                     placeholder="Pisahkan dengan koma (,) jika lebih dari satu"
                   />
                 </td>
               </tr>
               <tr>
-                <td className="w-1/3 pr-2 align-middle"><FormLabel>Mode Operasional</FormLabel></td>
-                <td className="w-2/3">
+                <td className="align-middle w-[32%] sm:w-1/4 pr-2"><FormLabel>Mode Operasional</FormLabel></td>
+                <td className="align-middle w-[68%] sm:w-3/4">
                   <select
                     required
                     name="operation_mode"
                     value={form.operation_mode}
                     onChange={handleChange}
-                    className="block max-w-full bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
+                    className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
                   >
                     <option value="">Pilih...</option>
                     <option value="autopilot">Autopilot</option>
@@ -319,10 +318,13 @@ export default function NewListing() {
                   </p>
                 </td>
               </tr>
+
               {/* Checklist Dokumen Hukum */}
               <tr>
-                <td className="w-1/3 pr-2 align-top"><FormLabel>Checklist Dokumen Hukum</FormLabel></td>
-                <td className="w-2/3">
+                <td className="align-top w-[32%] sm:w-1/4 pr-2">
+                  <FormLabel>Checklist Dokumen Hukum</FormLabel>
+                </td>
+                <td className="align-top w-[68%] sm:w-3/4">
                   <div className="overflow-x-auto">
                     <table className="min-w-[480px] w-full bg-gray-50 rounded-2xl border border-gray-200 shadow-md">
                       <thead>
@@ -363,21 +365,35 @@ export default function NewListing() {
                   </div>
                 </td>
               </tr>
+
+              {/* Upload Logo */}
               <tr>
-                <td className="w-1/3 pr-2 align-middle"><FormLabel>Upload Logo</FormLabel></td>
-                <td className="w-2/3">
-                  <input required type="file" name="logo_file" onChange={handleChange} className="file-input file-input-bordered max-w-full" />
+                <td className="align-middle w-[32%] sm:w-1/4 pr-2">
+                  <FormLabel>Upload Logo</FormLabel>
+                </td>
+                <td className="align-middle w-[68%] sm:w-3/4">
+                  <input
+                    required
+                    type="file"
+                    name="logo_file"
+                    onChange={handleChange}
+                    className="file-input file-input-bordered w-full max-w-xl"
+                  />
                 </td>
               </tr>
+
+              {/* Upload Showcase */}
               <tr>
-                <td className="w-1/3 pr-2 align-top"><FormLabel>Upload Showcase (max 5 gambar)</FormLabel></td>
-                <td className="w-2/3">
+                <td className="align-top w-[32%] sm:w-1/4 pr-2">
+                  <FormLabel>Upload Showcase (max 5 gambar)</FormLabel>
+                </td>
+                <td className="align-top w-[68%] sm:w-3/4">
                   <input
                     type="file"
                     multiple
                     accept="image/*"
                     onChange={handleShowcaseChange}
-                    className="file-input file-input-bordered max-w-full"
+                    className="file-input file-input-bordered w-full max-w-xl"
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     Upload hingga 5 gambar untuk galeri showcase franchise Anda.
@@ -394,14 +410,18 @@ export default function NewListing() {
                   </div>
                 </td>
               </tr>
+
+              {/* Catatan Tambahan */}
               <tr>
-                <td className="w-1/3 pr-2 align-top"><FormLabel>Catatan Tambahan</FormLabel></td>
-                <td className="w-2/3">
+                <td className="align-top w-[32%] sm:w-1/4 pr-2">
+                  <FormLabel>Catatan Tambahan</FormLabel>
+                </td>
+                <td className="align-top w-[68%] sm:w-3/4">
                   <textarea
                     name="notes"
                     value={form.notes}
                     onChange={handleChange}
-                    className="block max-w-full bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition resize-none"
+                    className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition resize-none"
                     rows={2}
                     placeholder="Catatan (opsional)"
                   />
