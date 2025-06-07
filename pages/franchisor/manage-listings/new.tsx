@@ -36,7 +36,6 @@ export default function NewListing() {
     tags: '',
   });
 
-  // Pisahkan state file dari state form!
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [showcaseFiles, setShowcaseFiles] = useState<File[]>([]);
   const [showcaseInputKey, setShowcaseInputKey] = useState(Date.now());
@@ -65,13 +64,11 @@ export default function NewListing() {
     }));
   };
 
-  // Handler upload logo
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
     setLogoFile(file);
   };
 
-  // Handler upload showcase (fix keyboard bug)
   const handleShowcaseChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length > 5) {
@@ -170,7 +167,6 @@ export default function NewListing() {
     }
   };
 
-  // Titik dua sejajar label
   const ColonInputRow = ({
     label,
     children,
@@ -247,7 +243,7 @@ export default function NewListing() {
                   name="franchise_name"
                   value={form.franchise_name}
                   onChange={handleChange}
-                  className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition"
+                  className="block w-full border-b border-gray-400 focus:border-blue-500 outline-none py-2 px-1 transition"
                   placeholder="Tulis nama franchise..."
                   autoComplete="off"
                 />
@@ -258,7 +254,7 @@ export default function NewListing() {
                   name="description"
                   value={form.description}
                   onChange={handleChange}
-                  className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition resize-none"
+                  className="block w-full border-b border-gray-400 focus:border-blue-500 outline-none py-2 px-1 transition resize-none"
                   rows={3}
                   placeholder="Tuliskan deskripsi usaha..."
                   autoComplete="off"
@@ -270,7 +266,7 @@ export default function NewListing() {
                   name="category"
                   value={form.category}
                   onChange={handleChange}
-                  className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition"
+                  className="block w-full border-b border-gray-400 focus:border-blue-500 outline-none py-2 px-1 transition"
                   placeholder="Pilih/isi kategori usaha"
                   autoComplete="off"
                 />
@@ -284,7 +280,7 @@ export default function NewListing() {
                     name="investment_min"
                     value={form.investment_min}
                     onChange={handleChange}
-                    className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition"
+                    className="block w-full border-b border-gray-400 focus:border-blue-500 outline-none py-2 px-1 transition"
                     placeholder="Jumlah"
                     autoComplete="off"
                   />
@@ -296,7 +292,7 @@ export default function NewListing() {
                   name="location"
                   value={form.location}
                   onChange={handleChange}
-                  className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition"
+                  className="block w-full border-b border-gray-400 focus:border-blue-500 outline-none py-2 px-1 transition"
                   placeholder="Lokasi usaha"
                   autoComplete="off"
                 />
@@ -307,7 +303,7 @@ export default function NewListing() {
                   name="whatsapp_contact"
                   value={form.whatsapp_contact}
                   onChange={handleChange}
-                  className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition"
+                  className="block w-full border-b border-gray-400 focus:border-blue-500 outline-none py-2 px-1 transition"
                   placeholder="08xxxxxxxxxx"
                   autoComplete="off"
                 />
@@ -318,7 +314,7 @@ export default function NewListing() {
                   name="email_contact"
                   value={form.email_contact}
                   onChange={handleChange}
-                  className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition"
+                  className="block w-full border-b border-gray-400 focus:border-blue-500 outline-none py-2 px-1 transition"
                   placeholder="nama@email.com"
                   autoComplete="off"
                 />
@@ -328,7 +324,7 @@ export default function NewListing() {
                   name="website_url"
                   value={form.website_url}
                   onChange={handleChange}
-                  className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition"
+                  className="block w-full border-b border-gray-400 focus:border-blue-500 outline-none py-2 px-1 transition"
                   placeholder="https://"
                   autoComplete="off"
                 />
@@ -338,7 +334,7 @@ export default function NewListing() {
                   name="google_maps_url"
                   value={form.google_maps_url}
                   onChange={handleChange}
-                  className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition"
+                  className="block w-full border-b border-gray-400 focus:border-blue-500 outline-none py-2 px-1 transition"
                   placeholder="https://maps.google.com/..."
                   autoComplete="off"
                 />
@@ -348,7 +344,7 @@ export default function NewListing() {
                   name="tags"
                   value={form.tags}
                   onChange={handleChange}
-                  className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition"
+                  className="block w-full border-b border-gray-400 focus:border-blue-500 outline-none py-2 px-1 transition"
                   placeholder="Pisahkan dengan koma (,) jika lebih dari satu"
                   autoComplete="off"
                 />
@@ -359,7 +355,7 @@ export default function NewListing() {
                   name="operation_mode"
                   value={form.operation_mode}
                   onChange={handleChange}
-                  className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition"
+                  className="block w-full border-b border-gray-400 focus:border-blue-500 outline-none py-2 px-1 transition"
                 >
                   <option value="">Pilih...</option>
                   <option value="autopilot">Autopilot</option>
@@ -418,7 +414,7 @@ export default function NewListing() {
                   name="notes"
                   value={form.notes}
                   onChange={handleChange}
-                  className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition resize-none"
+                  className="block w-full border-b border-gray-400 focus:border-blue-500 outline-none py-2 px-1 transition resize-none"
                   rows={2}
                   placeholder="Catatan (opsional)"
                   autoComplete="off"
