@@ -167,8 +167,8 @@ export default function NewListing() {
     }
   };
 
-  // Colon (:) row (sejajar label)
-  const ColonInputRow = ({
+  // Kolom tanpa titik dua
+  const NoColonInputRow = ({
     label,
     children,
     align = 'middle'
@@ -181,7 +181,6 @@ export default function NewListing() {
       <td className={`w-1/3 pr-2 font-medium text-gray-700 align-${align}`}>{label}</td>
       <td>
         <div className="flex items-center">
-          <span className="text-black font-bold text-lg mr-2 self-center">:</span>
           <div className="flex-1">{children}</div>
         </div>
       </td>
@@ -194,7 +193,7 @@ export default function NewListing() {
 
       {/* Input file DILUAR FORM! */}
       <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-4">
-        <ColonInputRow label="Upload Logo">
+        <NoColonInputRow label="Upload Logo">
           <input
             required
             type="file"
@@ -205,8 +204,8 @@ export default function NewListing() {
           {logoFile && (
             <span className="inline-block bg-gray-200 px-2 py-1 rounded text-xs ml-2">{logoFile.name}</span>
           )}
-        </ColonInputRow>
-        <ColonInputRow label="Upload Showcase (max 5 gambar)">
+        </NoColonInputRow>
+        <NoColonInputRow label="Upload Showcase (max 5 gambar)">
           <div>
             <input
               key={showcaseInputKey}
@@ -230,15 +229,14 @@ export default function NewListing() {
               ))}
             </div>
           </div>
-        </ColonInputRow>
+        </NoColonInputRow>
       </div>
 
-      {/* FORM HANYA FIELD BIASA, TIDAK ADA FILE, DAN TANPA UNDERLINE */}
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
           <table className="w-full table-auto border-separate border-spacing-y-4">
             <tbody>
-              <ColonInputRow label="Nama Franchise">
+              <NoColonInputRow label="Nama Franchise">
                 <input
                   required
                   name="franchise_name"
@@ -248,8 +246,8 @@ export default function NewListing() {
                   placeholder="Tulis nama franchise..."
                   autoComplete="off"
                 />
-              </ColonInputRow>
-              <ColonInputRow label="Deskripsi" align="top">
+              </NoColonInputRow>
+              <NoColonInputRow label="Deskripsi" align="top">
                 <textarea
                   required
                   name="description"
@@ -260,8 +258,8 @@ export default function NewListing() {
                   placeholder="Tuliskan deskripsi usaha..."
                   autoComplete="off"
                 />
-              </ColonInputRow>
-              <ColonInputRow label="Kategori">
+              </NoColonInputRow>
+              <NoColonInputRow label="Kategori">
                 <input
                   required
                   name="category"
@@ -271,8 +269,8 @@ export default function NewListing() {
                   placeholder="Pilih/isi kategori usaha"
                   autoComplete="off"
                 />
-              </ColonInputRow>
-              <ColonInputRow label="Investasi Minimal">
+              </NoColonInputRow>
+              <NoColonInputRow label="Investasi Minimal">
                 <div className="flex items-center gap-2">
                   <span>Rp</span>
                   <input
@@ -286,8 +284,8 @@ export default function NewListing() {
                     autoComplete="off"
                   />
                 </div>
-              </ColonInputRow>
-              <ColonInputRow label="Lokasi">
+              </NoColonInputRow>
+              <NoColonInputRow label="Lokasi">
                 <input
                   required
                   name="location"
@@ -297,8 +295,8 @@ export default function NewListing() {
                   placeholder="Lokasi usaha"
                   autoComplete="off"
                 />
-              </ColonInputRow>
-              <ColonInputRow label="No WhatsApp">
+              </NoColonInputRow>
+              <NoColonInputRow label="No WhatsApp">
                 <input
                   required
                   name="whatsapp_contact"
@@ -308,8 +306,8 @@ export default function NewListing() {
                   placeholder="08xxxxxxxxxx"
                   autoComplete="off"
                 />
-              </ColonInputRow>
-              <ColonInputRow label="Email Kontak">
+              </NoColonInputRow>
+              <NoColonInputRow label="Email Kontak">
                 <input
                   required
                   name="email_contact"
@@ -319,8 +317,8 @@ export default function NewListing() {
                   placeholder="nama@email.com"
                   autoComplete="off"
                 />
-              </ColonInputRow>
-              <ColonInputRow label="Website (opsional)">
+              </NoColonInputRow>
+              <NoColonInputRow label="Website (opsional)">
                 <input
                   name="website_url"
                   value={form.website_url}
@@ -329,8 +327,8 @@ export default function NewListing() {
                   placeholder="https://"
                   autoComplete="off"
                 />
-              </ColonInputRow>
-              <ColonInputRow label="Google Maps URL (opsional)">
+              </NoColonInputRow>
+              <NoColonInputRow label="Google Maps URL (opsional)">
                 <input
                   name="google_maps_url"
                   value={form.google_maps_url}
@@ -339,8 +337,8 @@ export default function NewListing() {
                   placeholder="https://maps.google.com/..."
                   autoComplete="off"
                 />
-              </ColonInputRow>
-              <ColonInputRow label="Tag">
+              </NoColonInputRow>
+              <NoColonInputRow label="Tag">
                 <input
                   name="tags"
                   value={form.tags}
@@ -349,8 +347,8 @@ export default function NewListing() {
                   placeholder="Pisahkan dengan koma (,) jika lebih dari satu"
                   autoComplete="off"
                 />
-              </ColonInputRow>
-              <ColonInputRow label="Mode Operasional">
+              </NoColonInputRow>
+              <NoColonInputRow label="Mode Operasional">
                 <select
                   required
                   name="operation_mode"
@@ -365,7 +363,7 @@ export default function NewListing() {
                 <p className="text-sm text-gray-500 mt-1">
                   Autopilot berarti mitra tidak perlu ikut terlibat langsung dalam operasional harian. Semi-autopilot berarti mitra tetap punya peran namun sebagian operasional dibantu tim pusat.
                 </p>
-              </ColonInputRow>
+              </NoColonInputRow>
               {/* Checklist Dokumen Hukum */}
               <tr>
                 <td className="w-1/3 pr-2 align-top font-medium text-gray-700">Checklist Dokumen Hukum</td>
@@ -410,7 +408,7 @@ export default function NewListing() {
                   </div>
                 </td>
               </tr>
-              <ColonInputRow label="Catatan Tambahan" align="top">
+              <NoColonInputRow label="Catatan Tambahan" align="top">
                 <textarea
                   name="notes"
                   value={form.notes}
@@ -420,7 +418,7 @@ export default function NewListing() {
                   placeholder="Catatan (opsional)"
                   autoComplete="off"
                 />
-              </ColonInputRow>
+              </NoColonInputRow>
             </tbody>
           </table>
         </div>
