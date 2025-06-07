@@ -78,26 +78,20 @@ export default function NewListing() {
     </span>
   );
 
-  async function uploadLogoImage(file: File) {
-    const ext = file.name.split('.').pop();
-    const fileName = `logo/${uuidv4()}.${ext}`;
+  // === UPLOAD LOGO ===
+  const uploadLogoImage = async (file: File) => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `logo/${uuidv4()}.${fileExt}`;
     const { error } = await supabase.storage.from('listing-images').upload(fileName, file);
     if (error) throw error;
     return fileName;
-  }
-  async function uploadShowcaseImage(file: File) {
-    const ext = file.name.split('.').pop();
-    const fileName = `showcase/${uuidv4()}.${ext}`;
-    const { error } = await supabase.storage.from('listing-images').upload(fileName, file);
-    if (error) throw error;
-    return fileName;
-  }
+  };
 
-  // === Handler Submit PRODUKSI ===
+  // === SUBMIT ===
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!user) {
-      alert('User belum login. Silakan login kembali.');
+      alert('User belum login. Silakan login ulang.');
       return;
     }
     if (!allDocsFilled) {
@@ -109,19 +103,18 @@ export default function NewListing() {
       return;
     }
     setLoading(true);
+
     try {
-      let logoPath = null;
-      if (form.logo_file) {
-        logoPath = await uploadLogoImage(form.logo_file);
-      }
+      const logoPath = form.logo_file ? await uploadLogoImage(form.logo_file) : null;
       const slug = form.franchise_name.toLowerCase().replace(/\s+/g, '-');
-      // Insert listing dengan user_id!
+
+      // 1. Insert listing dengan user_id
       const { data, error } = await supabase.from('franchise_listings').insert([{
-        user_id: user.id, // <-- FIELD PENTING!
+        user_id: user.id,
         franchise_name: form.franchise_name,
         description: form.description,
         category: form.category,
-        investment_min: parseInt(form.investment_min || "0"),
+        investment_min: parseInt(form.investment_min),
         location: form.location,
         operation_mode: form.operation_mode,
         whatsapp_contact: form.whatsapp_contact,
@@ -133,15 +126,13 @@ export default function NewListing() {
         slug,
         logo_url: logoPath,
       }]).select('id').single();
-
-      // Jika error insert, log error detail
       if (error) {
         console.log('Supabase Insert Error:', error);
         throw error;
       }
       const listingId = data.id;
 
-      // Insert dokumen hukum
+      // 2. Insert dokumen hukum
       await Promise.all(
         legalDocs.map(doc =>
           supabase.from('legal_documents').insert({
@@ -151,26 +142,28 @@ export default function NewListing() {
           })
         )
       );
-      // Upload & insert showcase images
+
+      // 3. Upload & insert showcase images satu per satu (type: 'showcase')
       if (showcaseFiles.length > 0) {
-        const showcasePaths = await Promise.all(
-          showcaseFiles.map(file => uploadShowcaseImage(file))
-        );
         await Promise.all(
-          showcasePaths.map(url =>
-            supabase.from('listing_images').insert({
+          showcaseFiles.map(async (file) => {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `showcase/${uuidv4()}.${fileExt}`;
+            const { error: uploadError } = await supabase.storage.from('listing-images').upload(fileName, file);
+            if (uploadError) throw uploadError;
+            await supabase.from('listing_images').insert({
               listing_id: listingId,
-              image_url: url,
+              image_url: fileName,
               type: 'showcase',
-            })
-          )
+            });
+          })
         );
       }
+
       alert('Listing berhasil ditambahkan!');
       router.push('/franchisor/manage-listings');
     } catch (err: any) {
-      // Log error detail
-      console.error('Gagal tambah listing:', err);
+      console.error('Tambah listing error:', err);
       alert(`Gagal menambahkan listing. Detail Error: ${JSON.stringify(err)}`);
     } finally {
       setLoading(false);
@@ -284,7 +277,7 @@ export default function NewListing() {
         <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
           <table className="w-full table-fixed border-separate border-spacing-y-4">
             <tbody>
-              {/* === SEMUA FIELD FORM, SAMA DENGAN VERSI SEBELUMNYA === */}
+              {/* Semua field form seperti file lama */}
               <tr>
                 <td className="align-top w-[32%] pr-2"><FormLabel>Nama Franchise</FormLabel></td>
                 <td className="align-middle w-[68%]">
@@ -368,106 +361,22 @@ export default function NewListing() {
                     rows={3} placeholder="Tuliskan deskripsi usaha..." />
                 </td>
               </tr>
-              {/* Mode Operasional + Tooltip */}
+              {/* Mode Operasional */}
               <tr>
                 <td className="align-top w-[32%] pr-2"><FormLabel>Mode Operasional</FormLabel></td>
                 <td className="align-middle w-[68%]">
-                  <div className="flex items-center gap-2 relative">
-                    <select
-                      required
-                      name="operation_mode"
-                      value={form.operation_mode}
-                      onChange={handleChange}
-                      className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
-                    >
-                      <option value="">Pilih...</option>
-                      <option value="autopilot">Autopilot</option>
-                      <option value="semi">Semi Autopilot</option>
-                    </select>
-                    <button
-                      className="ml-2 p-1 rounded-full hover:bg-gray-200 transition"
-                      onClick={e => { e.preventDefault(); setShowOpInfo(val => !val); }}
-                      aria-label="Penjelasan Mode Operasi"
-                      type="button"
-                    >
-                      <FaInfoCircle className="text-blue-500" />
-                    </button>
-                    {showOpInfo && (
-                      <>
-                        <div
-                          className="absolute left-10 z-30 mt-2 w-80 bg-white border border-gray-300 rounded-xl shadow-lg p-4 text-sm text-gray-800"
-                          style={{ top: '100%' }}
-                        >
-                          {form.operation_mode === '' ? (
-                            <>
-                              {/* Gabungan Autopilot + Semi Autopilot */}
-                              <div className="mb-4">
-                                <span className="font-bold text-blue-600 mb-1 block">Autopilot</span>
-                                <ul className="list-disc pl-5 mb-1">
-                                  <li>Mitra tidak perlu terlibat langsung dalam operasional harian.</li>
-                                  <li>Seluruh aktivitas dijalankan oleh tim pusat/franchisor.</li>
-                                  <li>Mitra tetap menerima laporan dan hasil bisnis secara rutin.</li>
-                                  <li>Cocok untuk investor yang ingin bisnis berjalan otomatis.</li>
-                                </ul>
-                                <span className="text-xs text-gray-500">
-                                  “Autopilot berarti seluruh operasional harian bisnis dijalankan oleh tim pusat/franchisor, mitra hanya menerima laporan dan hasil.”
-                                </span>
-                              </div>
-                              <div>
-                                <span className="font-bold text-yellow-600 mb-1 block">Semi Autopilot</span>
-                                <ul className="list-disc pl-5 mb-1">
-                                  <li>Mitra menjalankan sendiri operasional harian bisnis.</li>
-                                  <li>Franchisor hanya sebagai pemberi dukungan teknis, pelatihan, SOP, dan pemasaran pusat.</li>
-                                  <li>Cocok untuk mitra yang ingin aktif terjun dan mengelola bisnis sendiri namun tetap mendapat pendampingan dari franchisor.</li>
-                                </ul>
-                                <span className="text-xs text-gray-500">
-                                  “Semi-autopilot berarti mitra sebagai pihak utama yang menjalankan operasional bisnis harian, sementara franchisor hanya sebagai pemberi dukungan teknis.”
-                                </span>
-                              </div>
-                            </>
-                          ) : form.operation_mode === 'autopilot' ? (
-                            <>
-                              <span className="font-bold text-blue-600 mb-1 block">Autopilot</span>
-                              <ul className="list-disc pl-5 mb-1">
-                                <li>Mitra tidak perlu terlibat langsung dalam operasional harian.</li>
-                                <li>Seluruh aktivitas dijalankan oleh tim pusat/franchisor.</li>
-                                <li>Mitra tetap menerima laporan dan hasil bisnis secara rutin.</li>
-                                <li>Cocok untuk investor yang ingin bisnis berjalan otomatis.</li>
-                              </ul>
-                              <span className="text-xs text-gray-500">
-                                “Autopilot berarti seluruh operasional harian bisnis dijalankan oleh tim pusat/franchisor, mitra hanya menerima laporan dan hasil.”
-                              </span>
-                            </>
-                          ) : (
-                            <>
-                              <span className="font-bold text-yellow-600 mb-1 block">Semi Autopilot</span>
-                              <ul className="list-disc pl-5 mb-1">
-                                <li>Mitra menjalankan sendiri operasional harian bisnis.</li>
-                                <li>Franchisor hanya sebagai pemberi dukungan teknis, pelatihan, SOP, dan pemasaran pusat.</li>
-                                <li>Cocok untuk mitra yang ingin aktif terjun dan mengelola bisnis sendiri namun tetap mendapat pendampingan dari franchisor.</li>
-                              </ul>
-                              <span className="text-xs text-gray-500">
-                                “Semi-autopilot berarti mitra sebagai pihak utama yang menjalankan operasional bisnis harian, sementara franchisor hanya sebagai pemberi dukungan teknis.”
-                              </span>
-                            </>
-                          )}
-                          <button
-                            className="absolute top-1 right-2 text-gray-400 hover:text-red-400 text-lg"
-                            onClick={() => setShowOpInfo(false)}
-                          >×</button>
-                        </div>
-                        <div
-                          className="fixed inset-0 z-20"
-                          onClick={() => setShowOpInfo(false)}
-                          tabIndex={-1}
-                          aria-hidden="true"
-                        />
-                      </>
-                    )}
+                  <select required name="operation_mode" value={form.operation_mode} onChange={handleChange}
+                    className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition">
+                    <option value="">Pilih...</option>
+                    <option value="autopilot">Autopilot</option>
+                    <option value="semi">Semi Autopilot</option>
+                  </select>
+                  <div className="mt-2 space-y-1 text-[15px]">
+                    <div><span className="font-semibold">Autopilot</span><span className="text-gray-600"> — Mitra tidak perlu ikut terlibat langsung dalam operasional harian.</span></div>
+                    <div><span className="font-semibold">Semi Autopilot</span><span className="text-gray-600"> — Mitra tetap punya peran namun sebagian operasional dibantu tim pusat.</span></div>
                   </div>
                 </td>
               </tr>
-
               {/* Checklist Dokumen Hukum */}
               <tr>
                 <td className="align-top w-[32%] pr-2"><FormLabel>Checklist Dokumen Hukum</FormLabel></td>
@@ -523,13 +432,7 @@ export default function NewListing() {
               <tr>
                 <td className="align-top w-[32%] pr-2"><FormLabel>Upload Showcase (max 5 gambar)</FormLabel></td>
                 <td className="align-top w-[68%]">
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={handleShowcaseChange}
-                    className="file-input file-input-bordered w-full max-w-xl"
-                  />
+                  <input type="file" multiple accept="image/*" onChange={handleShowcaseChange} className="file-input file-input-bordered w-full max-w-xl"/>
                   <p className="text-xs text-gray-500 mt-1">
                     Upload hingga 5 gambar untuk galeri showcase franchise Anda.
                   </p>
@@ -549,24 +452,13 @@ export default function NewListing() {
               <tr>
                 <td className="align-top w-[32%] pr-2"><FormLabel>Catatan Tambahan</FormLabel></td>
                 <td className="align-top w-[68%]">
-                  <textarea
-                    name="notes"
-                    value={form.notes}
-                    onChange={handleChange}
-                    className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition resize-none"
-                    rows={2}
-                    placeholder="Catatan (opsional)"
-                  />
+                  <textarea name="notes" value={form.notes} onChange={handleChange} className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition resize-none" rows={2} placeholder="Catatan (opsional)" />
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full px-4 py-2 rounded-full bg-green-600 text-white font-semibold shadow transition hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400"
-        >
+        <button type="submit" disabled={loading} className="w-full px-4 py-2 rounded-full bg-green-600 text-white font-semibold shadow transition hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400">
           {loading ? 'Menyimpan...' : 'Tambah Listing'}
         </button>
         <button
