@@ -1,10 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '../../../lib/supabaseClient';
 import { v4 as uuidv4 } from 'uuid';
-import {
-  FaInfoCircle, FaStore, FaMapMarkerAlt, FaMoneyBillAlt, FaThList, FaCog, FaFileAlt, FaLink
-} from 'react-icons/fa';
+import { FaInfoCircle, FaStore, FaMapMarkerAlt, FaMoneyBillAlt, FaThList, FaCog, FaFileAlt, FaLink } from 'react-icons/fa';
 
 const LEGAL_DOCUMENTS = [
   { key: 'stpw', label: 'STPW (Surat Tanda Pendaftaran Waralaba)' },
@@ -21,6 +19,7 @@ const LEGAL_STATUSES = [
 
 export default function NewListing() {
   const router = useRouter();
+  const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [showOpInfo, setShowOpInfo] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
@@ -46,6 +45,16 @@ export default function NewListing() {
   );
   const allDocsFilled = legalDocs.every(doc => !!doc.status);
   const [showcaseFiles, setShowcaseFiles] = useState<File[]>([]);
+
+  // === Ambil user dari Supabase Auth ===
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      if (data?.user) setUser(data.user);
+      else router.push('/login');
+    };
+    fetchUser();
+  }, [router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const target = e.target as HTMLInputElement;
@@ -84,8 +93,13 @@ export default function NewListing() {
     return fileName;
   }
 
+  // === Handler Submit PRODUKSI ===
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!user) {
+      alert('User belum login. Silakan login kembali.');
+      return;
+    }
     if (!allDocsFilled) {
       alert('Checklist dokumen hukum harus lengkap!');
       return;
@@ -96,15 +110,14 @@ export default function NewListing() {
     }
     setLoading(true);
     try {
-      // 1. Upload logo
       let logoPath = null;
       if (form.logo_file) {
         logoPath = await uploadLogoImage(form.logo_file);
       }
-      // 2. Prepare data
       const slug = form.franchise_name.toLowerCase().replace(/\s+/g, '-');
-      // 3. Insert listing
+      // Insert listing dengan user_id!
       const { data, error } = await supabase.from('franchise_listings').insert([{
+        user_id: user.id, // <-- FIELD PENTING!
         franchise_name: form.franchise_name,
         description: form.description,
         category: form.category,
@@ -120,9 +133,15 @@ export default function NewListing() {
         slug,
         logo_url: logoPath,
       }]).select('id').single();
-      if (error) throw error;
+
+      // Jika error insert, log error detail
+      if (error) {
+        console.log('Supabase Insert Error:', error);
+        throw error;
+      }
       const listingId = data.id;
-      // 4. Insert dokumen hukum
+
+      // Insert dokumen hukum
       await Promise.all(
         legalDocs.map(doc =>
           supabase.from('legal_documents').insert({
@@ -132,7 +151,7 @@ export default function NewListing() {
           })
         )
       );
-      // 5. Upload & insert showcase images
+      // Upload & insert showcase images
       if (showcaseFiles.length > 0) {
         const showcasePaths = await Promise.all(
           showcaseFiles.map(file => uploadShowcaseImage(file))
@@ -142,6 +161,7 @@ export default function NewListing() {
             supabase.from('listing_images').insert({
               listing_id: listingId,
               image_url: url,
+              type: 'showcase',
             })
           )
         );
@@ -149,6 +169,8 @@ export default function NewListing() {
       alert('Listing berhasil ditambahkan!');
       router.push('/franchisor/manage-listings');
     } catch (err: any) {
+      // Log error detail
+      console.error('Gagal tambah listing:', err);
       alert(`Gagal menambahkan listing. Detail Error: ${JSON.stringify(err)}`);
     } finally {
       setLoading(false);
@@ -262,7 +284,7 @@ export default function NewListing() {
         <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
           <table className="w-full table-fixed border-separate border-spacing-y-4">
             <tbody>
-              {/* Semua field form (Nama Franchise, Kategori, Investasi, Lokasi, dsb)... */}
+              {/* === SEMUA FIELD FORM, SAMA DENGAN VERSI SEBELUMNYA === */}
               <tr>
                 <td className="align-top w-[32%] pr-2"><FormLabel>Nama Franchise</FormLabel></td>
                 <td className="align-middle w-[68%]">
