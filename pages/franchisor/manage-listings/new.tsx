@@ -51,18 +51,25 @@ export default function NewListing() {
       else router.push('/login');
     };
     fetchUser();
-  }, []);
+  }, [router]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const target = e.target as HTMLInputElement;
-    const { name, value, type, files } = target;
-    if (type === 'file') {
-      setForm((prev) => ({ ...prev, [name]: files![0] }));
-    } else {
-      setForm((prev) => ({ ...prev, [name]: value }));
-    }
+  // HANDLE INPUT LEBIH AMAN
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    const { name, type, value, files } = e.target as HTMLInputElement;
+    setForm(prev => ({
+      ...prev,
+      [name]:
+        type === 'file'
+          ? files && files[0]
+            ? files[0]
+            : null
+          : value
+    }));
   };
 
+  // SHOWCASE HANDLER
   const handleShowcaseChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length > 5) {
@@ -105,7 +112,7 @@ export default function NewListing() {
         franchise_name: form.franchise_name,
         description: form.description,
         category: form.category,
-        investment_min: parseInt(form.investment_min),
+        investment_min: parseInt(form.investment_min) || 0,
         location: form.location,
         operation_mode: form.operation_mode,
         whatsapp_contact: form.whatsapp_contact,
@@ -154,7 +161,7 @@ export default function NewListing() {
     }
   };
 
-  // Komponen titik dua hitam rata tengah
+  // Titik dua sejajar label
   const ColonInputRow = ({
     label,
     children,
@@ -190,6 +197,7 @@ export default function NewListing() {
                   onChange={handleChange}
                   className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition"
                   placeholder="Tulis nama franchise..."
+                  autoComplete="off"
                 />
               </ColonInputRow>
               <ColonInputRow label="Deskripsi" align="top">
@@ -201,6 +209,7 @@ export default function NewListing() {
                   className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition resize-none"
                   rows={3}
                   placeholder="Tuliskan deskripsi usaha..."
+                  autoComplete="off"
                 />
               </ColonInputRow>
               <ColonInputRow label="Kategori">
@@ -211,6 +220,7 @@ export default function NewListing() {
                   onChange={handleChange}
                   className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition"
                   placeholder="Pilih/isi kategori usaha"
+                  autoComplete="off"
                 />
               </ColonInputRow>
               <ColonInputRow label="Investasi Minimal">
@@ -224,6 +234,7 @@ export default function NewListing() {
                     onChange={handleChange}
                     className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition"
                     placeholder="Jumlah"
+                    autoComplete="off"
                   />
                 </div>
               </ColonInputRow>
@@ -235,6 +246,7 @@ export default function NewListing() {
                   onChange={handleChange}
                   className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition"
                   placeholder="Lokasi usaha"
+                  autoComplete="off"
                 />
               </ColonInputRow>
               <ColonInputRow label="No WhatsApp">
@@ -245,6 +257,7 @@ export default function NewListing() {
                   onChange={handleChange}
                   className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition"
                   placeholder="08xxxxxxxxxx"
+                  autoComplete="off"
                 />
               </ColonInputRow>
               <ColonInputRow label="Email Kontak">
@@ -255,6 +268,7 @@ export default function NewListing() {
                   onChange={handleChange}
                   className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition"
                   placeholder="nama@email.com"
+                  autoComplete="off"
                 />
               </ColonInputRow>
               <ColonInputRow label="Website (opsional)">
@@ -264,6 +278,7 @@ export default function NewListing() {
                   onChange={handleChange}
                   className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition"
                   placeholder="https://"
+                  autoComplete="off"
                 />
               </ColonInputRow>
               <ColonInputRow label="Google Maps URL (opsional)">
@@ -273,6 +288,7 @@ export default function NewListing() {
                   onChange={handleChange}
                   className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition"
                   placeholder="https://maps.google.com/..."
+                  autoComplete="off"
                 />
               </ColonInputRow>
               <ColonInputRow label="Tag">
@@ -282,6 +298,7 @@ export default function NewListing() {
                   onChange={handleChange}
                   className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition"
                   placeholder="Pisahkan dengan koma (,) jika lebih dari satu"
+                  autoComplete="off"
                 />
               </ColonInputRow>
               <ColonInputRow label="Mode Operasional">
@@ -379,6 +396,7 @@ export default function NewListing() {
                   className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition resize-none"
                   rows={2}
                   placeholder="Catatan (opsional)"
+                  autoComplete="off"
                 />
               </ColonInputRow>
             </tbody>
