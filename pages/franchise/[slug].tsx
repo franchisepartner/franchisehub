@@ -82,8 +82,7 @@ export default function FranchiseDetail() {
         .from('listing_images')
         .select('*')
         .eq('listing_id', data.id)
-        .order('id')
-        .limit(5);
+        .order('id');
       const urls =
         (images || [])
           .filter(img => img.image_url?.startsWith('showcase/'))
@@ -113,7 +112,7 @@ export default function FranchiseDetail() {
       {/* SLIDER COVER + CLICK FOR FULL IMAGE */}
       {showcaseUrls.length > 0 && (
         <div className="mb-6 relative rounded-2xl shadow overflow-hidden" style={{height: '220px'}}>
-          {showcaseUrls.map((url, idx) => (
+          {showcaseUrls.slice(0, 5).map((url, idx) => (
             <img
               key={idx}
               src={url}
@@ -128,7 +127,7 @@ export default function FranchiseDetail() {
           ))}
           {/* Dot navigation */}
           <div className="absolute bottom-2 left-1/2 flex gap-2 -translate-x-1/2 z-20">
-            {showcaseUrls.map((_, idx) => (
+            {showcaseUrls.slice(0, 5).map((_, idx) => (
               <button
                 key={idx}
                 className={`w-2.5 h-2.5 rounded-full ${idx === activeSlide ? 'bg-white/90 border border-gray-500' : 'bg-gray-300/70'}`}
@@ -140,7 +139,7 @@ export default function FranchiseDetail() {
         </div>
       )}
 
-      {/* MODAL FULL IMAGE */}
+      {/* MODAL FULL IMAGE (untuk slider/cover dan grid) */}
       {showModal && modalImg && (
         <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center" onClick={() => setShowModal(false)}>
           <div className="relative max-w-3xl w-full px-2" onClick={e => e.stopPropagation()}>
@@ -151,7 +150,7 @@ export default function FranchiseDetail() {
             >×</button>
             <img
               src={modalImg}
-              alt="Gambar Cover Full"
+              alt="Gambar Full"
               className="max-h-[90vh] w-auto max-w-full rounded-xl mx-auto shadow-lg"
               draggable={false}
             />
@@ -317,6 +316,30 @@ export default function FranchiseDetail() {
           </div>
         )}
       </div>
+
+      {/* SHOWCASE KARYA (Penutup) */}
+      {showcaseUrls.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-lg font-semibold mb-1 flex items-center gap-2">
+            <FaFileAlt className="text-pink-600" /> Showcase Karya
+          </h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-2">
+            {showcaseUrls.map((url, idx) => (
+              <img
+                key={idx}
+                src={url}
+                alt={`Showcase ${idx+1}`}
+                className="w-full h-32 object-cover rounded-xl shadow cursor-zoom-in"
+                onClick={() => {
+                  setModalImg(url);
+                  setShowModal(true);
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
