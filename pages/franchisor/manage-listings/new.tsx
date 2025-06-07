@@ -154,12 +154,25 @@ export default function NewListing() {
     }
   };
 
-  // Utility untuk kolom label dengan titik dua (:) dan rata kanan
-  const FormLabel = ({ children }: { children: string }) => (
-    <span className="font-medium text-gray-700 whitespace-nowrap">
-      {children}
-      <span className="inline-block text-red-500 mx-1">:</span>
-    </span>
+  // Komponen titik dua tepat sebelum input underline
+  const ColonInputRow = ({
+    label,
+    children,
+    align = 'middle'
+  }: {
+    label: string,
+    children: React.ReactNode,
+    align?: 'top' | 'middle'
+  }) => (
+    <tr>
+      <td className={`w-1/3 pr-2 font-medium text-gray-700 align-${align}`}>{label}</td>
+      <td>
+        <div className="flex items-center">
+          <span className="text-red-500 font-bold text-xl mr-2 -mb-1">:</span>
+          <div className="flex-1">{children}</div>
+        </div>
+      </td>
+    </tr>
   );
 
   return (
@@ -169,160 +182,127 @@ export default function NewListing() {
         <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
           <table className="w-full table-auto border-separate border-spacing-y-4">
             <tbody>
-              <tr>
-                <td className="w-1/3 pr-2 align-middle"><FormLabel>Nama Franchise</FormLabel></td>
-                <td>
+              <ColonInputRow label="Nama Franchise">
+                <input
+                  required
+                  name="franchise_name"
+                  value={form.franchise_name}
+                  onChange={handleChange}
+                  className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition"
+                  placeholder="Tulis nama franchise..."
+                />
+              </ColonInputRow>
+              <ColonInputRow label="Deskripsi" align="top">
+                <textarea
+                  required
+                  name="description"
+                  value={form.description}
+                  onChange={handleChange}
+                  className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition resize-none"
+                  rows={3}
+                  placeholder="Tuliskan deskripsi usaha..."
+                />
+              </ColonInputRow>
+              <ColonInputRow label="Kategori">
+                <input
+                  required
+                  name="category"
+                  value={form.category}
+                  onChange={handleChange}
+                  className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition"
+                  placeholder="Pilih/isi kategori usaha"
+                />
+              </ColonInputRow>
+              <ColonInputRow label="Investasi Minimal">
+                <div className="flex items-center gap-2">
+                  <span>Rp</span>
                   <input
                     required
-                    name="franchise_name"
-                    value={form.franchise_name}
+                    type="number"
+                    name="investment_min"
+                    value={form.investment_min}
                     onChange={handleChange}
                     className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition"
-                    placeholder="Tulis nama franchise..."
+                    placeholder="Jumlah"
                   />
-                </td>
-              </tr>
-              <tr>
-                <td className="w-1/3 pr-2 align-top pt-2"><FormLabel>Deskripsi</FormLabel></td>
-                <td>
-                  <textarea
-                    required
-                    name="description"
-                    value={form.description}
-                    onChange={handleChange}
-                    className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition resize-none"
-                    rows={3}
-                    placeholder="Tuliskan deskripsi usaha..."
-                  />
-                </td>
-              </tr>
-              <tr>
-                <td className="w-1/3 pr-2 align-middle"><FormLabel>Kategori</FormLabel></td>
-                <td>
-                  <input
-                    required
-                    name="category"
-                    value={form.category}
-                    onChange={handleChange}
-                    className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition"
-                    placeholder="Pilih/isi kategori usaha"
-                  />
-                </td>
-              </tr>
-              <tr>
-                <td className="w-1/3 pr-2 align-middle"><FormLabel>Investasi Minimal</FormLabel></td>
-                <td>
-                  <div className="flex items-center gap-2">
-                    <span>Rp</span>
-                    <input
-                      required
-                      type="number"
-                      name="investment_min"
-                      value={form.investment_min}
-                      onChange={handleChange}
-                      className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition"
-                      placeholder="Jumlah"
-                    />
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td className="w-1/3 pr-2 align-middle"><FormLabel>Lokasi</FormLabel></td>
-                <td>
-                  <input
-                    required
-                    name="location"
-                    value={form.location}
-                    onChange={handleChange}
-                    className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition"
-                    placeholder="Lokasi usaha"
-                  />
-                </td>
-              </tr>
-              <tr>
-                <td className="w-1/3 pr-2 align-middle"><FormLabel>No WhatsApp</FormLabel></td>
-                <td>
-                  <input
-                    required
-                    name="whatsapp_contact"
-                    value={form.whatsapp_contact}
-                    onChange={handleChange}
-                    className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition"
-                    placeholder="08xxxxxxxxxx"
-                  />
-                </td>
-              </tr>
-              <tr>
-                <td className="w-1/3 pr-2 align-middle"><FormLabel>Email Kontak</FormLabel></td>
-                <td>
-                  <input
-                    required
-                    name="email_contact"
-                    value={form.email_contact}
-                    onChange={handleChange}
-                    className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition"
-                    placeholder="nama@email.com"
-                  />
-                </td>
-              </tr>
-              <tr>
-                <td className="w-1/3 pr-2 align-middle"><FormLabel>Website (opsional)</FormLabel></td>
-                <td>
-                  <input
-                    name="website_url"
-                    value={form.website_url}
-                    onChange={handleChange}
-                    className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition"
-                    placeholder="https://"
-                  />
-                </td>
-              </tr>
-              <tr>
-                <td className="w-1/3 pr-2 align-middle"><FormLabel>Google Maps URL (opsional)</FormLabel></td>
-                <td>
-                  <input
-                    name="google_maps_url"
-                    value={form.google_maps_url}
-                    onChange={handleChange}
-                    className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition"
-                    placeholder="https://maps.google.com/..."
-                  />
-                </td>
-              </tr>
-              <tr>
-                <td className="w-1/3 pr-2 align-middle"><FormLabel>Tag</FormLabel></td>
-                <td>
-                  <input
-                    name="tags"
-                    value={form.tags}
-                    onChange={handleChange}
-                    className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition"
-                    placeholder="Pisahkan dengan koma (,) jika lebih dari satu"
-                  />
-                </td>
-              </tr>
-              <tr>
-                <td className="w-1/3 pr-2 align-middle"><FormLabel>Mode Operasional</FormLabel></td>
-                <td>
-                  <select
-                    required
-                    name="operation_mode"
-                    value={form.operation_mode}
-                    onChange={handleChange}
-                    className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition"
-                  >
-                    <option value="">Pilih...</option>
-                    <option value="autopilot">Autopilot</option>
-                    <option value="semi">Semi Autopilot</option>
-                  </select>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Autopilot berarti mitra tidak perlu ikut terlibat langsung dalam operasional harian. Semi-autopilot berarti mitra tetap punya peran namun sebagian operasional dibantu tim pusat.
-                  </p>
-                </td>
-              </tr>
+                </div>
+              </ColonInputRow>
+              <ColonInputRow label="Lokasi">
+                <input
+                  required
+                  name="location"
+                  value={form.location}
+                  onChange={handleChange}
+                  className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition"
+                  placeholder="Lokasi usaha"
+                />
+              </ColonInputRow>
+              <ColonInputRow label="No WhatsApp">
+                <input
+                  required
+                  name="whatsapp_contact"
+                  value={form.whatsapp_contact}
+                  onChange={handleChange}
+                  className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition"
+                  placeholder="08xxxxxxxxxx"
+                />
+              </ColonInputRow>
+              <ColonInputRow label="Email Kontak">
+                <input
+                  required
+                  name="email_contact"
+                  value={form.email_contact}
+                  onChange={handleChange}
+                  className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition"
+                  placeholder="nama@email.com"
+                />
+              </ColonInputRow>
+              <ColonInputRow label="Website (opsional)">
+                <input
+                  name="website_url"
+                  value={form.website_url}
+                  onChange={handleChange}
+                  className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition"
+                  placeholder="https://"
+                />
+              </ColonInputRow>
+              <ColonInputRow label="Google Maps URL (opsional)">
+                <input
+                  name="google_maps_url"
+                  value={form.google_maps_url}
+                  onChange={handleChange}
+                  className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition"
+                  placeholder="https://maps.google.com/..."
+                />
+              </ColonInputRow>
+              <ColonInputRow label="Tag">
+                <input
+                  name="tags"
+                  value={form.tags}
+                  onChange={handleChange}
+                  className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition"
+                  placeholder="Pisahkan dengan koma (,) jika lebih dari satu"
+                />
+              </ColonInputRow>
+              <ColonInputRow label="Mode Operasional">
+                <select
+                  required
+                  name="operation_mode"
+                  value={form.operation_mode}
+                  onChange={handleChange}
+                  className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition"
+                >
+                  <option value="">Pilih...</option>
+                  <option value="autopilot">Autopilot</option>
+                  <option value="semi">Semi Autopilot</option>
+                </select>
+                <p className="text-sm text-gray-500 mt-1">
+                  Autopilot berarti mitra tidak perlu ikut terlibat langsung dalam operasional harian. Semi-autopilot berarti mitra tetap punya peran namun sebagian operasional dibantu tim pusat.
+                </p>
+              </ColonInputRow>
               {/* Checklist Dokumen Hukum */}
               <tr>
-                <td className="w-1/3 pr-2 align-top"><FormLabel>Checklist Dokumen Hukum</FormLabel></td>
+                <td className="w-1/3 pr-2 align-top font-medium text-gray-700">Checklist Dokumen Hukum</td>
                 <td>
                   <div className="overflow-x-auto">
                     <table className="min-w-[480px] w-full bg-gray-50 rounded-2xl border border-gray-200 shadow-md">
@@ -364,15 +344,11 @@ export default function NewListing() {
                   </div>
                 </td>
               </tr>
-              <tr>
-                <td className="w-1/3 pr-2 align-middle"><FormLabel>Upload Logo</FormLabel></td>
-                <td>
-                  <input required type="file" name="logo_file" onChange={handleChange} className="file-input file-input-bordered w-full" />
-                </td>
-              </tr>
-              <tr>
-                <td className="w-1/3 pr-2 align-top"><FormLabel>Upload Showcase (max 5 gambar)</FormLabel></td>
-                <td>
+              <ColonInputRow label="Upload Logo">
+                <input required type="file" name="logo_file" onChange={handleChange} className="file-input file-input-bordered w-full" />
+              </ColonInputRow>
+              <ColonInputRow label="Upload Showcase (max 5 gambar)">
+                <div>
                   <input
                     type="file"
                     multiple
@@ -393,21 +369,18 @@ export default function NewListing() {
                       </span>
                     ))}
                   </div>
-                </td>
-              </tr>
-              <tr>
-                <td className="w-1/3 pr-2 align-top"><FormLabel>Catatan Tambahan</FormLabel></td>
-                <td>
-                  <textarea
-                    name="notes"
-                    value={form.notes}
-                    onChange={handleChange}
-                    className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition resize-none"
-                    rows={2}
-                    placeholder="Catatan (opsional)"
-                  />
-                </td>
-              </tr>
+                </div>
+              </ColonInputRow>
+              <ColonInputRow label="Catatan Tambahan" align="top">
+                <textarea
+                  name="notes"
+                  value={form.notes}
+                  onChange={handleChange}
+                  className="bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none w-full transition resize-none"
+                  rows={2}
+                  placeholder="Catatan (opsional)"
+                />
+              </ColonInputRow>
             </tbody>
           </table>
         </div>
