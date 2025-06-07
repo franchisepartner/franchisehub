@@ -1,8 +1,10 @@
 import { useRouter } from 'next/router';
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '../../lib/supabaseClient';
-// Import icon dari react-icons
-import { FaStore, FaMapMarkerAlt, FaMoneyBillAlt, FaThList, FaInfoCircle, FaFileAlt, FaLink, FaCog } from 'react-icons/fa';
+import {
+  FaStore, FaMapMarkerAlt, FaMoneyBillAlt, FaThList,
+  FaInfoCircle, FaFileAlt, FaLink, FaCog
+} from 'react-icons/fa';
 
 const LEGAL_DOCUMENTS = [
   { key: 'stpw', label: 'STPW (Surat Tanda Pendaftaran Waralaba)' },
@@ -46,7 +48,12 @@ export default function FranchiseDetail() {
   const [loading, setLoading] = useState(true);
   const [activeSlide, setActiveSlide] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // For Mode Operasi info popup
   const [showOpInfo, setShowOpInfo] = useState(false);
+  // For modal full image
+  const [showModal, setShowModal] = useState(false);
+  const [modalImg, setModalImg] = useState<string | null>(null);
 
   useEffect(() => {
     if (!slug || typeof slug !== 'string') return;
@@ -88,6 +95,7 @@ export default function FranchiseDetail() {
     fetchAll();
   }, [slug, router]);
 
+  // Slider otomatis
   useEffect(() => {
     if (showcaseUrls.length < 2) return;
     if (intervalRef.current) clearInterval(intervalRef.current);
@@ -102,7 +110,7 @@ export default function FranchiseDetail() {
 
   return (
     <div className="max-w-3xl mx-auto px-2 py-8">
-      {/* COVER SLIDER */}
+      {/* SLIDER COVER + CLICK FOR FULL IMAGE */}
       {showcaseUrls.length > 0 && (
         <div className="mb-6 relative rounded-2xl shadow overflow-hidden" style={{height: '220px'}}>
           {showcaseUrls.map((url, idx) => (
@@ -110,10 +118,15 @@ export default function FranchiseDetail() {
               key={idx}
               src={url}
               alt={`Cover ${idx + 1}`}
-              className={`absolute w-full h-full object-cover transition-opacity duration-500 ${idx === activeSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
+              className={`absolute w-full h-full object-cover transition-opacity duration-500 ${idx === activeSlide ? 'opacity-100 z-10 cursor-zoom-in' : 'opacity-0 z-0'}`}
               style={{borderRadius: 16}}
+              onClick={() => {
+                setModalImg(url);
+                setShowModal(true);
+              }}
             />
           ))}
+          {/* Dot navigation */}
           <div className="absolute bottom-2 left-1/2 flex gap-2 -translate-x-1/2 z-20">
             {showcaseUrls.map((_, idx) => (
               <button
@@ -123,6 +136,25 @@ export default function FranchiseDetail() {
                 style={{ outline: 'none', border: 0 }}
               />
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* MODAL FULL IMAGE */}
+      {showModal && modalImg && (
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center" onClick={() => setShowModal(false)}>
+          <div className="relative max-w-3xl w-full px-2" onClick={e => e.stopPropagation()}>
+            <button
+              className="absolute top-2 right-2 z-60 text-white text-3xl bg-black/60 rounded-full px-2"
+              onClick={() => setShowModal(false)}
+              aria-label="Tutup Gambar"
+            >×</button>
+            <img
+              src={modalImg}
+              alt="Gambar Cover Full"
+              className="max-h-[90vh] w-auto max-w-full rounded-xl mx-auto shadow-lg"
+              draggable={false}
+            />
           </div>
         </div>
       )}
