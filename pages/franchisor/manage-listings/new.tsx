@@ -1,6 +1,5 @@
-import { useState } from 'react';
+importimport { useState } from 'react';
 import { useRouter } from 'next/router';
-import { supabase } from '../../../lib/supabaseClient';
 import { v4 as uuidv4 } from 'uuid';
 import {
   FaInfoCircle, FaStore, FaMapMarkerAlt, FaMoneyBillAlt, FaThList, FaCog, FaFileAlt, FaLink
@@ -304,7 +303,34 @@ export default function NewListing() {
                           className="absolute left-10 z-30 mt-2 w-80 bg-white border border-gray-300 rounded-xl shadow-lg p-4 text-sm text-gray-800"
                           style={{ top: '100%' }}
                         >
-                          {form.operation_mode === 'autopilot' ? (
+                          {form.operation_mode === '' ? (
+                            <>
+                              {/* Gabungan Autopilot + Semi Autopilot */}
+                              <div className="mb-4">
+                                <span className="font-bold text-blue-600 mb-1 block">Autopilot</span>
+                                <ul className="list-disc pl-5 mb-1">
+                                  <li>Mitra tidak perlu terlibat langsung dalam operasional harian.</li>
+                                  <li>Seluruh aktivitas dijalankan oleh tim pusat/franchisor.</li>
+                                  <li>Mitra tetap menerima laporan dan hasil bisnis secara rutin.</li>
+                                  <li>Cocok untuk investor yang ingin bisnis berjalan otomatis.</li>
+                                </ul>
+                                <span className="text-xs text-gray-500">
+                                  “Autopilot berarti seluruh operasional harian bisnis dijalankan oleh tim pusat/franchisor, mitra hanya menerima laporan dan hasil.”
+                                </span>
+                              </div>
+                              <div>
+                                <span className="font-bold text-yellow-600 mb-1 block">Semi Autopilot</span>
+                                <ul className="list-disc pl-5 mb-1">
+                                  <li>Mitra menjalankan sendiri operasional harian bisnis.</li>
+                                  <li>Franchisor hanya sebagai pemberi dukungan teknis, pelatihan, SOP, dan pemasaran pusat.</li>
+                                  <li>Cocok untuk mitra yang ingin aktif terjun dan mengelola bisnis sendiri namun tetap mendapat pendampingan dari franchisor.</li>
+                                </ul>
+                                <span className="text-xs text-gray-500">
+                                  “Semi-autopilot berarti mitra sebagai pihak utama yang menjalankan operasional bisnis harian, sementara franchisor hanya sebagai pemberi dukungan teknis.”
+                                </span>
+                              </div>
+                            </>
+                          ) : form.operation_mode === 'autopilot' ? (
                             <>
                               <span className="font-bold text-blue-600 mb-1 block">Autopilot</span>
                               <ul className="list-disc pl-5 mb-1">
@@ -313,7 +339,9 @@ export default function NewListing() {
                                 <li>Mitra tetap menerima laporan dan hasil bisnis secara rutin.</li>
                                 <li>Cocok untuk investor yang ingin bisnis berjalan otomatis.</li>
                               </ul>
-                              <span className="text-xs text-gray-500">“Autopilot berarti seluruh operasional harian bisnis dijalankan oleh tim pusat/franchisor, mitra hanya menerima laporan dan hasil.”</span>
+                              <span className="text-xs text-gray-500">
+                                “Autopilot berarti seluruh operasional harian bisnis dijalankan oleh tim pusat/franchisor, mitra hanya menerima laporan dan hasil.”
+                              </span>
                             </>
                           ) : (
                             <>
@@ -323,7 +351,9 @@ export default function NewListing() {
                                 <li>Franchisor hanya sebagai pemberi dukungan teknis, pelatihan, SOP, dan pemasaran pusat.</li>
                                 <li>Cocok untuk mitra yang ingin aktif terjun dan mengelola bisnis sendiri namun tetap mendapat pendampingan dari franchisor.</li>
                               </ul>
-                              <span className="text-xs text-gray-500">“Semi-autopilot berarti mitra sebagai pihak utama yang menjalankan operasional bisnis harian, sementara franchisor hanya sebagai pemberi dukungan teknis.”</span>
+                              <span className="text-xs text-gray-500">
+                                “Semi-autopilot berarti mitra sebagai pihak utama yang menjalankan operasional bisnis harian, sementara franchisor hanya sebagai pemberi dukungan teknis.”
+                              </span>
                             </>
                           )}
                           <button
@@ -342,6 +372,7 @@ export default function NewListing() {
                   </div>
                 </td>
               </tr>
+
               {/* Checklist Dokumen Hukum */}
               <tr>
                 <td className="align-top w-[32%] pr-2"><FormLabel>Checklist Dokumen Hukum</FormLabel></td>
@@ -443,7 +474,6 @@ export default function NewListing() {
         >
           {loading ? 'Menyimpan...' : 'Tambah Listing'}
         </button>
-        {/* Tombol Preview di paling bawah */}
         <button
           type="button"
           className="mt-6 w-full px-4 py-2 rounded-full bg-gray-700 text-white font-semibold shadow transition hover:bg-gray-900"
