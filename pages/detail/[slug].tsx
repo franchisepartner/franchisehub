@@ -162,7 +162,7 @@ export default function DetailPage() {
         <title>{blog?.title || "Memuat..."} - FranchiseHub</title>
       </Head>
 
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-2xl max-w-2xl mx-auto px-4 py-8 relative">
+      <div className="max-w-2xl mx-auto px-4 py-8 relative">
         {blog ? (
           <>
             {/* Tombol share sticky di pojok kanan */}
@@ -197,7 +197,7 @@ export default function DetailPage() {
                   src={blog.cover_url}
                   alt={blog.title}
                   className="w-full rounded-lg object-cover max-h-[420px] mx-auto"
-                  style={{ boxShadow: "0 8px 32px 0 rgba(0,0,0,0.20)" }}
+                  style={{ boxShadow: "0 4px 12px 0 rgba(0,0,0,0.10)" }}
                 />
               </div>
             )}
