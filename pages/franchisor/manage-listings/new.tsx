@@ -430,7 +430,7 @@ export default function NewListing() {
         <button
           type="submit"
           disabled={loading}
-          className="btn btn-primary w-full border-2 border-green-500 rounded-xl bg-white text-green-700 font-semibold transition shadow hover:bg-green-50"
+          className="w-full px-4 py-2 rounded-full bg-green-600 text-white font-semibold shadow transition hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400"
         >
           {loading ? 'Menyimpan...' : 'Tambah Listing'}
         </button>
