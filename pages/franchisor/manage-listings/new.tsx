@@ -45,6 +45,9 @@ export default function NewListing() {
   );
   const allDocsFilled = legalDocs.every(doc => !!doc.status);
 
+  // Showcase files (max 5 gambar)
+  const [showcaseFiles, setShowcaseFiles] = useState<File[]>([]);
+
   useEffect(() => {
     const fetchUser = async () => {
       const { data } = await supabase.auth.getUser();
@@ -64,6 +67,16 @@ export default function NewListing() {
     }
   };
 
+  // Showcase image handler (max 5)
+  const handleShowcaseChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length > 5) {
+      alert("Maksimal 5 gambar showcase!");
+      return;
+    }
+    setShowcaseFiles(files);
+  };
+
   const uploadImage = async (file: File, pathPrefix: string) => {
     const fileExt = file.name.split('.').pop();
     const fileName = `${pathPrefix}/${uuidv4()}.${fileExt}`;
@@ -81,6 +94,10 @@ export default function NewListing() {
       alert('Checklist dokumen hukum harus lengkap!');
       return;
     }
+    if (showcaseFiles.length > 5) {
+      alert('Maksimal 5 gambar untuk showcase!');
+      return;
+    }
     setLoading(true);
 
     try {
@@ -88,7 +105,7 @@ export default function NewListing() {
       const coverPath = form.cover_file ? await uploadImage(form.cover_file, 'cover') : null;
       const slug = form.franchise_name.toLowerCase().replace(/\s+/g, '-');
 
-      // Insert ke franchise_listings, ambil id-nya
+      // Insert ke franchise_listings
       const { data, error } = await supabase.from('franchise_listings').insert([{
         user_id: user?.id,
         franchise_name: form.franchise_name,
@@ -120,6 +137,21 @@ export default function NewListing() {
           })
         )
       );
+
+      // Upload showcase images & insert ke listing_images
+      if (showcaseFiles.length > 0) {
+        const showcasePaths = await Promise.all(
+          showcaseFiles.map(file => uploadImage(file, 'showcase'))
+        );
+        await Promise.all(
+          showcasePaths.map(url =>
+            supabase.from('listing_images').insert({
+              listing_id: data.id,
+              image_url: url,
+            })
+          )
+        );
+      }
 
       alert('Listing berhasil ditambahkan!');
       router.push('/franchisor/manage-listings');
@@ -237,10 +269,7 @@ export default function NewListing() {
                 </div>
               </td>
             </tr>
-            <tr>
-              <td className="font-medium">Catatan Tambahan</td>
-              <td><textarea name="notes" value={form.notes} onChange={handleChange} className="textarea w-full" rows={3} /></td>
-            </tr>
+            {/* Upload logo, cover, showcase */}
             <tr>
               <td className="font-medium">Upload Logo</td>
               <td><input required type="file" name="logo_file" onChange={handleChange} className="file-input file-input-bordered w-full" /></td>
@@ -248,6 +277,28 @@ export default function NewListing() {
             <tr>
               <td className="font-medium">Upload Cover</td>
               <td><input required type="file" name="cover_file" onChange={handleChange} className="file-input file-input-bordered w-full" /></td>
+            </tr>
+            <tr>
+              <td className="font-medium align-top">Upload Showcase (max 5 gambar)</td>
+              <td>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleShowcaseChange}
+                  className="file-input file-input-bordered w-full"
+                />
+                <p className="text-xs text-gray-500 mt-1">Upload hingga 5 gambar untuk galeri showcase franchise Anda.</p>
+                <div className="flex gap-2 mt-2 flex-wrap">
+                  {showcaseFiles.map((file, idx) => (
+                    <span key={idx} className="inline-block bg-gray-200 px-2 py-1 rounded text-xs">{file.name}</span>
+                  ))}
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td className="font-medium">Catatan Tambahan</td>
+              <td><textarea name="notes" value={form.notes} onChange={handleChange} className="textarea w-full" rows={3} /></td>
             </tr>
           </tbody>
         </table>
