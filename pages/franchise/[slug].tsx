@@ -5,6 +5,11 @@ import {
   FaStore, FaMapMarkerAlt, FaMoneyBillAlt, FaThList,
   FaInfoCircle, FaFileAlt, FaLink, FaCog
 } from 'react-icons/fa';
+// SWIPER (carousel)
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation, Autoplay } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/navigation';
 
 const LEGAL_DOCUMENTS = [
   { key: 'stpw', label: 'STPW (Surat Tanda Pendaftaran Waralaba)' },
@@ -353,7 +358,7 @@ export default function FranchiseDetail() {
         )}
       </div>
 
-      {/* SHOWCASE KARYA FRANCHISOR TERPISAH */}
+      {/* SHOWCASE KARYA FRANCHISOR: Carousel */}
       {(listingItems.length > 0 || blogItems.length > 0) && (
         <div className="mb-12">
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
@@ -363,46 +368,78 @@ export default function FranchiseDetail() {
           {listingItems.length > 0 && (
             <>
               <div className="font-semibold mb-2 text-base text-gray-800">Listing</div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
+              <Swiper
+                modules={[Navigation, Autoplay]}
+                navigation
+                autoplay={{ delay: 6000, disableOnInteraction: false }}
+                loop={listingItems.length > 3}
+                spaceBetween={16}
+                breakpoints={{
+                  0:    { slidesPerView: 1.15 },
+                  640:  { slidesPerView: 2.25 },
+                  900:  { slidesPerView: 3.25 },
+                }}
+                style={{ width: '100%', height: '210px', marginBottom: '28px' }}
+              >
                 {listingItems.map(item => (
-                  <div
-                    key={item.id}
-                    className="bg-white rounded-xl shadow cursor-pointer hover:shadow-lg transition p-2 flex flex-col items-center"
-                    onClick={() => router.push(item.url)}
-                  >
-                    <img
-                      src={item.image}
-                      alt={item.title}
-                      className="h-24 w-full object-cover rounded-lg mb-2 bg-gray-100"
-                    />
-                    <div className="font-bold text-base text-center truncate w-full">{item.title}</div>
-                    <div className="text-xs text-gray-500 bg-gray-100 rounded px-2 py-0.5 mt-1">Listing</div>
-                  </div>
+                  <SwiperSlide key={item.id} style={{ height: '100%' }}>
+                    <div
+                      className="bg-white h-full rounded-xl shadow-md flex flex-col overflow-hidden cursor-pointer transition hover:shadow-lg p-2"
+                      style={{ height: '176px', width: '250px', margin: 'auto' }}
+                      onClick={() => router.push(item.url)}
+                    >
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        className="h-24 w-full object-cover rounded-t-lg bg-white"
+                      />
+                      <div className="flex-1 px-2 pt-2 flex flex-col justify-between">
+                        <div className="font-bold text-base truncate">{item.title}</div>
+                        <div className="text-xs text-gray-500 mt-1 px-2 py-0.5 bg-gray-100 rounded inline-block w-max">Listing</div>
+                      </div>
+                    </div>
+                  </SwiperSlide>
                 ))}
-              </div>
+              </Swiper>
             </>
           )}
           {/* Blog */}
           {blogItems.length > 0 && (
             <>
               <div className="font-semibold mb-2 text-base text-gray-800">Blog</div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <Swiper
+                modules={[Navigation, Autoplay]}
+                navigation
+                autoplay={{ delay: 6000, disableOnInteraction: false }}
+                loop={blogItems.length > 3}
+                spaceBetween={16}
+                breakpoints={{
+                  0:    { slidesPerView: 1.15 },
+                  640:  { slidesPerView: 2.25 },
+                  900:  { slidesPerView: 3.25 },
+                }}
+                style={{ width: '100%', height: '210px' }}
+              >
                 {blogItems.map(item => (
-                  <div
-                    key={item.id}
-                    className="bg-white rounded-xl shadow cursor-pointer hover:shadow-lg transition p-2 flex flex-col items-center"
-                    onClick={() => router.push(item.url)}
-                  >
-                    <img
-                      src={item.image}
-                      alt={item.title}
-                      className="h-24 w-full object-cover rounded-lg mb-2 bg-gray-100"
-                    />
-                    <div className="font-bold text-base text-center truncate w-full">{item.title}</div>
-                    <div className="text-xs text-gray-500 bg-gray-100 rounded px-2 py-0.5 mt-1">Blog</div>
-                  </div>
+                  <SwiperSlide key={item.id} style={{ height: '100%' }}>
+                    <div
+                      className="bg-white h-full rounded-xl shadow-md flex flex-col overflow-hidden cursor-pointer transition hover:shadow-lg p-2"
+                      style={{ height: '176px', width: '250px', margin: 'auto' }}
+                      onClick={() => router.push(item.url)}
+                    >
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        className="h-24 w-full object-cover rounded-t-lg bg-white"
+                      />
+                      <div className="flex-1 px-2 pt-2 flex flex-col justify-between">
+                        <div className="font-bold text-base truncate">{item.title}</div>
+                        <div className="text-xs text-gray-500 mt-1 px-2 py-0.5 bg-gray-100 rounded inline-block w-max">Blog</div>
+                      </div>
+                    </div>
+                  </SwiperSlide>
                 ))}
-              </div>
+              </Swiper>
             </>
           )}
         </div>
