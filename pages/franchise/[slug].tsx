@@ -45,6 +45,7 @@ export default function FranchiseDetail() {
   const [franchise, setFranchise] = useState<Franchise | null>(null);
   const [legalDocs, setLegalDocs] = useState<LegalDoc[]>([]);
   const [showcaseUrls, setShowcaseUrls] = useState<string[]>([]);
+  const [allItems, setAllItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeSlide, setActiveSlide] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -60,6 +61,7 @@ export default function FranchiseDetail() {
     setLoading(true);
 
     const fetchAll = async () => {
+      // Ambil data utama franchise
       const { data, error } = await supabase
         .from('franchise_listings')
         .select('*')
@@ -72,12 +74,14 @@ export default function FranchiseDetail() {
       }
       setFranchise(data);
 
+      // Legal Documents
       const { data: docs } = await supabase
         .from('legal_documents')
         .select('*')
         .eq('listing_id', data.id);
       setLegalDocs(docs || []);
 
+      // Cover images (slider)
       const { data: images } = await supabase
         .from('listing_images')
         .select('*')
@@ -88,6 +92,47 @@ export default function FranchiseDetail() {
           .filter(img => img.image_url?.startsWith('showcase/'))
           .map(img => supabase.storage.from('listing-images').getPublicUrl(img.image_url).data.publicUrl) || [];
       setShowcaseUrls(urls);
+
+      // Showcase Karya (listings + blogs)
+      // 1. Ambil semua listing milik franchisor
+      const { data: allListings } = await supabase
+        .from('franchise_listings')
+        .select('id, franchise_name, logo_url, slug, created_at')
+        .eq('created_by', data.created_by);
+
+      const listingItems = (allListings || []).map(item => ({
+        ...item,
+        type: 'listing',
+        title: item.franchise_name,
+        image: item.logo_url
+          ? supabase.storage.from('listing-images').getPublicUrl(item.logo_url).data.publicUrl
+          : '/logo192.png',
+        url: `/franchise/${item.slug}`,
+        date: item.created_at,
+      }));
+
+      // 2. Ambil semua blog milik franchisor
+      const { data: blogs } = await supabase
+        .from('blogs')
+        .select('id, title, cover_url, slug, created_at')
+        .eq('created_by', data.created_by);
+
+      const blogItems = (blogs || []).map(item => ({
+        ...item,
+        type: 'blog',
+        title: item.title,
+        image: item.cover_url
+          ? supabase.storage.from('blog-assets').getPublicUrl(item.cover_url).data.publicUrl
+          : '/logo192.png',
+        url: `/detail/${item.slug}`,
+        date: item.created_at,
+      }));
+
+      // Gabung dan urutkan by date DESC
+      const all = [...listingItems, ...blogItems].sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
+      setAllItems(all);
 
       setLoading(false);
     };
@@ -317,24 +362,29 @@ export default function FranchiseDetail() {
         )}
       </div>
 
-      {/* SHOWCASE KARYA (Penutup) */}
-      {showcaseUrls.length > 0 && (
-        <div className="mb-8">
+      {/* SHOWCASE KARYA: Listing + Blog */}
+      {allItems.length > 0 && (
+        <div className="mb-12">
           <h2 className="text-lg font-semibold mb-1 flex items-center gap-2">
-            <FaFileAlt className="text-pink-600" /> Showcase Karya
+            <FaFileAlt className="text-pink-600" /> Showcase Karya Franchisor
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-2">
-            {showcaseUrls.map((url, idx) => (
-              <img
-                key={idx}
-                src={url}
-                alt={`Showcase ${idx+1}`}
-                className="w-full h-32 object-cover rounded-xl shadow cursor-zoom-in"
-                onClick={() => {
-                  setModalImg(url);
-                  setShowModal(true);
-                }}
-              />
+            {allItems.map(item => (
+              <div
+                key={item.id + item.type}
+                className="bg-white rounded-xl shadow cursor-pointer hover:shadow-lg transition p-2 flex flex-col items-center"
+                onClick={() => router.push(item.url)}
+              >
+                <img
+                  src={item.image}
+                  alt={item.title}
+                  className="h-24 w-full object-cover rounded-lg mb-2 bg-gray-100"
+                />
+                <div className="font-bold text-base text-center truncate w-full">{item.title}</div>
+                <div className="text-xs text-gray-500 bg-gray-100 rounded px-2 py-0.5 mt-1">
+                  {item.type === 'listing' ? 'Listing' : 'Blog'}
+                </div>
+              </div>
             ))}
           </div>
         </div>
