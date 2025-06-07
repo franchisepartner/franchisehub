@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { supabase } from '../../../lib/supabaseClient';
+import { supabase } from '../../../../lib/supabaseClient';
 import { v4 as uuidv4 } from 'uuid';
 
 export default function EditBlog() {
