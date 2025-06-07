@@ -63,12 +63,10 @@ export default function FranchiseDetail() {
   // Untuk login session
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // Cek login session (supabase-js v2+)
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setIsLoggedIn(!!data?.session?.user);
     });
-    // Optional: listen for login/logout
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setIsLoggedIn(!!session?.user);
     });
@@ -143,9 +141,7 @@ export default function FranchiseDetail() {
           ...item,
           type: 'blog',
           title: item.title,
-          image: item.cover_url
-            ? supabase.storage.from('blog-assets').getPublicUrl(item.cover_url).data.publicUrl
-            : '/logo192.png',
+          image: item.cover_url, // <= gunakan raw cover_url dari database (path atau url)
           url: `/detail/${item.slug}`,
           date: item.created_at,
         }))
@@ -156,7 +152,6 @@ export default function FranchiseDetail() {
     fetchAll();
   }, [slug, router]);
 
-  // Slider otomatis
   useEffect(() => {
     if (showcaseUrls.length < 2) return;
     if (intervalRef.current) clearInterval(intervalRef.current);
@@ -187,7 +182,6 @@ export default function FranchiseDetail() {
               }}
             />
           ))}
-          {/* Dot navigation */}
           <div className="absolute bottom-2 left-1/2 flex gap-2 -translate-x-1/2 z-20">
             {showcaseUrls.slice(0, 5).map((_, idx) => (
               <button
@@ -201,7 +195,6 @@ export default function FranchiseDetail() {
         </div>
       )}
 
-      {/* MODAL FULL IMAGE (untuk slider/cover dan grid) */}
       {showModal && modalImg && (
         <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center" onClick={() => setShowModal(false)}>
           <div className="relative max-w-3xl w-full px-2" onClick={e => e.stopPropagation()}>
@@ -376,7 +369,6 @@ export default function FranchiseDetail() {
             </div>
           </div>
         )}
-        {/* Tag tetap boleh tampil */}
         {franchise.tags && (
           <div className="mt-2">
             <span className="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-xs">#{franchise.tags}</span>
@@ -454,7 +446,13 @@ export default function FranchiseDetail() {
                       onClick={() => router.push(item.url)}
                     >
                       <img
-                        src={item.image}
+                        src={
+                          item.image
+                            ? item.image.startsWith('http')
+                              ? item.image
+                              : supabase.storage.from('blog-assets').getPublicUrl(item.image).data.publicUrl
+                            : '/logo192.png'
+                        }
                         alt={item.title}
                         className="h-24 w-full object-cover rounded-t-lg bg-white"
                       />
