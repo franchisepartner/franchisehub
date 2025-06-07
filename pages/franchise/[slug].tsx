@@ -5,7 +5,6 @@ import {
   FaStore, FaMapMarkerAlt, FaMoneyBillAlt, FaThList,
   FaInfoCircle, FaFileAlt, FaLink, FaCog
 } from 'react-icons/fa';
-// SWIPER (carousel)
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Autoplay } from 'swiper/modules';
 import 'swiper/css';
@@ -61,6 +60,20 @@ export default function FranchiseDetail() {
   // For modal full image
   const [showModal, setShowModal] = useState(false);
   const [modalImg, setModalImg] = useState<string | null>(null);
+  // Untuk login session
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // Cek login session (supabase-js v2+)
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setIsLoggedIn(!!data?.session?.user);
+    });
+    // Optional: listen for login/logout
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session?.user);
+    });
+    return () => { listener?.subscription.unsubscribe(); };
+  }, []);
 
   useEffect(() => {
     if (!slug || typeof slug !== 'string') return;
@@ -317,11 +330,11 @@ export default function FranchiseDetail() {
       </div>
 
       {/* Kontak & Tautan */}
-      <div className="mb-6">
+      <div className="mb-6 relative">
         <h2 className="text-lg font-semibold mb-1 flex items-center gap-2">
           <FaLink className="text-gray-700" /> Kontak & Tautan
         </h2>
-        <div className="flex flex-wrap gap-3 items-center mb-3">
+        <div className={`flex flex-wrap gap-3 items-center mb-3 transition ${!isLoggedIn ? 'blur-sm pointer-events-none select-none' : ''}`}>
           {franchise.whatsapp_contact && (
             <a
               href={`https://wa.me/${franchise.whatsapp_contact.replace(/^0/, '62')}`}
@@ -351,8 +364,21 @@ export default function FranchiseDetail() {
             </a>
           )}
         </div>
+        {!isLoggedIn && (
+          <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-auto select-none">
+            <div className="bg-white/80 backdrop-blur-md px-6 py-4 rounded-2xl shadow border text-center">
+              <span className="block font-semibold text-gray-800 mb-2">Login diperlukan</span>
+              <span className="text-sm text-gray-600">Login untuk melihat kontak & tautan franchise ini.</span>
+              <button
+                className="block w-full mt-4 px-4 py-2 rounded-full bg-blue-600 text-white font-semibold shadow transition hover:bg-blue-700"
+                onClick={() => router.push('/login')}
+              >Login</button>
+            </div>
+          </div>
+        )}
+        {/* Tag tetap boleh tampil */}
         {franchise.tags && (
-          <div>
+          <div className="mt-2">
             <span className="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-xs">#{franchise.tags}</span>
           </div>
         )}
