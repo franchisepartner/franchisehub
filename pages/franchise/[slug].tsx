@@ -261,9 +261,12 @@ export default function FranchiseDetail() {
             Investasi Mulai Rp {franchise.investment_min.toLocaleString('id-ID')}
           </span>
         </div>
+        {/* Mode Operasi dengan tooltip penjelasan terbaru */}
         <div className="flex items-center gap-2 relative">
           <FaCog className="inline-block text-gray-500" />
-          <span className="font-semibold">{franchise.operation_mode === 'autopilot' ? 'Autopilot' : 'Semi Autopilot'}</span>
+          <span className="font-semibold">
+            {franchise.operation_mode === 'autopilot' ? 'Autopilot' : 'Semi Autopilot'}
+          </span>
           <button
             className="ml-2 p-1 rounded-full hover:bg-gray-200 transition"
             onClick={() => setShowOpInfo(val => !val)}
@@ -275,18 +278,29 @@ export default function FranchiseDetail() {
           {showOpInfo && (
             <>
               <div
-                className="absolute left-10 z-30 mt-2 w-72 bg-white border border-gray-300 rounded-xl shadow-lg p-4 text-sm text-gray-800"
+                className="absolute left-10 z-30 mt-2 w-80 bg-white border border-gray-300 rounded-xl shadow-lg p-4 text-sm text-gray-800"
                 style={{ top: '100%' }}
               >
                 {franchise.operation_mode === 'autopilot' ? (
                   <>
                     <span className="font-bold text-blue-600 mb-1 block">Autopilot</span>
-                    Mitra tidak perlu ikut terlibat langsung dalam operasional harian.
+                    <ul className="list-disc pl-5 mb-1">
+                      <li>Mitra tidak perlu terlibat langsung dalam operasional harian.</li>
+                      <li>Seluruh aktivitas dijalankan oleh tim pusat/franchisor.</li>
+                      <li>Mitra tetap menerima laporan dan hasil bisnis secara rutin.</li>
+                      <li>Cocok untuk investor yang ingin bisnis berjalan otomatis.</li>
+                    </ul>
+                    <span className="text-xs text-gray-500">“Autopilot berarti seluruh operasional harian bisnis dijalankan oleh tim pusat/franchisor, mitra hanya menerima laporan dan hasil.”</span>
                   </>
                 ) : (
                   <>
                     <span className="font-bold text-yellow-600 mb-1 block">Semi Autopilot</span>
-                    Mitra tetap punya peran namun sebagian operasional dibantu tim pusat.
+                    <ul className="list-disc pl-5 mb-1">
+                      <li>Mitra menjalankan sendiri operasional harian bisnis.</li>
+                      <li>Franchisor hanya sebagai pemberi dukungan teknis, pelatihan, SOP, dan pemasaran pusat.</li>
+                      <li>Cocok untuk mitra yang ingin aktif terjun dan mengelola bisnis sendiri namun tetap mendapat pendampingan dari franchisor.</li>
+                    </ul>
+                    <span className="text-xs text-gray-500">“Semi-autopilot berarti mitra sebagai pihak utama yang menjalankan operasional bisnis harian, sementara franchisor hanya sebagai pemberi dukungan teknis.”</span>
                   </>
                 )}
                 <button
