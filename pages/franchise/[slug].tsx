@@ -77,10 +77,18 @@ export default function FranchiseDetail() {
         .eq('listing_id', data.id)
         .order('id')
         .limit(5);
+
+      // DEBUG LOG
+      console.log('IMAGES:', images);
+
       const urls =
         (images || [])
           .filter(img => img.image_url?.startsWith('showcase/'))
           .map(img => supabase.storage.from('listing-images').getPublicUrl(img.image_url).data.publicUrl) || [];
+
+      // DEBUG LOG
+      console.log('showcaseUrls:', urls);
+
       setShowcaseUrls(urls);
 
       setLoading(false);
