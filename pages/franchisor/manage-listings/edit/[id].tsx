@@ -40,11 +40,9 @@ export default function EditListing() {
   const router = useRouter();
   const { id } = router.query;
 
-  // Fetch listing, showcase, dokumen hukum
   useEffect(() => {
     if (!id) return;
     const fetchData = async () => {
-      // Listing
       const { data, error } = await supabase
         .from('franchise_listings')
         .select('*')
@@ -70,7 +68,6 @@ export default function EditListing() {
         logo_url: data.logo_url || '',
       });
 
-      // Showcase
       const { data: images } = await supabase
         .from('listing_images')
         .select('id, image_url')
@@ -87,7 +84,6 @@ export default function EditListing() {
         );
       }
 
-      // Dokumen Hukum
       const { data: docs } = await supabase
         .from('legal_documents')
         .select('id, document_type, status')
@@ -106,7 +102,6 @@ export default function EditListing() {
     fetchData();
   }, [id]);
 
-  // Handler form utama
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setForm(prev => ({
@@ -115,18 +110,13 @@ export default function EditListing() {
     }));
   };
 
-  // Logo
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) setLogoFile(e.target.files[0]);
   };
-
-  // Showcase baru
   const handleNewShowcaseChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     setNewShowcaseFiles(files.slice(0, Math.max(0, 5 - showcaseImages.length)));
   };
-
-  // Hapus gambar showcase satuan
   const handleDeleteShowcase = async (imgId: number) => {
     if (!window.confirm('Hapus gambar ini dari showcase?')) return;
     setLoading(true);
@@ -134,8 +124,6 @@ export default function EditListing() {
     setShowcaseImages(prev => prev.filter(img => img.id !== imgId));
     setLoading(false);
   };
-
-  // Handler edit dokumen hukum
   const handleLegalDocChange = (idx: number, status: string) => {
     setLegalDocs(prev => {
       const next = [...prev];
@@ -168,7 +156,6 @@ export default function EditListing() {
       if (logoFile) {
         logoPath = await uploadLogoImage(logoFile);
       }
-      // 1. Update listing
       const { error } = await supabase
         .from('franchise_listings')
         .update({
@@ -179,7 +166,6 @@ export default function EditListing() {
         .eq('id', id);
       if (error) throw error;
 
-      // 2. Upload showcase baru jika ada (max 5 total)
       if (newShowcaseFiles.length > 0 && showcaseImages.length < 5) {
         const left = 5 - showcaseImages.length;
         for (const file of newShowcaseFiles.slice(0, left)) {
@@ -192,7 +178,6 @@ export default function EditListing() {
         }
       }
 
-      // 3. Update dokumen hukum satuan
       for (const doc of legalDocs) {
         if (!doc.id) continue;
         await supabase
@@ -210,10 +195,16 @@ export default function EditListing() {
     }
   };
 
+  // --- HEADING COMPONENT UTAMA ---
+  const SectionHeading = ({ children }: { children: string }) => (
+    <div className="font-bold text-lg mt-6 mb-2">{children}</div>
+  );
+
   return (
     <div className="p-6 max-w-xl mx-auto">
-      <h1 className="text-xl font-semibold mb-4">Edit Listing Franchise</h1>
+      <h1 className="text-2xl font-semibold mb-6">Edit Listing Franchise</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
+        <SectionHeading>Informasi Franchise</SectionHeading>
         <input name="franchise_name" placeholder="Nama Franchise" required className="border p-2 w-full rounded"
           onChange={handleChange} value={form.franchise_name} />
         <textarea name="description" placeholder="Deskripsi" required className="border p-2 w-full rounded"
@@ -224,6 +215,8 @@ export default function EditListing() {
           onChange={handleChange} value={form.investment_min} />
         <input name="location" placeholder="Lokasi" required className="border p-2 w-full rounded"
           onChange={handleChange} value={form.location} />
+
+        <SectionHeading>Mode Operasional</SectionHeading>
         <select name="operation_mode" required className="border p-2 w-full rounded"
           onChange={handleChange} value={form.operation_mode}>
           <option value="">Pilih Mode Operasional</option>
@@ -242,6 +235,8 @@ export default function EditListing() {
             <li>Franchisor sebagai pemberi dukungan teknis, pelatihan, dan pemasaran pusat.</li>
           </ul>
         </div>
+
+        <SectionHeading>Kontak & Tautan</SectionHeading>
         <input name="whatsapp_contact" placeholder="No WhatsApp" required className="border p-2 w-full rounded"
           onChange={handleChange} value={form.whatsapp_contact} />
         <input name="email_contact" placeholder="Email Kontak" required className="border p-2 w-full rounded"
@@ -250,99 +245,94 @@ export default function EditListing() {
           onChange={handleChange} value={form.website_url} />
         <input name="google_maps_url" placeholder="Google Maps URL (opsional)" className="border p-2 w-full rounded"
           onChange={handleChange} value={form.google_maps_url} />
+
+        <SectionHeading>Tag</SectionHeading>
         <input name="tags" placeholder="Tag (pisahkan dengan koma)" className="border p-2 w-full rounded"
           onChange={handleChange} value={form.tags} />
+
+        <SectionHeading>Catatan Tambahan</SectionHeading>
         <textarea name="notes" placeholder="Catatan (opsional)" className="border p-2 w-full rounded"
           onChange={handleChange} value={form.notes} rows={2} />
 
-        {/* LOGO SECTION */}
-        <div>
-          <label className="block font-semibold mb-1">Logo Franchise</label>
-          {form.logo_url && (
-            <div className="mb-2 flex items-center gap-3">
-              <img
-                src={supabase.storage.from('listing-images').getPublicUrl(form.logo_url).data.publicUrl}
-                alt="Logo"
-                className="w-20 h-20 object-contain rounded border"
-              />
-              <span className="text-xs text-gray-600">{form.logo_url.split('/').pop()}</span>
-            </div>
-          )}
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleLogoChange}
-            className="file-input file-input-bordered w-full max-w-xs"
-          />
-        </div>
-
-        {/* SHOWCASE SECTION */}
-        <div>
-          <label className="block font-semibold mb-1">Showcase (max 5 gambar)</label>
-          <div className="flex gap-2 mb-2 flex-wrap">
-            {showcaseImages.map((img, idx) => (
-              <div key={img.id} className="relative flex flex-col items-center">
-                <img src={img.url} className="w-20 h-16 object-cover rounded border" alt={`Showcase ${idx + 1}`} />
-                <span className="text-[10px] text-gray-600">{img.name}</span>
-                <button type="button"
-                  className="absolute top-0 right-0 bg-white rounded-full shadow p-1 hover:bg-red-200 transition"
-                  style={{ fontSize: 10 }}
-                  onClick={() => handleDeleteShowcase(img.id)}
-                  title="Hapus gambar">
-                  ×
-                </button>
-              </div>
-            ))}
+        <SectionHeading>Logo Franchise</SectionHeading>
+        {form.logo_url && (
+          <div className="mb-2 flex items-center gap-3">
+            <img
+              src={supabase.storage.from('listing-images').getPublicUrl(form.logo_url).data.publicUrl}
+              alt="Logo"
+              className="w-20 h-20 object-contain rounded border"
+            />
+            <span className="text-xs text-gray-600">{form.logo_url.split('/').pop()}</span>
           </div>
-          <input
-            type="file"
-            multiple
-            accept="image/*"
-            onChange={handleNewShowcaseChange}
-            className="file-input file-input-bordered w-full max-w-xs"
-            disabled={showcaseImages.length >= 5}
-          />
-          {newShowcaseFiles.length > 0 && (
-            <div className="text-xs text-blue-600 mt-2">
-              {newShowcaseFiles.length} file siap ditambahkan:{' '}
-              {newShowcaseFiles.map((f) => f.name).join(', ')}
-            </div>
-          )}
-        </div>
+        )}
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleLogoChange}
+          className="file-input file-input-bordered w-full max-w-xs"
+        />
 
-        {/* EDIT DOKUMEN HUKUM */}
-        <div>
-          <label className="block font-semibold mb-2">Checklist Dokumen Hukum</label>
-          <table className="min-w-[420px] w-full bg-gray-50 rounded-2xl border border-gray-200 shadow text-xs">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="py-2 px-2 text-left rounded-tl-2xl">Dokumen</th>
-                <th className="py-2 px-2 text-center font-semibold">Sudah Memiliki</th>
-                <th className="py-2 px-2 text-center font-semibold rounded-tr-2xl">Akan/Sedang diurus</th>
-              </tr>
-            </thead>
-            <tbody>
-              {LEGAL_DOCUMENTS.map((doc, idx) => (
-                <tr key={doc.key} className="border-t border-gray-200">
-                  <td className="py-2 px-2">{doc.label}</td>
-                  {LEGAL_STATUSES.map(status => (
-                    <td key={status.key} className="py-2 px-2 text-center">
-                      <input
-                        type="radio"
-                        name={`doc-status-${doc.key}`}
-                        value={status.key}
-                        checked={legalDocs[idx]?.status === status.key}
-                        onChange={() => handleLegalDocChange(idx, status.key)}
-                        required
-                        className="form-radio h-4 w-4 text-green-600 border-gray-300 focus:ring-2 focus:ring-blue-300 transition"
-                      />
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <SectionHeading>Showcase Franchise</SectionHeading>
+        <div className="flex gap-2 mb-2 flex-wrap">
+          {showcaseImages.map((img, idx) => (
+            <div key={img.id} className="relative flex flex-col items-center">
+              <img src={img.url} className="w-20 h-16 object-cover rounded border" alt={`Showcase ${idx + 1}`} />
+              <span className="text-[10px] text-gray-600">{img.name}</span>
+              <button type="button"
+                className="absolute top-0 right-0 bg-white rounded-full shadow p-1 hover:bg-red-200 transition"
+                style={{ fontSize: 10 }}
+                onClick={() => handleDeleteShowcase(img.id)}
+                title="Hapus gambar">
+                ×
+              </button>
+            </div>
+          ))}
         </div>
+        <input
+          type="file"
+          multiple
+          accept="image/*"
+          onChange={handleNewShowcaseChange}
+          className="file-input file-input-bordered w-full max-w-xs"
+          disabled={showcaseImages.length >= 5}
+        />
+        {newShowcaseFiles.length > 0 && (
+          <div className="text-xs text-blue-600 mt-2">
+            {newShowcaseFiles.length} file siap ditambahkan:{' '}
+            {newShowcaseFiles.map((f) => f.name).join(', ')}
+          </div>
+        )}
+
+        <SectionHeading>Checklist Dokumen Hukum</SectionHeading>
+        <table className="min-w-[420px] w-full bg-gray-50 rounded-2xl border border-gray-200 shadow text-xs">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="py-2 px-2 text-left rounded-tl-2xl">Dokumen</th>
+              <th className="py-2 px-2 text-center font-semibold">Sudah Memiliki</th>
+              <th className="py-2 px-2 text-center font-semibold rounded-tr-2xl">Akan/Sedang diurus</th>
+            </tr>
+          </thead>
+          <tbody>
+            {LEGAL_DOCUMENTS.map((doc, idx) => (
+              <tr key={doc.key} className="border-t border-gray-200">
+                <td className="py-2 px-2">{doc.label}</td>
+                {LEGAL_STATUSES.map(status => (
+                  <td key={status.key} className="py-2 px-2 text-center">
+                    <input
+                      type="radio"
+                      name={`doc-status-${doc.key}`}
+                      value={status.key}
+                      checked={legalDocs[idx]?.status === status.key}
+                      onChange={() => handleLegalDocChange(idx, status.key)}
+                      required
+                      className="form-radio h-4 w-4 text-green-600 border-gray-300 focus:ring-2 focus:ring-blue-300 transition"
+                    />
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
 
         <button
           className="bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded w-full"
