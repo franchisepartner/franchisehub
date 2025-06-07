@@ -164,12 +164,6 @@ export default function ManageListings() {
                 </button>
                 {(isAdmin || user?.id === blog.created_by) && (
                   <>
-                    <button
-                      onClick={() => router.push(`/blog/manage/edit/${blog.id}`)}
-                      className="p-2 bg-gray-100 rounded hover:bg-yellow-100 transition"
-                      title="Edit"
-                    >
-                      <FaPen className="text-yellow-600" />
                     </button>
                     <button
                       onClick={() => handleDeleteBlog(blog.id)}
