@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
+import { supabase } from '../../../lib/supabaseClient';
 import { v4 as uuidv4 } from 'uuid';
 import {
   FaInfoCircle, FaStore, FaMapMarkerAlt, FaMoneyBillAlt, FaThList, FaCog, FaFileAlt, FaLink
@@ -67,6 +68,92 @@ export default function NewListing() {
       <span className="inline-block text-red-500 mx-1">:</span>
     </span>
   );
+
+  async function uploadLogoImage(file: File) {
+    const ext = file.name.split('.').pop();
+    const fileName = `logo/${uuidv4()}.${ext}`;
+    const { error } = await supabase.storage.from('listing-images').upload(fileName, file);
+    if (error) throw error;
+    return fileName;
+  }
+  async function uploadShowcaseImage(file: File) {
+    const ext = file.name.split('.').pop();
+    const fileName = `showcase/${uuidv4()}.${ext}`;
+    const { error } = await supabase.storage.from('listing-images').upload(fileName, file);
+    if (error) throw error;
+    return fileName;
+  }
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!allDocsFilled) {
+      alert('Checklist dokumen hukum harus lengkap!');
+      return;
+    }
+    if (showcaseFiles.length > 5) {
+      alert('Maksimal 5 gambar untuk showcase!');
+      return;
+    }
+    setLoading(true);
+    try {
+      // 1. Upload logo
+      let logoPath = null;
+      if (form.logo_file) {
+        logoPath = await uploadLogoImage(form.logo_file);
+      }
+      // 2. Prepare data
+      const slug = form.franchise_name.toLowerCase().replace(/\s+/g, '-');
+      // 3. Insert listing
+      const { data, error } = await supabase.from('franchise_listings').insert([{
+        franchise_name: form.franchise_name,
+        description: form.description,
+        category: form.category,
+        investment_min: parseInt(form.investment_min || "0"),
+        location: form.location,
+        operation_mode: form.operation_mode,
+        whatsapp_contact: form.whatsapp_contact,
+        email_contact: form.email_contact,
+        website_url: form.website_url,
+        google_maps_url: form.google_maps_url,
+        notes: form.notes,
+        tags: form.tags,
+        slug,
+        logo_url: logoPath,
+      }]).select('id').single();
+      if (error) throw error;
+      const listingId = data.id;
+      // 4. Insert dokumen hukum
+      await Promise.all(
+        legalDocs.map(doc =>
+          supabase.from('legal_documents').insert({
+            listing_id: listingId,
+            document_type: doc.document_type,
+            status: doc.status
+          })
+        )
+      );
+      // 5. Upload & insert showcase images
+      if (showcaseFiles.length > 0) {
+        const showcasePaths = await Promise.all(
+          showcaseFiles.map(file => uploadShowcaseImage(file))
+        );
+        await Promise.all(
+          showcasePaths.map(url =>
+            supabase.from('listing_images').insert({
+              listing_id: listingId,
+              image_url: url,
+            })
+          )
+        );
+      }
+      alert('Listing berhasil ditambahkan!');
+      router.push('/franchisor/manage-listings');
+    } catch (err: any) {
+      alert(`Gagal menambahkan listing. Detail Error: ${JSON.stringify(err)}`);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   function ModalPreview({ show, onClose }: { show: boolean, onClose: () => void }) {
     if (!show) return null;
@@ -168,11 +255,6 @@ export default function NewListing() {
     );
   }
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    alert("Demo, tidak benar-benar submit ke server.");
-  };
-
   return (
     <div className="max-w-3xl mx-auto p-4">
       <h1 className="text-2xl font-bold mb-6">Tambah Listing Franchise</h1>
@@ -180,7 +262,7 @@ export default function NewListing() {
         <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
           <table className="w-full table-fixed border-separate border-spacing-y-4">
             <tbody>
-              {/* Nama Franchise */}
+              {/* Semua field form (Nama Franchise, Kategori, Investasi, Lokasi, dsb)... */}
               <tr>
                 <td className="align-top w-[32%] pr-2"><FormLabel>Nama Franchise</FormLabel></td>
                 <td className="align-middle w-[68%]">
@@ -189,7 +271,6 @@ export default function NewListing() {
                     placeholder="Tulis nama franchise..." />
                 </td>
               </tr>
-              {/* Kategori */}
               <tr>
                 <td className="align-top w-[32%] pr-2"><FormLabel>Kategori</FormLabel></td>
                 <td className="align-middle w-[68%]">
@@ -198,7 +279,6 @@ export default function NewListing() {
                     placeholder="Pilih/isi kategori usaha" />
                 </td>
               </tr>
-              {/* Investasi Minimal */}
               <tr>
                 <td className="align-top w-[32%] pr-2"><FormLabel>Investasi Minimal</FormLabel></td>
                 <td className="align-middle w-[68%]">
@@ -210,7 +290,6 @@ export default function NewListing() {
                   </div>
                 </td>
               </tr>
-              {/* Lokasi */}
               <tr>
                 <td className="align-top w-[32%] pr-2"><FormLabel>Lokasi</FormLabel></td>
                 <td className="align-middle w-[68%]">
@@ -219,7 +298,6 @@ export default function NewListing() {
                     placeholder="Lokasi usaha" />
                 </td>
               </tr>
-              {/* No WhatsApp */}
               <tr>
                 <td className="align-top w-[32%] pr-2"><FormLabel>No WhatsApp</FormLabel></td>
                 <td className="align-middle w-[68%]">
@@ -228,7 +306,6 @@ export default function NewListing() {
                     placeholder="08xxxxxxxxxx" />
                 </td>
               </tr>
-              {/* Email Kontak */}
               <tr>
                 <td className="align-top w-[32%] pr-2"><FormLabel>Email Kontak</FormLabel></td>
                 <td className="align-middle w-[68%]">
@@ -237,7 +314,6 @@ export default function NewListing() {
                     placeholder="nama@email.com" />
                 </td>
               </tr>
-              {/* Website */}
               <tr>
                 <td className="align-top w-[32%] pr-2"><FormLabel>Website (opsional)</FormLabel></td>
                 <td className="align-middle w-[68%]">
@@ -246,7 +322,6 @@ export default function NewListing() {
                     placeholder="https://" />
                 </td>
               </tr>
-              {/* Google Maps URL */}
               <tr>
                 <td className="align-top w-[32%] pr-2"><FormLabel>Google Maps URL (opsional)</FormLabel></td>
                 <td className="align-middle w-[68%]">
@@ -255,7 +330,6 @@ export default function NewListing() {
                     placeholder="https://maps.google.com/..." />
                 </td>
               </tr>
-              {/* Tag */}
               <tr>
                 <td className="align-top w-[32%] pr-2"><FormLabel>Tag</FormLabel></td>
                 <td className="align-middle w-[68%]">
@@ -264,7 +338,6 @@ export default function NewListing() {
                     placeholder="Pisahkan dengan koma (,) jika lebih dari satu" />
                 </td>
               </tr>
-              {/* Deskripsi */}
               <tr>
                 <td className="align-top w-[32%] pr-2 pt-2"><FormLabel>Deskripsi</FormLabel></td>
                 <td className="align-top w-[68%]">
