@@ -42,7 +42,6 @@ export default function NewListing() {
   );
   const allDocsFilled = legalDocs.every(doc => !!doc.status);
 
-  // Showcase files (max 5 gambar)
   const [showcaseFiles, setShowcaseFiles] = useState<File[]>([]);
 
   useEffect(() => {
@@ -64,7 +63,6 @@ export default function NewListing() {
     }
   };
 
-  // Showcase image handler (max 5, ramah user)
   const handleShowcaseChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length > 5) {
@@ -102,7 +100,6 @@ export default function NewListing() {
       const logoPath = form.logo_file ? await uploadImage(form.logo_file, 'logo') : null;
       const slug = form.franchise_name.toLowerCase().replace(/\s+/g, '-');
 
-      // Insert ke franchise_listings (TANPA cover_url!)
       const { data, error } = await supabase.from('franchise_listings').insert([{
         user_id: user?.id,
         franchise_name: form.franchise_name,
@@ -123,7 +120,6 @@ export default function NewListing() {
 
       if (error) throw error;
 
-      // Insert checklist dokumen legal
       await Promise.all(
         legalDocs.map(doc =>
           supabase.from('legal_documents').insert({
@@ -134,7 +130,6 @@ export default function NewListing() {
         )
       );
 
-      // Upload showcase images & insert ke listing_images
       if (showcaseFiles.length > 0) {
         const showcasePaths = await Promise.all(
           showcaseFiles.slice(0, 5).map(file => uploadImage(file, 'showcase'))
@@ -163,110 +158,150 @@ export default function NewListing() {
     <div className="max-w-3xl mx-auto p-4">
       <h1 className="text-2xl font-bold mb-6">Tambah Listing Franchise</h1>
       <form onSubmit={handleSubmit} className="space-y-6">
-        <table className="w-full table-auto border-separate border-spacing-y-4">
-          <tbody>
-            {/* ... fields lain tetap sama ... */}
-            <tr>
-              <td className="w-1/3 font-medium">Nama Franchise</td>
-              <td><input required name="franchise_name" value={form.franchise_name} onChange={handleChange} className="input w-full" /></td>
-            </tr>
-            {/* ... (fields lainnya persis seperti sebelumnya) ... */}
-            <tr>
-              <td className="font-medium align-top pt-2">Deskripsi</td>
-              <td><textarea required name="description" value={form.description} onChange={handleChange} className="textarea w-full" rows={4} /></td>
-            </tr>
-            <tr>
-              <td className="font-medium">Mode Operasional</td>
-              <td>
-                <select required name="operation_mode" value={form.operation_mode} onChange={handleChange} className="select w-full">
-                  <option value="">Pilih...</option>
-                  <option value="autopilot">Autopilot</option>
-                  <option value="semi">Semi Autopilot</option>
-                </select>
-                <p className="text-sm text-gray-500 mt-1">Autopilot berarti mitra tidak perlu ikut terlibat langsung dalam operasional harian. Semi-autopilot berarti mitra tetap punya peran namun sebagian operasional dibantu tim pusat.</p>
-              </td>
-            </tr>
-            {/* Checklist Dokumen Hukum */}
-            <tr>
-              <td className="font-medium align-top">Checklist Dokumen Hukum</td>
-              <td>
-                <div className="overflow-x-auto">
-                  <table className="min-w-[480px] w-full bg-gray-50 rounded-2xl border border-gray-200 shadow-md">
-                    <thead>
-                      <tr className="bg-gray-100">
-                        <th className="py-3 px-4 text-left font-semibold rounded-tl-2xl">Dokumen</th>
-                        <th className="py-3 px-4 text-center font-semibold">Sudah Memiliki</th>
-                        <th className="py-3 px-4 text-center font-semibold rounded-tr-2xl">Akan/Sedang diurus</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {LEGAL_DOCUMENTS.map((doc, idx) => (
-                        <tr key={doc.key} className="border-t border-gray-200">
-                          <td className="py-3 px-4">{doc.label}</td>
-                          {LEGAL_STATUSES.map(status => (
-                            <td key={status.key} className="py-3 px-4 text-center">
-                              <input
-                                type="radio"
-                                name={`doc-status-${doc.key}`}
-                                value={status.key}
-                                checked={legalDocs[idx].status === status.key}
-                                onChange={() => {
-                                  const next = [...legalDocs];
-                                  next[idx].status = status.key;
-                                  setLegalDocs(next);
-                                }}
-                                required
-                                className="form-radio h-5 w-5 text-green-600 border-gray-300 focus:ring-2 focus:ring-blue-300 transition"
-                              />
-                            </td>
-                          ))}
+        {/* CARD KOTAK FORM */}
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+          <table className="w-full table-auto border-separate border-spacing-y-4">
+            <tbody>
+              <tr>
+                <td className="w-1/3 font-medium">Nama Franchise</td>
+                <td><input required name="franchise_name" value={form.franchise_name} onChange={handleChange} className="input w-full" /></td>
+              </tr>
+              <tr>
+                <td className="font-medium align-top pt-2">Deskripsi</td>
+                <td><textarea required name="description" value={form.description} onChange={handleChange} className="textarea w-full" rows={4} /></td>
+              </tr>
+              <tr>
+                <td className="font-medium">Kategori</td>
+                <td><input required name="category" value={form.category} onChange={handleChange} className="input w-full" /></td>
+              </tr>
+              <tr>
+                <td className="font-medium">Investasi Minimal</td>
+                <td>
+                  <div className="flex items-center gap-2">
+                    <span>Rp</span>
+                    <input required type="number" name="investment_min" value={form.investment_min} onChange={handleChange} className="input w-full" />
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td className="font-medium">Lokasi</td>
+                <td><input required name="location" value={form.location} onChange={handleChange} className="input w-full" /></td>
+              </tr>
+              <tr>
+                <td className="font-medium">No WhatsApp</td>
+                <td><input required name="whatsapp_contact" value={form.whatsapp_contact} onChange={handleChange} className="input w-full" /></td>
+              </tr>
+              <tr>
+                <td className="font-medium">Email Kontak</td>
+                <td><input required name="email_contact" value={form.email_contact} onChange={handleChange} className="input w-full" /></td>
+              </tr>
+              <tr>
+                <td className="font-medium">Website (opsional)</td>
+                <td><input name="website_url" value={form.website_url} onChange={handleChange} className="input w-full" /></td>
+              </tr>
+              <tr>
+                <td className="font-medium">Google Maps URL (opsional)</td>
+                <td><input name="google_maps_url" value={form.google_maps_url} onChange={handleChange} className="input w-full" /></td>
+              </tr>
+              <tr>
+                <td className="font-medium">Tag</td>
+                <td><input name="tags" value={form.tags} onChange={handleChange} className="input w-full" /></td>
+              </tr>
+              <tr>
+                <td className="font-medium">Mode Operasional</td>
+                <td>
+                  <select required name="operation_mode" value={form.operation_mode} onChange={handleChange} className="select w-full">
+                    <option value="">Pilih...</option>
+                    <option value="autopilot">Autopilot</option>
+                    <option value="semi">Semi Autopilot</option>
+                  </select>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Autopilot berarti mitra tidak perlu ikut terlibat langsung dalam operasional harian. Semi-autopilot berarti mitra tetap punya peran namun sebagian operasional dibantu tim pusat.
+                  </p>
+                </td>
+              </tr>
+              {/* Checklist Dokumen Hukum */}
+              <tr>
+                <td className="font-medium align-top">Checklist Dokumen Hukum</td>
+                <td>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-[480px] w-full bg-gray-50 rounded-2xl border border-gray-200 shadow-md">
+                      <thead>
+                        <tr className="bg-gray-100">
+                          <th className="py-3 px-4 text-left font-semibold rounded-tl-2xl">Dokumen</th>
+                          <th className="py-3 px-4 text-center font-semibold">Sudah Memiliki</th>
+                          <th className="py-3 px-4 text-center font-semibold rounded-tr-2xl">Akan/Sedang diurus</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  {!allDocsFilled && (
-                    <p className="text-red-500 text-xs mt-2">Semua dokumen harus dipilih statusnya.</p>
-                  )}
-                </div>
-              </td>
-            </tr>
-            {/* Upload logo, showcase */}
-            <tr>
-              <td className="font-medium">Upload Logo</td>
-              <td><input required type="file" name="logo_file" onChange={handleChange} className="file-input file-input-bordered w-full" /></td>
-            </tr>
-            <tr>
-              <td className="font-medium align-top">Upload Showcase (max 5 gambar)</td>
-              <td>
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  onChange={handleShowcaseChange}
-                  className="file-input file-input-bordered w-full"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Upload hingga 5 gambar untuk galeri showcase franchise Anda.
-                </p>
-                <div className="flex gap-2 mt-2 flex-wrap">
-                  <span className="text-xs text-gray-600">
-                    {showcaseFiles.length} / 5 file dipilih
-                  </span>
-                  {showcaseFiles.map((file, idx) => (
-                    <span key={idx} className="inline-block bg-gray-200 px-2 py-1 rounded text-xs">
-                      {file.name}
+                      </thead>
+                      <tbody>
+                        {LEGAL_DOCUMENTS.map((doc, idx) => (
+                          <tr key={doc.key} className="border-t border-gray-200">
+                            <td className="py-3 px-4">{doc.label}</td>
+                            {LEGAL_STATUSES.map(status => (
+                              <td key={status.key} className="py-3 px-4 text-center">
+                                <input
+                                  type="radio"
+                                  name={`doc-status-${doc.key}`}
+                                  value={status.key}
+                                  checked={legalDocs[idx].status === status.key}
+                                  onChange={() => {
+                                    const next = [...legalDocs];
+                                    next[idx].status = status.key;
+                                    setLegalDocs(next);
+                                  }}
+                                  required
+                                  className="form-radio h-5 w-5 text-green-600 border-gray-300 focus:ring-2 focus:ring-blue-300 transition"
+                                />
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    {!allDocsFilled && (
+                      <p className="text-red-500 text-xs mt-2">Semua dokumen harus dipilih statusnya.</p>
+                    )}
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td className="font-medium">Upload Logo</td>
+                <td>
+                  <input required type="file" name="logo_file" onChange={handleChange} className="file-input file-input-bordered w-full" />
+                </td>
+              </tr>
+              <tr>
+                <td className="font-medium align-top">Upload Showcase (max 5 gambar)</td>
+                <td>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleShowcaseChange}
+                    className="file-input file-input-bordered w-full"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Upload hingga 5 gambar untuk galeri showcase franchise Anda.
+                  </p>
+                  <div className="flex gap-2 mt-2 flex-wrap">
+                    <span className="text-xs text-gray-600">
+                      {showcaseFiles.length} / 5 file dipilih
                     </span>
-                  ))}
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td className="font-medium">Catatan Tambahan</td>
-              <td><textarea name="notes" value={form.notes} onChange={handleChange} className="textarea w-full" rows={3} /></td>
-            </tr>
-          </tbody>
-        </table>
-
+                    {showcaseFiles.map((file, idx) => (
+                      <span key={idx} className="inline-block bg-gray-200 px-2 py-1 rounded text-xs">
+                        {file.name}
+                      </span>
+                    ))}
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td className="font-medium">Catatan Tambahan</td>
+                <td><textarea name="notes" value={form.notes} onChange={handleChange} className="textarea w-full" rows={3} /></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
         <button type="submit" disabled={loading} className="btn btn-primary w-full">
           {loading ? 'Menyimpan...' : 'Tambah Listing'}
         </button>
