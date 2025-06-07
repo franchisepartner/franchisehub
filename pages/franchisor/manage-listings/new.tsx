@@ -427,7 +427,11 @@ export default function NewListing() {
             </tbody>
           </table>
         </div>
-        <button type="submit" disabled={loading} className="btn btn-primary w-full">
+        <button
+          type="submit"
+          disabled={loading}
+          className="btn btn-primary w-full border-2 border-green-500 rounded-xl bg-white text-green-700 font-semibold transition shadow hover:bg-green-50"
+        >
           {loading ? 'Menyimpan...' : 'Tambah Listing'}
         </button>
       </form>
