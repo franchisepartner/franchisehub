@@ -37,12 +37,15 @@ export default function NewListing() {
     logo_file: null as File | null,
   });
 
+  // Checklist dokumen hukum
   const [legalDocs, setLegalDocs] = useState(
     LEGAL_DOCUMENTS.map(doc => ({ document_type: doc.key, status: '' }))
   );
   const allDocsFilled = legalDocs.every(doc => !!doc.status);
 
+  // Showcase dipisah dari form utama!
   const [showcaseFiles, setShowcaseFiles] = useState<File[]>([]);
+  const [showcaseInputKey, setShowcaseInputKey] = useState(Date.now());
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -53,7 +56,7 @@ export default function NewListing() {
     fetchUser();
   }, [router]);
 
-  // HANDLE INPUT LEBIH AMAN
+  // Handler input aman
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
@@ -69,7 +72,7 @@ export default function NewListing() {
     }));
   };
 
-  // SHOWCASE HANDLER
+  // Showcase handler fix keyboard bug
   const handleShowcaseChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length > 5) {
@@ -158,6 +161,8 @@ export default function NewListing() {
       alert(`Gagal menambahkan listing. Detail Error: ${JSON.stringify(err)}`);
     } finally {
       setLoading(false);
+      setShowcaseFiles([]);               // reset preview
+      setShowcaseInputKey(Date.now());    // reset input file (fix keyboard bug)
     }
   };
 
@@ -367,6 +372,7 @@ export default function NewListing() {
               <ColonInputRow label="Upload Showcase (max 5 gambar)">
                 <div>
                   <input
+                    key={showcaseInputKey}
                     type="file"
                     multiple
                     accept="image/*"
