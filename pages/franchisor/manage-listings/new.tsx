@@ -315,7 +315,8 @@ export default function NewListing() {
                     <option value="semi">Semi Autopilot</option>
                   </select>
                   <p className="text-sm text-gray-500 mt-1">
-                    Autopilot berarti mitra tidak perlu ikut terlibat langsung dalam operasional harian. Semi-autopilot berarti mitra tetap punya peran namun sebagian operasional dibantu tim pusat.
+                    Autopilot berarti mitra tidak perlu ikut terlibat langsung dalam operasional harian. 
+                    Semi-autopilot berarti mitra tetap punya peran namun sebagian operasional dibantu tim pusat.
                   </p>
                 </td>
               </tr>
