@@ -4,7 +4,6 @@ import { supabase } from '../../../lib/supabaseClient';
 import { v4 as uuidv4 } from 'uuid';
 import type { User } from '@supabase/supabase-js';
 
-// Mapping dokumen hukum & status
 const LEGAL_DOCUMENTS = [
   { key: 'stpw', label: 'STPW (Surat Tanda Pendaftaran Waralaba)' },
   { key: 'legalitas', label: 'Legalitas Badan Usaha (PT/CV, NIB, NPWP)' },
@@ -36,10 +35,8 @@ export default function NewListing() {
     notes: '',
     tags: '',
     logo_file: null as File | null,
-    cover_file: null as File | null,
   });
 
-  // Checklist dokumen
   const [legalDocs, setLegalDocs] = useState(
     LEGAL_DOCUMENTS.map(doc => ({ document_type: doc.key, status: '' }))
   );
@@ -103,10 +100,9 @@ export default function NewListing() {
 
     try {
       const logoPath = form.logo_file ? await uploadImage(form.logo_file, 'logo') : null;
-      const coverPath = form.cover_file ? await uploadImage(form.cover_file, 'cover') : null;
       const slug = form.franchise_name.toLowerCase().replace(/\s+/g, '-');
 
-      // Insert ke franchise_listings
+      // Insert ke franchise_listings (TANPA cover_url!)
       const { data, error } = await supabase.from('franchise_listings').insert([{
         user_id: user?.id,
         franchise_name: form.franchise_name,
@@ -123,7 +119,6 @@ export default function NewListing() {
         tags: form.tags,
         slug,
         logo_url: logoPath,
-        cover_url: coverPath,
       }]).select('id').single();
 
       if (error) throw error;
@@ -235,14 +230,10 @@ export default function NewListing() {
                 </div>
               </td>
             </tr>
-            {/* Upload logo, cover, showcase */}
+            {/* Upload logo, showcase */}
             <tr>
               <td className="font-medium">Upload Logo</td>
               <td><input required type="file" name="logo_file" onChange={handleChange} className="file-input file-input-bordered w-full" /></td>
-            </tr>
-            <tr>
-              <td className="font-medium">Upload Cover</td>
-              <td><input required type="file" name="cover_file" onChange={handleChange} className="file-input file-input-bordered w-full" /></td>
             </tr>
             <tr>
               <td className="font-medium align-top">Upload Showcase (max 5 gambar)</td>
