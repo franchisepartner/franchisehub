@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import {
   FaStore, FaMapMarkerAlt, FaMoneyBillAlt, FaThList,
-  FaInfoCircle, FaFileAlt, FaLink, FaCog
+  FaInfoCircle, FaFileAlt, FaLink, FaCog, FaShareAlt
 } from 'react-icons/fa';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Autoplay } from 'swiper/modules';
@@ -54,13 +54,10 @@ export default function FranchiseDetail() {
   const [loading, setLoading] = useState(true);
   const [activeSlide, setActiveSlide] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  // For Mode Operasi info popup
+  const [shareMsg, setShareMsg] = useState('');
   const [showOpInfo, setShowOpInfo] = useState(false);
-  // For modal full image
   const [showModal, setShowModal] = useState(false);
   const [modalImg, setModalImg] = useState<string | null>(null);
-  // Untuk login session
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
@@ -78,7 +75,6 @@ export default function FranchiseDetail() {
     setLoading(true);
 
     const fetchAll = async () => {
-      // Data utama franchise
       const { data, error } = await supabase
         .from('franchise_listings')
         .select('*')
@@ -91,14 +87,12 @@ export default function FranchiseDetail() {
       }
       setFranchise(data);
 
-      // Legal Documents
       const { data: docs } = await supabase
         .from('legal_documents')
         .select('*')
         .eq('listing_id', data.id);
       setLegalDocs(docs || []);
 
-      // Cover images (slider)
       const { data: images } = await supabase
         .from('listing_images')
         .select('*')
@@ -110,8 +104,7 @@ export default function FranchiseDetail() {
           .map(img => supabase.storage.from('listing-images').getPublicUrl(img.image_url).data.publicUrl) || [];
       setShowcaseUrls(urls);
 
-      // --- Showcase Karya, dikelompokkan ---
-      // Listings
+      // Listing
       const { data: allListings } = await supabase
         .from('franchise_listings')
         .select('id, franchise_name, logo_url, slug, created_at')
@@ -141,7 +134,7 @@ export default function FranchiseDetail() {
           ...item,
           type: 'blog',
           title: item.title,
-          image: item.cover_url, // <= gunakan raw cover_url dari database (path atau url)
+          image: item.cover_url,
           url: `/detail/${item.slug}`,
           date: item.created_at,
         }))
@@ -192,6 +185,42 @@ export default function FranchiseDetail() {
               />
             ))}
           </div>
+          {/* Tombol share */}
+          <button
+            className="absolute bottom-4 right-4 z-30 bg-white/90 hover:bg-blue-600 hover:text-white text-blue-600 rounded-full shadow-lg p-3 transition"
+            onClick={async () => {
+              const url = typeof window !== 'undefined' ? window.location.href : '';
+              if (navigator.share) {
+                try {
+                  await navigator.share({
+                    title: franchise?.franchise_name || 'Franchise',
+                    url,
+                  });
+                  setShareMsg('Berhasil dibagikan!');
+                } catch {
+                  setShareMsg('Gagal membagikan!');
+                }
+              } else {
+                try {
+                  await navigator.clipboard.writeText(url);
+                  setShareMsg('Link disalin!');
+                } catch {
+                  setShareMsg('Gagal menyalin link!');
+                }
+              }
+              setTimeout(() => setShareMsg(''), 2000);
+            }}
+            aria-label="Bagikan"
+            type="button"
+          >
+            <FaShareAlt size={20} />
+          </button>
+          {/* Feedback share */}
+          {shareMsg && (
+            <div className="absolute bottom-16 right-4 z-40 bg-blue-700 text-white rounded-lg px-4 py-2 text-sm shadow">
+              {shareMsg}
+            </div>
+          )}
         </div>
       )}
 
