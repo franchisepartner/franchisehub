@@ -4,7 +4,7 @@ import { supabase } from '../../../lib/supabaseClient';
 import { v4 as uuidv4 } from 'uuid';
 import type { User } from '@supabase/supabase-js';
 
-// --- mapping dokumen hukum & status (bisa dipindah ke lib/legalDocuments.ts) ---
+// Mapping dokumen hukum & status
 const LEGAL_DOCUMENTS = [
   { key: 'stpw', label: 'STPW (Surat Tanda Pendaftaran Waralaba)' },
   { key: 'legalitas', label: 'Legalitas Badan Usaha (PT/CV, NIB, NPWP)' },
@@ -38,12 +38,11 @@ export default function NewListing() {
     logo_file: null as File | null,
     cover_file: null as File | null,
   });
-  // State untuk checklist dokumen
+
+  // Checklist dokumen
   const [legalDocs, setLegalDocs] = useState(
     LEGAL_DOCUMENTS.map(doc => ({ document_type: doc.key, status: '' }))
   );
-
-  // Validasi semua dokumen terisi
   const allDocsFilled = legalDocs.every(doc => !!doc.status);
 
   useEffect(() => {
@@ -85,7 +84,6 @@ export default function NewListing() {
     setLoading(true);
 
     try {
-      // Upload logo & cover ke Supabase Storage
       const logoPath = form.logo_file ? await uploadImage(form.logo_file, 'logo') : null;
       const coverPath = form.cover_file ? await uploadImage(form.cover_file, 'cover') : null;
       const slug = form.franchise_name.toLowerCase().replace(/\s+/g, '-');
@@ -199,31 +197,44 @@ export default function NewListing() {
             <tr>
               <td className="font-medium align-top">Checklist Dokumen Hukum</td>
               <td>
-                <div className="flex flex-col gap-2">
-                  {LEGAL_DOCUMENTS.map((doc, idx) => (
-                    <div key={doc.key} className="flex items-center gap-3">
-                      <span className="w-56">{doc.label}</span>
-                      {LEGAL_STATUSES.map(status => (
-                        <label key={status.key} className="inline-flex items-center mr-4">
-                          <input
-                            type="radio"
-                            name={`doc-status-${doc.key}`}
-                            value={status.key}
-                            checked={legalDocs[idx].status === status.key}
-                            onChange={() => {
-                              const next = [...legalDocs];
-                              next[idx].status = status.key;
-                              setLegalDocs(next);
-                            }}
-                            required
-                          />
-                          <span className="ml-1">{status.label}</span>
-                        </label>
+                <div className="overflow-x-auto">
+                  <table className="min-w-[480px] w-full bg-gray-50 rounded-2xl border border-gray-200 shadow-md">
+                    <thead>
+                      <tr className="bg-gray-100">
+                        <th className="py-3 px-4 text-left font-semibold rounded-tl-2xl">Dokumen</th>
+                        <th className="py-3 px-4 text-center font-semibold">Sudah Memiliki</th>
+                        <th className="py-3 px-4 text-center font-semibold rounded-tr-2xl">Akan/Sedang diurus</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {LEGAL_DOCUMENTS.map((doc, idx) => (
+                        <tr key={doc.key} className="border-t border-gray-200">
+                          <td className="py-3 px-4">{doc.label}</td>
+                          {LEGAL_STATUSES.map(status => (
+                            <td key={status.key} className="py-3 px-4 text-center">
+                              <input
+                                type="radio"
+                                name={`doc-status-${doc.key}`}
+                                value={status.key}
+                                checked={legalDocs[idx].status === status.key}
+                                onChange={() => {
+                                  const next = [...legalDocs];
+                                  next[idx].status = status.key;
+                                  setLegalDocs(next);
+                                }}
+                                required
+                                className="form-radio h-5 w-5 text-green-600 border-gray-300 focus:ring-2 focus:ring-blue-300 transition"
+                              />
+                            </td>
+                          ))}
+                        </tr>
                       ))}
-                    </div>
-                  ))}
+                    </tbody>
+                  </table>
+                  {!allDocsFilled && (
+                    <p className="text-red-500 text-xs mt-2">Semua dokumen harus dipilih statusnya.</p>
+                  )}
                 </div>
-                {!allDocsFilled && <p className="text-red-500 text-xs mt-2">Semua dokumen harus dipilih statusnya.</p>}
               </td>
             </tr>
             <tr>
