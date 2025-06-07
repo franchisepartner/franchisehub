@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '../../../lib/supabaseClient';
 import { v4 as uuidv4 } from 'uuid';
-import { FaInfoCircle, FaStore, FaMapMarkerAlt, FaMoneyBillAlt, FaThList, FaCog, FaFileAlt, FaLink } from 'react-icons/fa';
+import { FaInfoCircle, FaStore, FaMapMarkerAlt, FaMoneyBillAlt, FaThList, FaCog, FaFileAlt, FaLink, FaImage } from 'react-icons/fa';
 
 const LEGAL_DOCUMENTS = [
   { key: 'stpw', label: 'STPW (Surat Tanda Pendaftaran Waralaba)' },
@@ -21,7 +21,6 @@ export default function NewListing() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const [showOpInfo, setShowOpInfo] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
 
   const [form, setForm] = useState({
@@ -46,7 +45,6 @@ export default function NewListing() {
   const allDocsFilled = legalDocs.every(doc => !!doc.status);
   const [showcaseFiles, setShowcaseFiles] = useState<File[]>([]);
 
-  // === Ambil user dari Supabase Auth ===
   useEffect(() => {
     const fetchUser = async () => {
       const { data } = await supabase.auth.getUser();
@@ -78,7 +76,6 @@ export default function NewListing() {
     </span>
   );
 
-  // === UPLOAD LOGO ===
   const uploadLogoImage = async (file: File) => {
     const fileExt = file.name.split('.').pop();
     const fileName = `logo/${uuidv4()}.${fileExt}`;
@@ -87,7 +84,6 @@ export default function NewListing() {
     return fileName;
   };
 
-  // === SUBMIT ===
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!user) {
@@ -371,9 +367,27 @@ export default function NewListing() {
                     <option value="autopilot">Autopilot</option>
                     <option value="semi">Semi Autopilot</option>
                   </select>
-                  <div className="mt-2 space-y-1 text-[15px]">
-                    <div><span className="font-semibold">Autopilot</span><span className="text-gray-600"> — Mitra tidak perlu ikut terlibat langsung dalam operasional harian.</span></div>
-                    <div><span className="font-semibold">Semi Autopilot</span><span className="text-gray-600"> — Mitra tetap punya peran namun sebagian operasional dibantu tim pusat.</span></div>
+                  {/* Penjelasan Autopilot & Semi */}
+                  <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-xs flex flex-col">
+                      <div className="font-bold text-blue-600 mb-1 flex items-center gap-1"><FaCog /> Autopilot</div>
+                      <ul className="list-disc pl-5 mb-1">
+                        <li>Mitra tidak perlu terlibat langsung dalam operasional harian.</li>
+                        <li>Seluruh aktivitas dijalankan oleh tim pusat/franchisor.</li>
+                        <li>Mitra tetap menerima laporan dan hasil bisnis secara rutin.</li>
+                        <li>Cocok untuk investor yang ingin bisnis berjalan otomatis.</li>
+                      </ul>
+                      <span className="text-[11px] text-gray-500">“Autopilot berarti seluruh operasional harian bisnis dijalankan oleh tim pusat/franchisor, mitra hanya menerima laporan dan hasil.”</span>
+                    </div>
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-3 text-xs flex flex-col">
+                      <div className="font-bold text-yellow-600 mb-1 flex items-center gap-1"><FaCog /> Semi Autopilot</div>
+                      <ul className="list-disc pl-5 mb-1">
+                        <li>Mitra menjalankan sendiri operasional harian bisnis.</li>
+                        <li>Franchisor hanya sebagai pemberi dukungan teknis, pelatihan, SOP, dan pemasaran pusat.</li>
+                        <li>Cocok untuk mitra yang ingin aktif terjun dan mengelola bisnis sendiri namun tetap mendapat pendampingan dari franchisor.</li>
+                      </ul>
+                      <span className="text-[11px] text-gray-500">“Semi-autopilot berarti mitra sebagai pihak utama yang menjalankan operasional bisnis harian, sementara franchisor hanya sebagai pemberi dukungan teknis.”</span>
+                    </div>
                   </div>
                 </td>
               </tr>
@@ -430,7 +444,18 @@ export default function NewListing() {
               </tr>
               {/* Upload Showcase */}
               <tr>
-                <td className="align-top w-[32%] pr-2"><FormLabel>Upload Showcase (max 5 gambar)</FormLabel></td>
+                <td className="align-top w-[32%] pr-2">
+                  <FormLabel>
+                    Upload Showcase (max 5 gambar)
+                  </FormLabel>
+                  <div className="flex items-center gap-2 text-xs mt-1 text-gray-500">
+                    <FaImage className="text-blue-400" />
+                    <span>
+                      **Disarankan gambar lebar (landscape), minimal <b>1200 x 360 px</b>. <br />
+                      Di halaman franchise, gambar akan dicrop otomatis dengan tinggi 220px, lebar penuh.**
+                    </span>
+                  </div>
+                </td>
                 <td className="align-top w-[68%]">
                   <input type="file" multiple accept="image/*" onChange={handleShowcaseChange} className="file-input file-input-bordered w-full max-w-xl"/>
                   <p className="text-xs text-gray-500 mt-1">
