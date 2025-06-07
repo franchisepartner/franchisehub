@@ -314,10 +314,16 @@ export default function NewListing() {
                     <option value="autopilot">Autopilot</option>
                     <option value="semi">Semi Autopilot</option>
                   </select>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Autopilot berarti mitra tidak perlu ikut terlibat langsung dalam operasional harian. 
-                    Semi-autopilot berarti mitra tetap punya peran namun sebagian operasional dibantu tim pusat.
-                  </p>
+                  <div className="mt-2 space-y-1 text-[15px]">
+                    <div>
+                      <span className="font-semibold">Autopilot</span>
+                      <span className="text-gray-600"> — Mitra tidak perlu ikut terlibat langsung dalam operasional harian.</span>
+                    </div>
+                    <div>
+                      <span className="font-semibold">Semi Autopilot</span>
+                      <span className="text-gray-600"> — Mitra tetap punya peran namun sebagian operasional dibantu tim pusat.</span>
+                    </div>
+                  </div>
                 </td>
               </tr>
               {/* Checklist Dokumen Hukum */}
