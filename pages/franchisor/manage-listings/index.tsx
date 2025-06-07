@@ -11,7 +11,6 @@ export default function ManageListings() {
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const router = useRouter();
 
-  // Ambil user & role
   useEffect(() => {
     const fetchData = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -21,7 +20,7 @@ export default function ManageListings() {
       }
       setUser(user);
 
-      // Cek role di profiles (role/is_admin)
+      // Cek role di profiles
       const { data: profile } = await supabase
         .from('profiles')
         .select('role, is_admin')
@@ -29,13 +28,13 @@ export default function ManageListings() {
         .single();
       if (profile?.role === 'administrator' || profile?.is_admin) setIsAdmin(true);
 
-      // --- AMBIL LISTING ---
+      // Listing franchise
       let query = supabase.from('franchise_listings').select('*').order('created_at', { ascending: false });
       if (!profile?.is_admin && profile?.role !== 'administrator') query = query.eq('user_id', user.id);
       const { data: listingsData } = await query;
       setListings(listingsData || []);
 
-      // --- AMBIL BLOG ---
+      // Blog
       let blogQuery = supabase.from('blogs').select('*').order('created_at', { ascending: false });
       if (!profile?.is_admin && profile?.role !== 'administrator') blogQuery = blogQuery.eq('created_by', user.id);
       const { data: blogData } = await blogQuery;
@@ -44,20 +43,49 @@ export default function ManageListings() {
     fetchData();
   }, [router]);
 
-  // Hapus listing
+  // ---- HAPUS LISTING (semua data & file Storage) ----
   const handleDeleteListing = async (id: string) => {
-    if (!window.confirm('Yakin ingin menghapus listing ini?')) return;
+    if (!window.confirm('Yakin ingin menghapus seluruh listing ini beserta semua gambar dan dokumen?')) return;
     setLoadingId(id);
+
+    // 1. Ambil detail listing (logo_url)
+    const { data: listing } = await supabase.from('franchise_listings').select('logo_url').eq('id', id).single();
+    // 2. Ambil semua showcase dari listing_images
+    const { data: images } = await supabase.from('listing_images').select('image_url').eq('listing_id', id);
+
+    // 3. Hapus file Storage: logo + showcase
+    const allFilePaths = [
+      ...(listing?.logo_url ? [listing.logo_url] : []),
+      ...(images ? images.map(img => img.image_url) : []),
+    ];
+    if (allFilePaths.length > 0) {
+      await supabase.storage.from('listing-images').remove(allFilePaths);
+    }
+
+    // 4. Hapus legal_documents (DB)
+    await supabase.from('legal_documents').delete().eq('listing_id', id);
+    // 5. Hapus listing_images (DB)
+    await supabase.from('listing_images').delete().eq('listing_id', id);
+    // 6. Hapus franchise_listings (DB)
     await supabase.from('franchise_listings').delete().eq('id', id);
+
     setListings(prev => prev.filter(item => item.id !== id));
     setLoadingId(null);
   };
 
-  // Hapus blog
+  // ---- HAPUS BLOG (data & cover Storage) ----
   const handleDeleteBlog = async (id: string) => {
     if (!window.confirm('Yakin ingin menghapus blog ini?')) return;
     setLoadingId(id);
+
+    // 1. Ambil cover_url
+    const { data: blog } = await supabase.from('blogs').select('cover_url').eq('id', id).single();
+    if (blog?.cover_url) {
+      await supabase.storage.from('blog-assets').remove([blog.cover_url]);
+    }
+    // 2. Hapus DB
     await supabase.from('blogs').delete().eq('id', id);
+
     setBlogs(prev => prev.filter(item => item.id !== id));
     setLoadingId(null);
   };
