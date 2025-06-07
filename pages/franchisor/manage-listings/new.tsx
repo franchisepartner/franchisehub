@@ -153,8 +153,9 @@ export default function NewListing() {
     }
   };
 
+  // Label tanpa nowrap!
   const FormLabel = ({ children }: { children: string }) => (
-    <span className="font-medium text-gray-700 whitespace-nowrap">
+    <span className="font-medium text-gray-700 break-words">
       {children}
       <span className="inline-block text-red-500 mx-1">:</span>
     </span>
@@ -168,7 +169,7 @@ export default function NewListing() {
           <table className="w-full table-fixed border-separate border-spacing-y-4">
             <tbody>
               <tr>
-                <td className="align-middle w-[32%] sm:w-1/4 pr-4 text-right"><FormLabel>Nama Franchise</FormLabel></td>
+                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px] sm:max-w-xs md:max-w-sm"><FormLabel>Nama Franchise</FormLabel></td>
                 <td className="align-middle w-[68%] sm:w-3/4">
                   <input
                     required
@@ -181,7 +182,7 @@ export default function NewListing() {
                 </td>
               </tr>
               <tr>
-                <td className="align-top w-[32%] sm:w-1/4 pr-4 pt-2 text-right"><FormLabel>Deskripsi</FormLabel></td>
+                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px] sm:max-w-xs md:max-w-sm pt-2"><FormLabel>Deskripsi</FormLabel></td>
                 <td className="align-top w-[68%] sm:w-3/4">
                   <textarea
                     required
@@ -195,7 +196,7 @@ export default function NewListing() {
                 </td>
               </tr>
               <tr>
-                <td className="align-middle w-[32%] sm:w-1/4 pr-4 text-right"><FormLabel>Kategori</FormLabel></td>
+                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px] sm:max-w-xs md:max-w-sm"><FormLabel>Kategori</FormLabel></td>
                 <td className="align-middle w-[68%] sm:w-3/4">
                   <input
                     required
@@ -208,7 +209,7 @@ export default function NewListing() {
                 </td>
               </tr>
               <tr>
-                <td className="align-middle w-[32%] sm:w-1/4 pr-4 text-right"><FormLabel>Investasi Minimal</FormLabel></td>
+                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px] sm:max-w-xs md:max-w-sm"><FormLabel>Investasi Minimal</FormLabel></td>
                 <td className="align-middle w-[68%] sm:w-3/4">
                   <div className="flex items-center gap-2">
                     <span>Rp</span>
@@ -225,7 +226,7 @@ export default function NewListing() {
                 </td>
               </tr>
               <tr>
-                <td className="align-middle w-[32%] sm:w-1/4 pr-4 text-right"><FormLabel>Lokasi</FormLabel></td>
+                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px] sm:max-w-xs md:max-w-sm"><FormLabel>Lokasi</FormLabel></td>
                 <td className="align-middle w-[68%] sm:w-3/4">
                   <input
                     required
@@ -238,7 +239,7 @@ export default function NewListing() {
                 </td>
               </tr>
               <tr>
-                <td className="align-middle w-[32%] sm:w-1/4 pr-4 text-right"><FormLabel>No WhatsApp</FormLabel></td>
+                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px] sm:max-w-xs md:max-w-sm"><FormLabel>No WhatsApp</FormLabel></td>
                 <td className="align-middle w-[68%] sm:w-3/4">
                   <input
                     required
@@ -251,7 +252,7 @@ export default function NewListing() {
                 </td>
               </tr>
               <tr>
-                <td className="align-middle w-[32%] sm:w-1/4 pr-4 text-right"><FormLabel>Email Kontak</FormLabel></td>
+                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px] sm:max-w-xs md:max-w-sm"><FormLabel>Email Kontak</FormLabel></td>
                 <td className="align-middle w-[68%] sm:w-3/4">
                   <input
                     required
@@ -264,7 +265,7 @@ export default function NewListing() {
                 </td>
               </tr>
               <tr>
-                <td className="align-middle w-[32%] sm:w-1/4 pr-4 text-right"><FormLabel>Website (opsional)</FormLabel></td>
+                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px] sm:max-w-xs md:max-w-sm"><FormLabel>Website (opsional)</FormLabel></td>
                 <td className="align-middle w-[68%] sm:w-3/4">
                   <input
                     name="website_url"
@@ -276,7 +277,7 @@ export default function NewListing() {
                 </td>
               </tr>
               <tr>
-                <td className="align-middle w-[32%] sm:w-1/4 pr-4 text-right"><FormLabel>Google Maps URL (opsional)</FormLabel></td>
+                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px] sm:max-w-xs md:max-w-sm"><FormLabel>Google Maps URL (opsional)</FormLabel></td>
                 <td className="align-middle w-[68%] sm:w-3/4">
                   <input
                     name="google_maps_url"
@@ -288,7 +289,7 @@ export default function NewListing() {
                 </td>
               </tr>
               <tr>
-                <td className="align-middle w-[32%] sm:w-1/4 pr-4 text-right"><FormLabel>Tag</FormLabel></td>
+                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px] sm:max-w-xs md:max-w-sm"><FormLabel>Tag</FormLabel></td>
                 <td className="align-middle w-[68%] sm:w-3/4">
                   <input
                     name="tags"
@@ -300,7 +301,7 @@ export default function NewListing() {
                 </td>
               </tr>
               <tr>
-                <td className="align-middle w-[32%] sm:w-1/4 pr-4 text-right"><FormLabel>Mode Operasional</FormLabel></td>
+                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px] sm:max-w-xs md:max-w-sm"><FormLabel>Mode Operasional</FormLabel></td>
                 <td className="align-middle w-[68%] sm:w-3/4">
                   <select
                     required
@@ -320,7 +321,7 @@ export default function NewListing() {
               </tr>
               {/* Checklist Dokumen Hukum */}
               <tr>
-                <td className="align-top w-[32%] sm:w-1/4 pr-4 text-right">
+                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px] sm:max-w-xs md:max-w-sm">
                   <FormLabel>Checklist Dokumen Hukum</FormLabel>
                 </td>
                 <td className="align-top w-[68%] sm:w-3/4">
@@ -366,7 +367,7 @@ export default function NewListing() {
               </tr>
               {/* Upload Logo */}
               <tr>
-                <td className="align-middle w-[32%] sm:w-1/4 pr-4 text-right">
+                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px] sm:max-w-xs md:max-w-sm">
                   <FormLabel>Upload Logo</FormLabel>
                 </td>
                 <td className="align-middle w-[68%] sm:w-3/4">
@@ -381,7 +382,7 @@ export default function NewListing() {
               </tr>
               {/* Upload Showcase */}
               <tr>
-                <td className="align-top w-[32%] sm:w-1/4 pr-4 text-right">
+                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px] sm:max-w-xs md:max-w-sm">
                   <FormLabel>Upload Showcase (max 5 gambar)</FormLabel>
                 </td>
                 <td className="align-top w-[68%] sm:w-3/4">
@@ -409,7 +410,7 @@ export default function NewListing() {
               </tr>
               {/* Catatan Tambahan */}
               <tr>
-                <td className="align-top w-[32%] sm:w-1/4 pr-4 text-right">
+                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px] sm:max-w-xs md:max-w-sm">
                   <FormLabel>Catatan Tambahan</FormLabel>
                 </td>
                 <td className="align-top w-[68%] sm:w-3/4">
