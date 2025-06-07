@@ -158,7 +158,7 @@ export default function FranchiseDetail() {
   if (!franchise) return <div className="p-8 text-center text-red-500">Franchise tidak ditemukan.</div>;
 
   return (
-    <div className="max-w-3xl mx-auto px-2 py-8">
+    <div className="bg-white rounded-2xl border border-gray-200 shadow-lg max-w-3xl mx-auto px-2 py-8">
       {/* SLIDER COVER + CLICK FOR FULL IMAGE */}
       {showcaseUrls.length > 0 && (
         <div className="mb-6 relative rounded-2xl shadow overflow-hidden" style={{height: '220px'}}>
