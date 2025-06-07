@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '../../../lib/supabaseClient';
 import { v4 as uuidv4 } from 'uuid';
@@ -47,7 +47,6 @@ export default function NewListing() {
   const allDocsFilled = legalDocs.every(doc => !!doc.status);
   const [showcaseFiles, setShowcaseFiles] = useState<File[]>([]);
 
-  // --- HANDLER ---
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const target = e.target as HTMLInputElement;
     const { name, value, type, files } = target;
@@ -63,7 +62,6 @@ export default function NewListing() {
     setShowcaseFiles(files.slice(0, 5));
   };
 
-  // --- FORM LABEL ---
   const FormLabel = ({ children }: { children: string }) => (
     <span className="font-medium text-gray-700 break-words">
       {children}
@@ -71,7 +69,6 @@ export default function NewListing() {
     </span>
   );
 
-  // --- MODAL PREVIEW (ala slug/detail franchise) ---
   function ModalPreview({ show, onClose }: { show: boolean, onClose: () => void }) {
     if (!show) return null;
     return (
@@ -184,10 +181,103 @@ export default function NewListing() {
         <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
           <table className="w-full table-fixed border-separate border-spacing-y-4">
             <tbody>
-              {/* ...SEMUA FIELD, TERMASUK TOOLTIP MODE OPERASIONAL... */}
+              {/* Nama Franchise */}
               <tr>
-                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px]"><FormLabel>Mode Operasional</FormLabel></td>
-                <td className="align-middle w-[68%] sm:w-3/4">
+                <td className="align-top w-[32%] pr-2"><FormLabel>Nama Franchise</FormLabel></td>
+                <td className="align-middle w-[68%]">
+                  <input required name="franchise_name" value={form.franchise_name} onChange={handleChange}
+                    className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
+                    placeholder="Tulis nama franchise..." />
+                </td>
+              </tr>
+              {/* Kategori */}
+              <tr>
+                <td className="align-top w-[32%] pr-2"><FormLabel>Kategori</FormLabel></td>
+                <td className="align-middle w-[68%]">
+                  <input required name="category" value={form.category} onChange={handleChange}
+                    className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
+                    placeholder="Pilih/isi kategori usaha" />
+                </td>
+              </tr>
+              {/* Investasi Minimal */}
+              <tr>
+                <td className="align-top w-[32%] pr-2"><FormLabel>Investasi Minimal</FormLabel></td>
+                <td className="align-middle w-[68%]">
+                  <div className="flex items-center gap-2">
+                    <span>Rp</span>
+                    <input required type="number" name="investment_min" value={form.investment_min} onChange={handleChange}
+                      className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
+                      placeholder="Jumlah" />
+                  </div>
+                </td>
+              </tr>
+              {/* Lokasi */}
+              <tr>
+                <td className="align-top w-[32%] pr-2"><FormLabel>Lokasi</FormLabel></td>
+                <td className="align-middle w-[68%]">
+                  <input required name="location" value={form.location} onChange={handleChange}
+                    className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
+                    placeholder="Lokasi usaha" />
+                </td>
+              </tr>
+              {/* No WhatsApp */}
+              <tr>
+                <td className="align-top w-[32%] pr-2"><FormLabel>No WhatsApp</FormLabel></td>
+                <td className="align-middle w-[68%]">
+                  <input required name="whatsapp_contact" value={form.whatsapp_contact} onChange={handleChange}
+                    className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
+                    placeholder="08xxxxxxxxxx" />
+                </td>
+              </tr>
+              {/* Email Kontak */}
+              <tr>
+                <td className="align-top w-[32%] pr-2"><FormLabel>Email Kontak</FormLabel></td>
+                <td className="align-middle w-[68%]">
+                  <input required name="email_contact" value={form.email_contact} onChange={handleChange}
+                    className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
+                    placeholder="nama@email.com" />
+                </td>
+              </tr>
+              {/* Website */}
+              <tr>
+                <td className="align-top w-[32%] pr-2"><FormLabel>Website (opsional)</FormLabel></td>
+                <td className="align-middle w-[68%]">
+                  <input name="website_url" value={form.website_url} onChange={handleChange}
+                    className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
+                    placeholder="https://" />
+                </td>
+              </tr>
+              {/* Google Maps URL */}
+              <tr>
+                <td className="align-top w-[32%] pr-2"><FormLabel>Google Maps URL (opsional)</FormLabel></td>
+                <td className="align-middle w-[68%]">
+                  <input name="google_maps_url" value={form.google_maps_url} onChange={handleChange}
+                    className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
+                    placeholder="https://maps.google.com/..." />
+                </td>
+              </tr>
+              {/* Tag */}
+              <tr>
+                <td className="align-top w-[32%] pr-2"><FormLabel>Tag</FormLabel></td>
+                <td className="align-middle w-[68%]">
+                  <input name="tags" value={form.tags} onChange={handleChange}
+                    className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
+                    placeholder="Pisahkan dengan koma (,) jika lebih dari satu" />
+                </td>
+              </tr>
+              {/* Deskripsi */}
+              <tr>
+                <td className="align-top w-[32%] pr-2 pt-2"><FormLabel>Deskripsi</FormLabel></td>
+                <td className="align-top w-[68%]">
+                  <textarea required name="description" value={form.description} onChange={handleChange}
+                    className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition resize-none"
+                    rows={3} placeholder="Tuliskan deskripsi usaha..." />
+                </td>
+              </tr>
+              {/* Mode Operasional + Tooltip */}
+              <tr>
+                <td className="align-top w-[32%] pr-2"><FormLabel>Mode Operasional</FormLabel></td>
+                <td className="align-middle w-[68%]">
                   <div className="flex items-center gap-2 relative">
                     <select
                       required
@@ -252,10 +342,10 @@ export default function NewListing() {
                   </div>
                 </td>
               </tr>
-              {/* ...LANJUTKAN FIELD: Checklist Dokumen, Upload Logo, Showcase, dsb... */}
+              {/* Checklist Dokumen Hukum */}
               <tr>
-                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px]"><FormLabel>Checklist Dokumen Hukum</FormLabel></td>
-                <td className="align-top w-[68%] sm:w-3/4">
+                <td className="align-top w-[32%] pr-2"><FormLabel>Checklist Dokumen Hukum</FormLabel></td>
+                <td className="align-top w-[68%]">
                   <div className="overflow-x-auto">
                     <table className="min-w-[480px] w-full bg-gray-50 rounded-2xl border border-gray-200 shadow-md">
                       <thead>
@@ -298,21 +388,15 @@ export default function NewListing() {
               </tr>
               {/* Upload Logo */}
               <tr>
-                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px]"><FormLabel>Upload Logo</FormLabel></td>
-                <td className="align-middle w-[68%] sm:w-3/4">
-                  <input
-                    required
-                    type="file"
-                    name="logo_file"
-                    onChange={handleChange}
-                    className="file-input file-input-bordered w-full max-w-xl"
-                  />
+                <td className="align-top w-[32%] pr-2"><FormLabel>Upload Logo</FormLabel></td>
+                <td className="align-middle w-[68%]">
+                  <input required type="file" name="logo_file" onChange={handleChange} className="file-input file-input-bordered w-full max-w-xl" />
                 </td>
               </tr>
               {/* Upload Showcase */}
               <tr>
-                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px]"><FormLabel>Upload Showcase (max 5 gambar)</FormLabel></td>
-                <td className="align-top w-[68%] sm:w-3/4">
+                <td className="align-top w-[32%] pr-2"><FormLabel>Upload Showcase (max 5 gambar)</FormLabel></td>
+                <td className="align-top w-[68%]">
                   <input
                     type="file"
                     multiple
@@ -337,8 +421,8 @@ export default function NewListing() {
               </tr>
               {/* Catatan Tambahan */}
               <tr>
-                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px]"><FormLabel>Catatan Tambahan</FormLabel></td>
-                <td className="align-top w-[68%] sm:w-3/4">
+                <td className="align-top w-[32%] pr-2"><FormLabel>Catatan Tambahan</FormLabel></td>
+                <td className="align-top w-[68%]">
                   <textarea
                     name="notes"
                     value={form.notes}
