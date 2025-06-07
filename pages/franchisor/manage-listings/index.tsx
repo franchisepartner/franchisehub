@@ -163,17 +163,14 @@ export default function ManageListings() {
                   <FaEye className="text-blue-700" />
                 </button>
                 {(isAdmin || user?.id === blog.created_by) && (
-                  <>
-                    </button>
-                    <button
-                      onClick={() => handleDeleteBlog(blog.id)}
-                      className="p-2 bg-gray-100 rounded hover:bg-red-100 transition"
-                      disabled={loadingId === blog.id}
-                      title="Hapus"
-                    >
-                      <FaTrash className="text-red-600" />
-                    </button>
-                  </>
+                  <button
+                    onClick={() => handleDeleteBlog(blog.id)}
+                    className="p-2 bg-gray-100 rounded hover:bg-red-100 transition"
+                    disabled={loadingId === blog.id}
+                    title="Hapus"
+                  >
+                    <FaTrash className="text-red-600" />
+                  </button>
                 )}
               </div>
             </li>
