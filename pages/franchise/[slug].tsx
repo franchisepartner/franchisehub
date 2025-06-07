@@ -45,7 +45,8 @@ export default function FranchiseDetail() {
   const [franchise, setFranchise] = useState<Franchise | null>(null);
   const [legalDocs, setLegalDocs] = useState<LegalDoc[]>([]);
   const [showcaseUrls, setShowcaseUrls] = useState<string[]>([]);
-  const [allItems, setAllItems] = useState<any[]>([]);
+  const [listingItems, setListingItems] = useState<any[]>([]);
+  const [blogItems, setBlogItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeSlide, setActiveSlide] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -61,7 +62,7 @@ export default function FranchiseDetail() {
     setLoading(true);
 
     const fetchAll = async () => {
-      // Ambil data utama franchise
+      // Data utama franchise
       const { data, error } = await supabase
         .from('franchise_listings')
         .select('*')
@@ -93,46 +94,44 @@ export default function FranchiseDetail() {
           .map(img => supabase.storage.from('listing-images').getPublicUrl(img.image_url).data.publicUrl) || [];
       setShowcaseUrls(urls);
 
-      // Showcase Karya (listings + blogs)
-      // 1. Ambil semua listing milik franchisor
+      // --- Showcase Karya, dikelompokkan ---
+      // Listings
       const { data: allListings } = await supabase
         .from('franchise_listings')
         .select('id, franchise_name, logo_url, slug, created_at')
         .eq('created_by', data.created_by);
 
-      const listingItems = (allListings || []).map(item => ({
-        ...item,
-        type: 'listing',
-        title: item.franchise_name,
-        image: item.logo_url
-          ? supabase.storage.from('listing-images').getPublicUrl(item.logo_url).data.publicUrl
-          : '/logo192.png',
-        url: `/franchise/${item.slug}`,
-        date: item.created_at,
-      }));
+      setListingItems(
+        (allListings || []).map(item => ({
+          ...item,
+          type: 'listing',
+          title: item.franchise_name,
+          image: item.logo_url
+            ? supabase.storage.from('listing-images').getPublicUrl(item.logo_url).data.publicUrl
+            : '/logo192.png',
+          url: `/franchise/${item.slug}`,
+          date: item.created_at,
+        }))
+      );
 
-      // 2. Ambil semua blog milik franchisor
+      // Blogs
       const { data: blogs } = await supabase
         .from('blogs')
         .select('id, title, cover_url, slug, created_at')
         .eq('created_by', data.created_by);
 
-      const blogItems = (blogs || []).map(item => ({
-        ...item,
-        type: 'blog',
-        title: item.title,
-        image: item.cover_url
-          ? supabase.storage.from('blog-assets').getPublicUrl(item.cover_url).data.publicUrl
-          : '/logo192.png',
-        url: `/detail/${item.slug}`,
-        date: item.created_at,
-      }));
-
-      // Gabung dan urutkan by date DESC
-      const all = [...listingItems, ...blogItems].sort(
-        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+      setBlogItems(
+        (blogs || []).map(item => ({
+          ...item,
+          type: 'blog',
+          title: item.title,
+          image: item.cover_url
+            ? supabase.storage.from('blog-assets').getPublicUrl(item.cover_url).data.publicUrl
+            : '/logo192.png',
+          url: `/detail/${item.slug}`,
+          date: item.created_at,
+        }))
       );
-      setAllItems(all);
 
       setLoading(false);
     };
@@ -205,28 +204,23 @@ export default function FranchiseDetail() {
 
       {/* INFO UTAMA + ICON */}
       <div className="mb-6 space-y-2">
-        {/* Nama Franchise */}
         <div className="flex items-center gap-2 text-3xl font-bold mb-1">
           <FaStore className="inline-block text-blue-500" /> {franchise.franchise_name}
         </div>
-        {/* Kategori */}
         <div className="flex items-center gap-2">
           <FaThList className="inline-block text-blue-400" />
           <span className="inline-block bg-blue-100 text-blue-700 px-3 py-1 rounded-lg text-sm">{franchise.category}</span>
         </div>
-        {/* Lokasi */}
         <div className="flex items-center gap-2">
           <FaMapMarkerAlt className="inline-block text-green-600" />
           <span className="inline-block bg-green-100 text-green-700 px-3 py-1 rounded-lg text-sm">{franchise.location}</span>
         </div>
-        {/* Minimal Investasi */}
         <div className="flex items-center gap-2">
           <FaMoneyBillAlt className="inline-block text-yellow-500" />
           <span className="inline-block bg-yellow-100 text-yellow-700 px-3 py-1 rounded-lg text-sm">
             Investasi Mulai Rp {franchise.investment_min.toLocaleString('id-ID')}
           </span>
         </div>
-        {/* Model Usaha DENGAN ICON INFO & POPOVER */}
         <div className="flex items-center gap-2 relative">
           <FaCog className="inline-block text-gray-500" />
           <span className="font-semibold">{franchise.operation_mode === 'autopilot' ? 'Autopilot' : 'Semi Autopilot'}</span>
@@ -238,7 +232,6 @@ export default function FranchiseDetail() {
           >
             <FaInfoCircle className="text-blue-500" />
           </button>
-          {/* Popup Info */}
           {showOpInfo && (
             <>
               <div
@@ -261,7 +254,6 @@ export default function FranchiseDetail() {
                   onClick={() => setShowOpInfo(false)}
                 >×</button>
               </div>
-              {/* Penutup klik di luar */}
               <div
                 className="fixed inset-0 z-20"
                 onClick={() => setShowOpInfo(false)}
@@ -354,7 +346,6 @@ export default function FranchiseDetail() {
             </a>
           )}
         </div>
-        {/* Tag */}
         {franchise.tags && (
           <div>
             <span className="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-xs">#{franchise.tags}</span>
@@ -362,31 +353,58 @@ export default function FranchiseDetail() {
         )}
       </div>
 
-      {/* SHOWCASE KARYA: Listing + Blog */}
-      {allItems.length > 0 && (
+      {/* SHOWCASE KARYA FRANCHISOR TERPISAH */}
+      {(listingItems.length > 0 || blogItems.length > 0) && (
         <div className="mb-12">
-          <h2 className="text-lg font-semibold mb-1 flex items-center gap-2">
+          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <FaFileAlt className="text-pink-600" /> Showcase Karya Franchisor
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-2">
-            {allItems.map(item => (
-              <div
-                key={item.id + item.type}
-                className="bg-white rounded-xl shadow cursor-pointer hover:shadow-lg transition p-2 flex flex-col items-center"
-                onClick={() => router.push(item.url)}
-              >
-                <img
-                  src={item.image}
-                  alt={item.title}
-                  className="h-24 w-full object-cover rounded-lg mb-2 bg-gray-100"
-                />
-                <div className="font-bold text-base text-center truncate w-full">{item.title}</div>
-                <div className="text-xs text-gray-500 bg-gray-100 rounded px-2 py-0.5 mt-1">
-                  {item.type === 'listing' ? 'Listing' : 'Blog'}
-                </div>
+          {/* Listing */}
+          {listingItems.length > 0 && (
+            <>
+              <div className="font-semibold mb-2 text-base text-gray-800">Listing</div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
+                {listingItems.map(item => (
+                  <div
+                    key={item.id}
+                    className="bg-white rounded-xl shadow cursor-pointer hover:shadow-lg transition p-2 flex flex-col items-center"
+                    onClick={() => router.push(item.url)}
+                  >
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="h-24 w-full object-cover rounded-lg mb-2 bg-gray-100"
+                    />
+                    <div className="font-bold text-base text-center truncate w-full">{item.title}</div>
+                    <div className="text-xs text-gray-500 bg-gray-100 rounded px-2 py-0.5 mt-1">Listing</div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </>
+          )}
+          {/* Blog */}
+          {blogItems.length > 0 && (
+            <>
+              <div className="font-semibold mb-2 text-base text-gray-800">Blog</div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {blogItems.map(item => (
+                  <div
+                    key={item.id}
+                    className="bg-white rounded-xl shadow cursor-pointer hover:shadow-lg transition p-2 flex flex-col items-center"
+                    onClick={() => router.push(item.url)}
+                  >
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="h-24 w-full object-cover rounded-lg mb-2 bg-gray-100"
+                    />
+                    <div className="font-bold text-base text-center truncate w-full">{item.title}</div>
+                    <div className="text-xs text-gray-500 bg-gray-100 rounded px-2 py-0.5 mt-1">Blog</div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       )}
 
