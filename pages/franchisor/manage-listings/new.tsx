@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '../../../lib/supabaseClient';
 import { v4 as uuidv4 } from 'uuid';
-import type { User } from '@supabase/supabase-js';
+import { FaInfoCircle } from 'react-icons/fa';
 
 const LEGAL_DOCUMENTS = [
   { key: 'stpw', label: 'STPW (Surat Tanda Pendaftaran Waralaba)' },
@@ -19,8 +19,9 @@ const LEGAL_STATUSES = [
 
 export default function NewListing() {
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [showOpInfo, setShowOpInfo] = useState(false);
   const [form, setForm] = useState({
     franchise_name: '',
     description: '',
@@ -43,15 +44,24 @@ export default function NewListing() {
   const allDocsFilled = legalDocs.every(doc => !!doc.status);
   const [showcaseFiles, setShowcaseFiles] = useState<File[]>([]);
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      if (data?.user) setUser(data.user);
-      else router.push('/login');
-    };
-    fetchUser();
-  }, [router]);
+  // --- UPLOAD LOGO DAN SHOWCASE ---
+  const uploadLogoImage = async (file: File) => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `logo/${uuidv4()}.${fileExt}`;
+    const { error } = await supabase.storage.from('listing-images').upload(fileName, file);
+    if (error) throw error;
+    return fileName;
+  };
 
+  const uploadShowcaseImage = async (file: File) => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `showcase/${uuidv4()}.${fileExt}`;
+    const { error } = await supabase.storage.from('listing-images').upload(fileName, file);
+    if (error) throw error;
+    return fileName;
+  };
+
+  // --- HANDLER ---
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const target = e.target as HTMLInputElement;
     const { name, value, type, files } = target;
@@ -65,14 +75,6 @@ export default function NewListing() {
   const handleShowcaseChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     setShowcaseFiles(files.slice(0, 5));
-  };
-
-  const uploadLogoImage = async (file: File) => {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `logo/${uuidv4()}.${fileExt}`;
-    const { error } = await supabase.storage.from('listing-images').upload(fileName, file);
-    if (error) throw error;
-    return fileName;
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -91,7 +93,6 @@ export default function NewListing() {
       const logoPath = form.logo_file ? await uploadLogoImage(form.logo_file) : null;
       const slug = form.franchise_name.toLowerCase().replace(/\s+/g, '-');
 
-      // 1. Insert listing
       const { data, error } = await supabase.from('franchise_listings').insert([{
         user_id: user?.id,
         franchise_name: form.franchise_name,
@@ -113,7 +114,6 @@ export default function NewListing() {
 
       const listingId = data.id;
 
-      // 2. Insert dokumen hukum
       await Promise.all(
         legalDocs.map(doc =>
           supabase.from('legal_documents').insert({
@@ -124,20 +124,17 @@ export default function NewListing() {
         )
       );
 
-      // 3. Upload & insert showcase images otomatis!
       if (showcaseFiles.length > 0) {
+        const showcasePaths = await Promise.all(
+          showcaseFiles.map(file => uploadShowcaseImage(file))
+        );
         await Promise.all(
-          showcaseFiles.map(async (file) => {
-            const fileExt = file.name.split('.').pop();
-            const fileName = `showcase/${uuidv4()}.${fileExt}`;
-            const { error: uploadError } = await supabase.storage.from('listing-images').upload(fileName, file);
-            if (uploadError) throw uploadError;
-            await supabase.from('listing_images').insert({
+          showcasePaths.map(url =>
+            supabase.from('listing_images').insert({
               listing_id: listingId,
-              image_url: fileName,
-              type: 'showcase',
-            });
-          })
+              image_url: url,
+            })
+          )
         );
       }
 
@@ -150,6 +147,7 @@ export default function NewListing() {
     }
   };
 
+  // --- FORM LABEL ---
   const FormLabel = ({ children }: { children: string }) => (
     <span className="font-medium text-gray-700 break-words">
       {children}
@@ -157,29 +155,73 @@ export default function NewListing() {
     </span>
   );
 
+  // --- PREVIEW BUTTON ---
+  const handlePreview = () => {
+    // Simpan data ke sessionStorage, lalu buka preview
+    sessionStorage.setItem('franchisePreviewData', JSON.stringify({
+      ...form,
+      legalDocs,
+      showcaseFiles: showcaseFiles.map(f => f.name), // atau bisa base64 jika ingin benar-benar preview gambar upload
+    }));
+    window.open('/franchise/preview', '_blank');
+  };
+
   return (
     <div className="max-w-3xl mx-auto p-4">
       <h1 className="text-2xl font-bold mb-6">Tambah Listing Franchise</h1>
+      {/* Tombol Preview */}
+      <div className="mb-4 flex justify-end">
+        <button
+          type="button"
+          className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6 py-2 font-semibold shadow"
+          onClick={handlePreview}
+        >
+          Preview Listing
+        </button>
+      </div>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
           <table className="w-full table-fixed border-separate border-spacing-y-4">
             <tbody>
+              {/* --- Semua field utama form di sini --- */}
               <tr>
                 <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px]"><FormLabel>Nama Franchise</FormLabel></td>
                 <td className="align-middle w-[68%] sm:w-3/4">
-                  <input required name="franchise_name" value={form.franchise_name} onChange={handleChange} className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition" placeholder="Tulis nama franchise..." />
+                  <input
+                    required
+                    name="franchise_name"
+                    value={form.franchise_name}
+                    onChange={handleChange}
+                    className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
+                    placeholder="Tulis nama franchise..."
+                  />
                 </td>
               </tr>
               <tr>
                 <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px] pt-2"><FormLabel>Deskripsi</FormLabel></td>
                 <td className="align-top w-[68%] sm:w-3/4">
-                  <textarea required name="description" value={form.description} onChange={handleChange} className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition resize-none" rows={3} placeholder="Tuliskan deskripsi usaha..." />
+                  <textarea
+                    required
+                    name="description"
+                    value={form.description}
+                    onChange={handleChange}
+                    className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition resize-none"
+                    rows={3}
+                    placeholder="Tuliskan deskripsi usaha..."
+                  />
                 </td>
               </tr>
               <tr>
                 <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px]"><FormLabel>Kategori</FormLabel></td>
                 <td className="align-middle w-[68%] sm:w-3/4">
-                  <input required name="category" value={form.category} onChange={handleChange} className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition" placeholder="Pilih/isi kategori usaha" />
+                  <input
+                    required
+                    name="category"
+                    value={form.category}
+                    onChange={handleChange}
+                    className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
+                    placeholder="Pilih/isi kategori usaha"
+                  />
                 </td>
               </tr>
               <tr>
@@ -187,63 +229,166 @@ export default function NewListing() {
                 <td className="align-middle w-[68%] sm:w-3/4">
                   <div className="flex items-center gap-2">
                     <span>Rp</span>
-                    <input required type="number" name="investment_min" value={form.investment_min} onChange={handleChange} className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition" placeholder="Jumlah" />
+                    <input
+                      required
+                      type="number"
+                      name="investment_min"
+                      value={form.investment_min}
+                      onChange={handleChange}
+                      className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
+                      placeholder="Jumlah"
+                    />
                   </div>
                 </td>
               </tr>
               <tr>
                 <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px]"><FormLabel>Lokasi</FormLabel></td>
                 <td className="align-middle w-[68%] sm:w-3/4">
-                  <input required name="location" value={form.location} onChange={handleChange} className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition" placeholder="Lokasi usaha" />
+                  <input
+                    required
+                    name="location"
+                    value={form.location}
+                    onChange={handleChange}
+                    className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
+                    placeholder="Lokasi usaha"
+                  />
                 </td>
               </tr>
               <tr>
                 <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px]"><FormLabel>No WhatsApp</FormLabel></td>
                 <td className="align-middle w-[68%] sm:w-3/4">
-                  <input required name="whatsapp_contact" value={form.whatsapp_contact} onChange={handleChange} className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition" placeholder="08xxxxxxxxxx" />
+                  <input
+                    required
+                    name="whatsapp_contact"
+                    value={form.whatsapp_contact}
+                    onChange={handleChange}
+                    className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
+                    placeholder="08xxxxxxxxxx"
+                  />
                 </td>
               </tr>
               <tr>
                 <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px]"><FormLabel>Email Kontak</FormLabel></td>
                 <td className="align-middle w-[68%] sm:w-3/4">
-                  <input required name="email_contact" value={form.email_contact} onChange={handleChange} className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition" placeholder="nama@email.com" />
+                  <input
+                    required
+                    name="email_contact"
+                    value={form.email_contact}
+                    onChange={handleChange}
+                    className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
+                    placeholder="nama@email.com"
+                  />
                 </td>
               </tr>
               <tr>
                 <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px]"><FormLabel>Website (opsional)</FormLabel></td>
                 <td className="align-middle w-[68%] sm:w-3/4">
-                  <input name="website_url" value={form.website_url} onChange={handleChange} className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition" placeholder="https://"/>
+                  <input
+                    name="website_url"
+                    value={form.website_url}
+                    onChange={handleChange}
+                    className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
+                    placeholder="https://"
+                  />
                 </td>
               </tr>
               <tr>
                 <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px]"><FormLabel>Google Maps URL (opsional)</FormLabel></td>
                 <td className="align-middle w-[68%] sm:w-3/4">
-                  <input name="google_maps_url" value={form.google_maps_url} onChange={handleChange} className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition" placeholder="https://maps.google.com/..." />
+                  <input
+                    name="google_maps_url"
+                    value={form.google_maps_url}
+                    onChange={handleChange}
+                    className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
+                    placeholder="https://maps.google.com/..."
+                  />
                 </td>
               </tr>
               <tr>
                 <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px]"><FormLabel>Tag</FormLabel></td>
                 <td className="align-middle w-[68%] sm:w-3/4">
-                  <input name="tags" value={form.tags} onChange={handleChange} className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition" placeholder="Pisahkan dengan koma (,) jika lebih dari satu"/>
+                  <input
+                    name="tags"
+                    value={form.tags}
+                    onChange={handleChange}
+                    className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
+                    placeholder="Pisahkan dengan koma (,) jika lebih dari satu"
+                  />
                 </td>
               </tr>
+              {/* --- Mode Operasional + Tooltip Info */}
               <tr>
                 <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px]"><FormLabel>Mode Operasional</FormLabel></td>
                 <td className="align-middle w-[68%] sm:w-3/4">
-                  <select required name="operation_mode" value={form.operation_mode} onChange={handleChange} className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition">
-                    <option value="">Pilih...</option>
-                    <option value="autopilot">Autopilot</option>
-                    <option value="semi">Semi Autopilot</option>
-                  </select>
-                  <div className="mt-2 space-y-1 text-[15px]">
-                    <div><span className="font-semibold">Autopilot</span><span className="text-gray-600"> — Mitra tidak perlu ikut terlibat langsung dalam operasional harian.</span></div>
-                    <div><span className="font-semibold">Semi Autopilot</span><span className="text-gray-600"> — Mitra tetap punya peran namun sebagian operasional dibantu tim pusat.</span></div>
+                  <div className="flex items-center gap-2 relative">
+                    <select
+                      required
+                      name="operation_mode"
+                      value={form.operation_mode}
+                      onChange={handleChange}
+                      className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
+                    >
+                      <option value="">Pilih...</option>
+                      <option value="autopilot">Autopilot</option>
+                      <option value="semi">Semi Autopilot</option>
+                    </select>
+                    <button
+                      className="ml-2 p-1 rounded-full hover:bg-gray-200 transition"
+                      onClick={e => { e.preventDefault(); setShowOpInfo(val => !val); }}
+                      aria-label="Penjelasan Mode Operasi"
+                      type="button"
+                    >
+                      <FaInfoCircle className="text-blue-500" />
+                    </button>
+                    {showOpInfo && (
+                      <>
+                        <div
+                          className="absolute left-10 z-30 mt-2 w-80 bg-white border border-gray-300 rounded-xl shadow-lg p-4 text-sm text-gray-800"
+                          style={{ top: '100%' }}
+                        >
+                          {form.operation_mode === 'autopilot' ? (
+                            <>
+                              <span className="font-bold text-blue-600 mb-1 block">Autopilot</span>
+                              <ul className="list-disc pl-5 mb-1">
+                                <li>Mitra tidak perlu terlibat langsung dalam operasional harian.</li>
+                                <li>Seluruh aktivitas dijalankan oleh tim pusat/franchisor.</li>
+                                <li>Mitra tetap menerima laporan dan hasil bisnis secara rutin.</li>
+                                <li>Cocok untuk investor yang ingin bisnis berjalan otomatis.</li>
+                              </ul>
+                              <span className="text-xs text-gray-500">“Autopilot berarti seluruh operasional harian bisnis dijalankan oleh tim pusat/franchisor, mitra hanya menerima laporan dan hasil.”</span>
+                            </>
+                          ) : (
+                            <>
+                              <span className="font-bold text-yellow-600 mb-1 block">Semi Autopilot</span>
+                              <ul className="list-disc pl-5 mb-1">
+                                <li>Mitra menjalankan sendiri operasional harian bisnis.</li>
+                                <li>Franchisor hanya sebagai pemberi dukungan teknis, pelatihan, SOP, dan pemasaran pusat.</li>
+                                <li>Cocok untuk mitra yang ingin aktif terjun dan mengelola bisnis sendiri namun tetap mendapat pendampingan dari franchisor.</li>
+                              </ul>
+                              <span className="text-xs text-gray-500">“Semi-autopilot berarti mitra sebagai pihak utama yang menjalankan operasional bisnis harian, sementara franchisor hanya sebagai pemberi dukungan teknis.”</span>
+                            </>
+                          )}
+                          <button
+                            className="absolute top-1 right-2 text-gray-400 hover:text-red-400 text-lg"
+                            onClick={() => setShowOpInfo(false)}
+                          >×</button>
+                        </div>
+                        <div
+                          className="fixed inset-0 z-20"
+                          onClick={() => setShowOpInfo(false)}
+                          tabIndex={-1}
+                          aria-hidden="true"
+                        />
+                      </>
+                    )}
                   </div>
                 </td>
               </tr>
-              {/* Checklist Dokumen Hukum */}
+              {/* --- Checklist Dokumen Hukum */}
               <tr>
-                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px]"><FormLabel>Checklist Dokumen Hukum</FormLabel></td>
+                <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px]">
+                  <FormLabel>Checklist Dokumen Hukum</FormLabel>
+                </td>
                 <td className="align-top w-[68%] sm:w-3/4">
                   <div className="overflow-x-auto">
                     <table className="min-w-[480px] w-full bg-gray-50 rounded-2xl border border-gray-200 shadow-md">
@@ -289,14 +434,26 @@ export default function NewListing() {
               <tr>
                 <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px]"><FormLabel>Upload Logo</FormLabel></td>
                 <td className="align-middle w-[68%] sm:w-3/4">
-                  <input required type="file" name="logo_file" onChange={handleChange} className="file-input file-input-bordered w-full max-w-xl" />
+                  <input
+                    required
+                    type="file"
+                    name="logo_file"
+                    onChange={handleChange}
+                    className="file-input file-input-bordered w-full max-w-xl"
+                  />
                 </td>
               </tr>
               {/* Upload Showcase */}
               <tr>
                 <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px]"><FormLabel>Upload Showcase (max 5 gambar)</FormLabel></td>
                 <td className="align-top w-[68%] sm:w-3/4">
-                  <input type="file" multiple accept="image/*" onChange={handleShowcaseChange} className="file-input file-input-bordered w-full max-w-xl"/>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleShowcaseChange}
+                    className="file-input file-input-bordered w-full max-w-xl"
+                  />
                   <p className="text-xs text-gray-500 mt-1">
                     Upload hingga 5 gambar untuk galeri showcase franchise Anda.
                   </p>
@@ -316,13 +473,24 @@ export default function NewListing() {
               <tr>
                 <td className="align-top w-[32%] sm:w-1/4 pr-2 break-words max-w-[180px]"><FormLabel>Catatan Tambahan</FormLabel></td>
                 <td className="align-top w-[68%] sm:w-3/4">
-                  <textarea name="notes" value={form.notes} onChange={handleChange} className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition resize-none" rows={2} placeholder="Catatan (opsional)" />
+                  <textarea
+                    name="notes"
+                    value={form.notes}
+                    onChange={handleChange}
+                    className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition resize-none"
+                    rows={2}
+                    placeholder="Catatan (opsional)"
+                  />
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
-        <button type="submit" disabled={loading} className="w-full px-4 py-2 rounded-full bg-green-600 text-white font-semibold shadow transition hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400">
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full px-4 py-2 rounded-full bg-green-600 text-white font-semibold shadow transition hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400"
+        >
           {loading ? 'Menyimpan...' : 'Tambah Listing'}
         </button>
       </form>
