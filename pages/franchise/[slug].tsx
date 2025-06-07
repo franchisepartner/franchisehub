@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router';
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '../../lib/supabaseClient';
-// Import icon dari react-icons (FontAwesome)
+// Import icon dari react-icons
 import { FaStore, FaMapMarkerAlt, FaMoneyBillAlt, FaThList, FaInfoCircle, FaFileAlt, FaLink, FaCog } from 'react-icons/fa';
 
 const LEGAL_DOCUMENTS = [
@@ -46,6 +46,7 @@ export default function FranchiseDetail() {
   const [loading, setLoading] = useState(true);
   const [activeSlide, setActiveSlide] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [showOpInfo, setShowOpInfo] = useState(false);
 
   useEffect(() => {
     if (!slug || typeof slug !== 'string') return;
@@ -149,15 +150,50 @@ export default function FranchiseDetail() {
             Investasi Mulai Rp {franchise.investment_min.toLocaleString('id-ID')}
           </span>
         </div>
-        {/* Model Usaha */}
-        <div className="flex items-center gap-2">
+        {/* Model Usaha DENGAN ICON INFO & POPOVER */}
+        <div className="flex items-center gap-2 relative">
           <FaCog className="inline-block text-gray-500" />
           <span className="font-semibold">{franchise.operation_mode === 'autopilot' ? 'Autopilot' : 'Semi Autopilot'}</span>
-          <span className="text-gray-600 text-sm">
-            {franchise.operation_mode === 'autopilot'
-              ? '— Mitra tidak perlu ikut terlibat langsung dalam operasional harian.'
-              : '— Mitra tetap punya peran namun sebagian operasional dibantu tim pusat.'}
-          </span>
+          <button
+            className="ml-2 p-1 rounded-full hover:bg-gray-200 transition"
+            onClick={() => setShowOpInfo(val => !val)}
+            aria-label="Penjelasan Mode Operasi"
+            type="button"
+          >
+            <FaInfoCircle className="text-blue-500" />
+          </button>
+          {/* Popup Info */}
+          {showOpInfo && (
+            <>
+              <div
+                className="absolute left-10 z-30 mt-2 w-72 bg-white border border-gray-300 rounded-xl shadow-lg p-4 text-sm text-gray-800"
+                style={{ top: '100%' }}
+              >
+                {franchise.operation_mode === 'autopilot' ? (
+                  <>
+                    <span className="font-bold text-blue-600 mb-1 block">Autopilot</span>
+                    Mitra tidak perlu ikut terlibat langsung dalam operasional harian.
+                  </>
+                ) : (
+                  <>
+                    <span className="font-bold text-yellow-600 mb-1 block">Semi Autopilot</span>
+                    Mitra tetap punya peran namun sebagian operasional dibantu tim pusat.
+                  </>
+                )}
+                <button
+                  className="absolute top-1 right-2 text-gray-400 hover:text-red-400 text-lg"
+                  onClick={() => setShowOpInfo(false)}
+                >×</button>
+              </div>
+              {/* Penutup klik di luar */}
+              <div
+                className="fixed inset-0 z-20"
+                onClick={() => setShowOpInfo(false)}
+                tabIndex={-1}
+                aria-hidden="true"
+              />
+            </>
+          )}
         </div>
       </div>
 
