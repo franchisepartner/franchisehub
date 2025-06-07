@@ -154,7 +154,7 @@ export default function NewListing() {
     }
   };
 
-  // Komponen titik dua tepat sebelum input underline
+  // Komponen titik dua hitam rata tengah
   const ColonInputRow = ({
     label,
     children,
@@ -168,7 +168,7 @@ export default function NewListing() {
       <td className={`w-1/3 pr-2 font-medium text-gray-700 align-${align}`}>{label}</td>
       <td>
         <div className="flex items-center">
-          <span className="text-red-500 font-bold text-xl mr-2 -mb-1">:</span>
+          <span className="text-black font-bold text-lg mr-2 self-center">:</span>
           <div className="flex-1">{children}</div>
         </div>
       </td>
