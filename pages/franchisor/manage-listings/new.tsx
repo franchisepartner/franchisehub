@@ -34,18 +34,17 @@ export default function NewListing() {
     google_maps_url: '',
     notes: '',
     tags: '',
-    logo_file: null as File | null,
   });
 
-  // Checklist dokumen hukum
+  // Pisahkan state file dari state form!
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [showcaseFiles, setShowcaseFiles] = useState<File[]>([]);
+  const [showcaseInputKey, setShowcaseInputKey] = useState(Date.now());
+
   const [legalDocs, setLegalDocs] = useState(
     LEGAL_DOCUMENTS.map(doc => ({ document_type: doc.key, status: '' }))
   );
   const allDocsFilled = legalDocs.every(doc => !!doc.status);
-
-  // Showcase dipisah dari form utama!
-  const [showcaseFiles, setShowcaseFiles] = useState<File[]>([]);
-  const [showcaseInputKey, setShowcaseInputKey] = useState(Date.now());
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -56,23 +55,23 @@ export default function NewListing() {
     fetchUser();
   }, [router]);
 
-  // Handler input aman
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
-    const { name, type, value, files } = e.target as HTMLInputElement;
+    const { name, value } = e.target as HTMLInputElement;
     setForm(prev => ({
       ...prev,
-      [name]:
-        type === 'file'
-          ? files && files[0]
-            ? files[0]
-            : null
-          : value
+      [name]: value
     }));
   };
 
-  // Showcase handler fix keyboard bug
+  // Handler upload logo
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setLogoFile(file);
+  };
+
+  // Handler upload showcase (fix keyboard bug)
   const handleShowcaseChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length > 5) {
@@ -96,6 +95,10 @@ export default function NewListing() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!logoFile) {
+      alert('Logo harus di-upload!');
+      return;
+    }
     if (!allDocsFilled) {
       alert('Checklist dokumen hukum harus lengkap!');
       return;
@@ -107,7 +110,7 @@ export default function NewListing() {
     setLoading(true);
 
     try {
-      const logoPath = form.logo_file ? await uploadImage(form.logo_file, 'logo') : null;
+      const logoPath = logoFile ? await uploadImage(logoFile, 'logo') : null;
       const slug = form.franchise_name.toLowerCase().replace(/\s+/g, '-');
 
       const { data, error } = await supabase.from('franchise_listings').insert([{
@@ -161,8 +164,9 @@ export default function NewListing() {
       alert(`Gagal menambahkan listing. Detail Error: ${JSON.stringify(err)}`);
     } finally {
       setLoading(false);
-      setShowcaseFiles([]);               // reset preview
-      setShowcaseInputKey(Date.now());    // reset input file (fix keyboard bug)
+      setLogoFile(null);
+      setShowcaseFiles([]);
+      setShowcaseInputKey(Date.now());
     }
   };
 
@@ -190,6 +194,49 @@ export default function NewListing() {
   return (
     <div className="max-w-3xl mx-auto p-4">
       <h1 className="text-2xl font-bold mb-6">Tambah Listing Franchise</h1>
+
+      {/* Input file DILUAR FORM! */}
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-4">
+        <ColonInputRow label="Upload Logo">
+          <input
+            required
+            type="file"
+            name="logo_file"
+            onChange={handleLogoChange}
+            className="file-input file-input-bordered w-full"
+          />
+          {logoFile && (
+            <span className="inline-block bg-gray-200 px-2 py-1 rounded text-xs ml-2">{logoFile.name}</span>
+          )}
+        </ColonInputRow>
+        <ColonInputRow label="Upload Showcase (max 5 gambar)">
+          <div>
+            <input
+              key={showcaseInputKey}
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={handleShowcaseChange}
+              className="file-input file-input-bordered w-full"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Upload hingga 5 gambar untuk galeri showcase franchise Anda.
+            </p>
+            <div className="flex gap-2 mt-2 flex-wrap">
+              <span className="text-xs text-gray-600">
+                {showcaseFiles.length} / 5 file dipilih
+              </span>
+              {showcaseFiles.map((file, idx) => (
+                <span key={idx} className="inline-block bg-gray-200 px-2 py-1 rounded text-xs">
+                  {file.name}
+                </span>
+              ))}
+            </div>
+          </div>
+        </ColonInputRow>
+      </div>
+
+      {/* FORM HANYA FIELD BIASA, TIDAK ADA FILE */}
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
           <table className="w-full table-auto border-separate border-spacing-y-4">
@@ -366,34 +413,6 @@ export default function NewListing() {
                   </div>
                 </td>
               </tr>
-              <ColonInputRow label="Upload Logo">
-                <input required type="file" name="logo_file" onChange={handleChange} className="file-input file-input-bordered w-full" />
-              </ColonInputRow>
-              <ColonInputRow label="Upload Showcase (max 5 gambar)">
-                <div>
-                  <input
-                    key={showcaseInputKey}
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={handleShowcaseChange}
-                    className="file-input file-input-bordered w-full"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Upload hingga 5 gambar untuk galeri showcase franchise Anda.
-                  </p>
-                  <div className="flex gap-2 mt-2 flex-wrap">
-                    <span className="text-xs text-gray-600">
-                      {showcaseFiles.length} / 5 file dipilih
-                    </span>
-                    {showcaseFiles.map((file, idx) => (
-                      <span key={idx} className="inline-block bg-gray-200 px-2 py-1 rounded text-xs">
-                        {file.name}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </ColonInputRow>
               <ColonInputRow label="Catatan Tambahan" align="top">
                 <textarea
                   name="notes"
