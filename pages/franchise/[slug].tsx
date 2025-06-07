@@ -1,6 +1,8 @@
 import { useRouter } from 'next/router';
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '../../lib/supabaseClient';
+// Import icon dari react-icons (FontAwesome)
+import { FaStore, FaMapMarkerAlt, FaMoneyBillAlt, FaThList, FaInfoCircle, FaFileAlt, FaLink, FaCog } from 'react-icons/fa';
 
 const LEGAL_DOCUMENTS = [
   { key: 'stpw', label: 'STPW (Surat Tanda Pendaftaran Waralaba)' },
@@ -124,36 +126,46 @@ export default function FranchiseDetail() {
         </div>
       )}
 
-      {/* --- STRUKTUR SESUAI PERMINTAAN --- */}
-      <div className="mb-4">
+      {/* INFO UTAMA + ICON */}
+      <div className="mb-6 space-y-2">
         {/* Nama Franchise */}
-        <h1 className="text-3xl font-bold mb-1">{franchise.franchise_name}</h1>
+        <div className="flex items-center gap-2 text-3xl font-bold mb-1">
+          <FaStore className="inline-block text-blue-500" /> {franchise.franchise_name}
+        </div>
         {/* Kategori */}
-        <div className="mb-1">
-          <span className="inline-block bg-blue-100 text-blue-700 px-3 py-1 rounded-lg text-sm mr-2">{franchise.category}</span>
+        <div className="flex items-center gap-2">
+          <FaThList className="inline-block text-blue-400" />
+          <span className="inline-block bg-blue-100 text-blue-700 px-3 py-1 rounded-lg text-sm">{franchise.category}</span>
         </div>
         {/* Lokasi */}
-        <div className="mb-1">
-          <span className="inline-block bg-green-100 text-green-700 px-3 py-1 rounded-lg text-sm mr-2">{franchise.location}</span>
+        <div className="flex items-center gap-2">
+          <FaMapMarkerAlt className="inline-block text-green-600" />
+          <span className="inline-block bg-green-100 text-green-700 px-3 py-1 rounded-lg text-sm">{franchise.location}</span>
         </div>
         {/* Minimal Investasi */}
-        <div className="mb-1">
-          <span className="inline-block bg-yellow-100 text-yellow-700 px-3 py-1 rounded-lg text-sm">Investasi Mulai Rp {franchise.investment_min.toLocaleString('id-ID')}</span>
+        <div className="flex items-center gap-2">
+          <FaMoneyBillAlt className="inline-block text-yellow-500" />
+          <span className="inline-block bg-yellow-100 text-yellow-700 px-3 py-1 rounded-lg text-sm">
+            Investasi Mulai Rp {franchise.investment_min.toLocaleString('id-ID')}
+          </span>
         </div>
         {/* Model Usaha */}
-        <div className="mb-2">
+        <div className="flex items-center gap-2">
+          <FaCog className="inline-block text-gray-500" />
           <span className="font-semibold">{franchise.operation_mode === 'autopilot' ? 'Autopilot' : 'Semi Autopilot'}</span>
-          {franchise.operation_mode === 'autopilot' ? (
-            <span className="text-gray-600"> — Mitra tidak perlu ikut terlibat langsung dalam operasional harian.</span>
-          ) : (
-            <span className="text-gray-600"> — Mitra tetap punya peran namun sebagian operasional dibantu tim pusat.</span>
-          )}
+          <span className="text-gray-600 text-sm">
+            {franchise.operation_mode === 'autopilot'
+              ? '— Mitra tidak perlu ikut terlibat langsung dalam operasional harian.'
+              : '— Mitra tetap punya peran namun sebagian operasional dibantu tim pusat.'}
+          </span>
         </div>
       </div>
 
       {/* Deskripsi */}
       <div className="mb-6">
-        <h2 className="text-lg font-semibold mb-1">Deskripsi</h2>
+        <h2 className="text-lg font-semibold mb-1 flex items-center gap-2">
+          <FaInfoCircle className="text-blue-500" /> Deskripsi
+        </h2>
         <div className="bg-gray-50 rounded-xl border px-4 py-3 text-gray-800 leading-relaxed whitespace-pre-line">
           {franchise.description}
         </div>
@@ -161,7 +173,9 @@ export default function FranchiseDetail() {
 
       {/* Status Dokumen Hukum */}
       <div className="mb-6">
-        <h2 className="text-lg font-semibold mb-1">Status Dokumen Hukum</h2>
+        <h2 className="text-lg font-semibold mb-1 flex items-center gap-2">
+          <FaFileAlt className="text-green-600" /> Status Dokumen Hukum
+        </h2>
         <table className="w-full border rounded-lg text-sm">
           <thead>
             <tr className="bg-gray-100">
@@ -195,7 +209,9 @@ export default function FranchiseDetail() {
 
       {/* Kontak & Tautan */}
       <div className="mb-6">
-        <h2 className="text-lg font-semibold mb-1">Kontak & Tautan</h2>
+        <h2 className="text-lg font-semibold mb-1 flex items-center gap-2">
+          <FaLink className="text-gray-700" /> Kontak & Tautan
+        </h2>
         <div className="flex flex-wrap gap-3 items-center mb-3">
           {franchise.whatsapp_contact && (
             <a
