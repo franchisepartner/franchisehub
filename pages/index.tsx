@@ -1,6 +1,6 @@
 // pages/index.tsx
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { supabase } from '../lib/supabaseClient';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -41,13 +41,16 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [showCalculatorModal, setShowCalculatorModal] = useState(false);
   const [banners, setBanners] = useState<string[]>([]);
-  // Search
+
+  // Universal search
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+  const [selectedIdx, setSelectedIdx] = useState(-1);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    // Franchise (hanya 6)
+    // Franchise (6)
     const fetchFranchises = async () => {
       const { data, error } = await supabase
         .from('franchise_listings')
@@ -63,8 +66,7 @@ export default function Home() {
         })));
       }
     };
-
-    // Blog (hanya 6)
+    // Blog (6)
     const fetchBlogs = async () => {
       const { data } = await supabase
         .from('blogs')
@@ -82,8 +84,7 @@ export default function Home() {
         }))
       );
     };
-
-    // Forum (hanya 6)
+    // Forum (6)
     const fetchThreads = async () => {
       const { data } = await supabase
         .from('threads')
@@ -101,7 +102,6 @@ export default function Home() {
         }))
       );
     };
-
     // Banner (private bucket, signed URL)
     const fetchBanners = async () => {
       const { data } = await supabase.storage
@@ -132,10 +132,102 @@ export default function Home() {
     setLoading(false);
   }, []);
 
-  // ==== LIVE SEARCH SUGGESTION
+  // MENU FITUR (boleh custom sendiri, ini placeholder dari sebelumnya)
+  const featureMenus = [
+    {
+      label: 'Pengumuman',
+      href: '/announcement',
+      bg: 'bg-yellow-400',
+      icon: (
+        <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path d="M19 7v4.95a3 3 0 01-1.19 2.38l-2.54 2.03a1 1 0 00-.27.32l-1.37 2.44A1 1 0 0112 20h0a1 1 0 01-.87-.5l-1.36-2.43a1 1 0 00-.27-.32l-2.54-2.03A3 3 0 015 11.95V7m14 0V5a2 2 0 00-2-2H7a2 2 0 00-2 2v2m14 0H5" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      ),
+    },
+    {
+  label: 'Forum Global',
+  href: '/forum-global',
+  bg: 'bg-green-400',
+  icon: (
+    <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path d="M17 8h2a2 2 0 012 2v8a2 2 0 01-2 2H7a2 2 0 01-2-2v-2" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/>
+      <circle cx="9" cy="7" r="4" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
+},
+{
+  label: 'Blog Global',
+  href: '/blog-global',
+  bg: 'bg-purple-400',
+  icon: (
+    <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path d="M12 20h9" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M19 20V4a2 2 0 00-2-2H7a2 2 0 00-2 2v16l5-2.18L15 20z" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
+},
+{
+  label: 'Pusat Bantuan',
+  href: '/pusat-bantuan',
+  bg: 'bg-blue-400',
+  icon: (
+    <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <circle cx="12" cy="12" r="10" strokeWidth={2}/>
+      <path d="M12 16v.01M12 12a4 4 0 10-4-4" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
+},
+{
+  label: 'S&K',
+  href: '/syarat-ketentuan',
+  bg: 'bg-gray-700',
+  icon: (
+    <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <rect x="4" y="4" width="16" height="16" rx="2" strokeWidth={2}/>
+      <path d="M8 8h8M8 12h8M8 16h4" strokeWidth={2} strokeLinecap="round"/>
+    </svg>
+  ),
+},
+{
+  label: 'Kebijakan Privasi',
+  href: '/privacy',
+  bg: 'bg-green-600',
+  icon: (
+    <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path d="M12 2L4 6v6c0 5.523 3.582 10 8 10s8-4.477 8-10V6l-8-4z" strokeWidth={2}/>
+    </svg>
+  ),
+},
+{
+  label: 'Jadi Franchisor',
+  href: '/franchisor',
+  bg: 'bg-teal-500',
+  icon: (
+    <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <circle cx="12" cy="7" r="4" strokeWidth={2}/>
+      <path d="M6 21v-2a4 4 0 018 0v2" strokeWidth={2}/>
+    </svg>
+  ),
+},
+{
+  label: 'Kalkulator',
+  href: '#',
+  bg: 'bg-pink-400',
+  icon: (
+    <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <rect x="3" y="3" width="18" height="18" rx="2" strokeWidth={2}/>
+      <path d="M8 6h8M8 10h8M8 14h8M8 18h4" strokeWidth={2}/>
+    </svg>
+  ),
+  action: () => setShowCalculatorModal(true),
+},
+  ];
+
+  // ===== UNIVERSAL SEARCH (autocomplete)
   useEffect(() => {
     if (!searchTerm) {
       setSearchResults([]);
+      setSelectedIdx(-1);
       return;
     }
     const term = searchTerm.toLowerCase();
@@ -147,6 +239,7 @@ export default function Home() {
         desc: fr.category,
         url: `/franchise/${fr.slug}`,
         img: fr.logo_url,
+        tags: fr.tags || '',
       })),
       ...blogs.map((bl) => ({
         ...bl,
@@ -168,105 +261,30 @@ export default function Home() {
       (item) =>
         item.label.toLowerCase().includes(term) ||
         (item.desc && item.desc.toLowerCase().includes(term)) ||
-        (item.tags && item.tags.toLowerCase().includes(term))
+        ('tags' in item && typeof item.tags === 'string' && item.tags.toLowerCase().includes(term))
     );
     setSearchResults(results.slice(0, 7));
+    setSelectedIdx(-1);
   }, [searchTerm, franchises, blogs, threads]);
-
-  // === Data Menu Fitur (copy terbaikmu sebelumnya) ===
-  const featureMenus = [
-    {
-      label: 'Pengumuman',
-      href: '/announcement',
-      bg: 'bg-yellow-400',
-      icon: (
-        <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path d="M19 7v4.95a3 3 0 01-1.19 2.38l-2.54 2.03a1 1 0 00-.27.32l-1.37 2.44A1 1 0 0112 20h0a1 1 0 01-.87-.5l-1.36-2.43a1 1 0 00-.27-.32l-2.54-2.03A3 3 0 015 11.95V7m14 0V5a2 2 0 00-2-2H7a2 2 0 00-2 2v2m14 0H5" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      ),
-    },
-    {
-      label: 'Forum Global',
-      href: '/forum-global',
-      bg: 'bg-green-400',
-      icon: (
-        <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path d="M17 8h2a2 2 0 012 2v8a2 2 0 01-2 2H7a2 2 0 01-2-2v-2" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/>
-          <circle cx="9" cy="7" r="4" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      ),
-    },
-    {
-      label: 'Blog Global',
-      href: '/blog-global',
-      bg: 'bg-purple-400',
-      icon: (
-        <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path d="M12 20h9" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M19 20V4a2 2 0 00-2-2H7a2 2 0 00-2 2v16l5-2.18L15 20z" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      ),
-    },
-    {
-      label: 'Pusat Bantuan',
-      href: '/pusat-bantuan',
-      bg: 'bg-blue-400',
-      icon: (
-        <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <circle cx="12" cy="12" r="10" strokeWidth={2}/>
-          <path d="M12 16v.01M12 12a4 4 0 10-4-4" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      ),
-    },
-    {
-      label: 'S&K',
-      href: '/syarat-ketentuan',
-      bg: 'bg-gray-700',
-      icon: (
-        <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <rect x="4" y="4" width="16" height="16" rx="2" strokeWidth={2}/>
-          <path d="M8 8h8M8 12h8M8 16h4" strokeWidth={2} strokeLinecap="round"/>
-        </svg>
-      ),
-    },
-    {
-      label: 'Kebijakan Privasi',
-      href: '/privacy',
-      bg: 'bg-green-600',
-      icon: (
-        <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path d="M12 2L4 6v6c0 5.523 3.582 10 8 10s8-4.477 8-10V6l-8-4z" strokeWidth={2}/>
-        </svg>
-      ),
-    },
-    {
-      label: 'Jadi Franchisor',
-      href: '/franchisor',
-      bg: 'bg-teal-500',
-      icon: (
-        <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <circle cx="12" cy="7" r="4" strokeWidth={2}/>
-          <path d="M6 21v-2a4 4 0 018 0v2" strokeWidth={2}/>
-        </svg>
-      ),
-    },
-    {
-      label: 'Kalkulator',
-      href: '#',
-      bg: 'bg-pink-400',
-      icon: (
-        <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <rect x="3" y="3" width="18" height="18" rx="2" strokeWidth={2}/>
-          <path d="M8 6h8M8 10h8M8 14h8M8 18h4" strokeWidth={2}/>
-        </svg>
-      ),
-      action: () => setShowCalculatorModal(true),
-    },
-  ];
+  useEffect(() => {
+    if (!showSearchDropdown) return;
+    function handleKey(e: KeyboardEvent) {
+      if (searchResults.length === 0) return;
+      if (e.key === 'ArrowDown') setSelectedIdx(idx => (idx + 1) % searchResults.length);
+      else if (e.key === 'ArrowUp') setSelectedIdx(idx => (idx - 1 + searchResults.length) % searchResults.length);
+      else if (e.key === 'Enter') {
+        if (selectedIdx >= 0 && searchResults[selectedIdx]) {
+          window.location.href = searchResults[selectedIdx].url;
+        }
+      } else if (e.key === 'Escape') setShowSearchDropdown(false);
+    }
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [showSearchDropdown, searchResults, selectedIdx]);
 
   return (
     <div className="relative min-h-screen bg-white">
-      {/* ======= SWIPER BANNER DARI STORAGE ======= */}
+      {/* ==== BANNER SWIPER ==== */}
       <div className="relative w-full h-[300px] sm:h-[340px] md:h-[420px] lg:h-[500px] overflow-visible pb-16 bg-white">
         <Swiper
           modules={[Autoplay, Navigation]}
@@ -294,66 +312,67 @@ export default function Home() {
             ))
           )}
         </Swiper>
-        {/* --- Pencarian Modern --- */}
+        {/* ==== SEARCH BAR MODERN ==== */}
         <div className="absolute left-1/2 transform -translate-x-1/2 bottom-0 w-full max-w-3xl px-4 sm:px-6 lg:px-8 z-20">
-          <div className="bg-white rounded-2xl shadow-2xl p-5 relative border-2 border-blue-200">
+          <div className="bg-white rounded-xl shadow-2xl p-4 relative border-2 border-blue-100">
             <form
-              className="flex space-x-3 items-center"
-              onSubmit={(e) => {
+              className="flex space-x-2 items-center"
+              autoComplete="off"
+              onSubmit={e => {
                 e.preventDefault();
                 if (searchResults[0]) window.location.href = searchResults[0].url;
               }}
-              autoComplete="off"
             >
               <input
+                ref={inputRef}
                 type="text"
+                placeholder="Cari franchise, blog, forum, tag, dsb..."
+                className="flex-1 px-5 py-3 border-0 focus:ring-0 rounded-lg text-lg bg-gray-50"
                 value={searchTerm}
-                placeholder="🔍  Cari franchise, blog, forum, tag, kategori di FranchiseHub..."
-                className="flex-1 px-5 py-4 border-2 border-blue-200 bg-blue-50 rounded-2xl text-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition font-semibold placeholder:text-gray-400"
-                onChange={e => {
-                  setSearchTerm(e.target.value);
-                  setShowSuggestions(true);
-                }}
-                onFocus={() => setShowSuggestions(true)}
-                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                onFocus={() => setShowSearchDropdown(true)}
+                onBlur={() => setTimeout(() => setShowSearchDropdown(false), 180)}
+                onChange={e => setSearchTerm(e.target.value)}
+                style={{ fontWeight: 500 }}
               />
               <button
                 type="submit"
-                className="px-7 py-3 bg-gradient-to-r from-blue-600 to-sky-500 shadow-xl text-white rounded-2xl font-bold text-lg hover:scale-105 hover:from-blue-700 hover:to-blue-600 active:scale-100 transition"
-                aria-label="Cari"
+                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-400 text-white rounded-lg font-bold shadow-lg text-base flex items-center gap-2 hover:from-blue-700 transition"
+                tabIndex={-1}
               >
+                <svg className="h-6 w-6 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <circle cx="11" cy="11" r="8" strokeWidth={2} />
+                  <path d="M21 21l-4-4" strokeWidth={2} strokeLinecap="round" />
+                </svg>
                 Cari
               </button>
             </form>
-            {showSuggestions && searchTerm && (
-              <div className="absolute top-[66px] left-0 w-full bg-white rounded-2xl shadow-2xl border border-blue-200 z-40 animate-fadeIn max-h-80 overflow-auto">
+            {showSearchDropdown && searchTerm && (
+              <div className="absolute left-0 w-full bg-white rounded-b-xl shadow-2xl z-50 border-t border-blue-100 max-h-80 overflow-y-auto animate-fade-in">
                 {searchResults.length === 0 ? (
-                  <div className="p-4 text-gray-400 text-base">Tidak ditemukan</div>
+                  <div className="p-4 text-gray-400 text-center">Tidak ditemukan.</div>
                 ) : (
                   searchResults.map((item, idx) => (
                     <a
-                      key={item.url}
+                      key={item.url + idx}
                       href={item.url}
-                      className="flex items-center gap-4 px-4 py-3 hover:bg-blue-50 transition rounded-xl"
+                      className={`
+                        flex items-center px-4 py-3 gap-3 border-b last:border-0 transition
+                        ${selectedIdx === idx ? 'bg-blue-100/70' : 'hover:bg-blue-50'}
+                      `}
                       tabIndex={-1}
+                      onMouseDown={e => e.preventDefault()}
                     >
-                      {item.img ? (
-                        <img
-                          src={item.img}
-                          className="w-11 h-11 rounded-xl object-cover border shadow"
-                          alt={item.label}
-                        />
-                      ) : (
-                        <span className="w-11 h-11 flex items-center justify-center rounded-xl bg-gray-200 text-2xl">
-                          {item.type === 'franchise' ? '🏬' : item.type === 'blog' ? '📰' : '💬'}
-                        </span>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <span className="font-semibold truncate block">{item.label}</span>
-                        <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
-                          {item.type === 'franchise' ? 'Franchise' : item.type === 'blog' ? 'Blog' : 'Forum'}
-                        </span>
-                        <div className="text-xs text-gray-400 truncate">{item.desc}</div>
+                      <img
+                        src={item.img || '/logo192.png'}
+                        alt={item.label}
+                        className="w-12 h-12 rounded-xl object-cover bg-gray-100 border"
+                      />
+                      <div className="flex-1">
+                        <div className="font-semibold text-gray-900">{item.label}</div>
+                        <div className="text-xs text-gray-600">{item.type === 'franchise' ? `Franchise (${item.desc})` : item.type === 'blog' ? 'Blog Bisnis' : 'Forum Global'}</div>
+                        {'tags' in item && item.tags && (
+                          <div className="text-xs text-blue-500 mt-1">#{item.tags}</div>
+                        )}
                       </div>
                     </a>
                   ))
@@ -364,7 +383,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ======= MENU FITUR ======= */}
+      {/* ===== MENU FITUR ===== */}
       <section className="relative mt-14 mb-6 z-20">
         <div className="w-full flex justify-center">
           <div className="flex gap-4 overflow-x-auto px-2 pb-2 pt-1 max-w-full sm:justify-center scrollbar-thin scrollbar-thumb-gray-200"
@@ -397,10 +416,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ======= MODAL KALKULATOR ======= */}
-      <CalculatorModal show={showCalculatorModal} setShow={setShowCalculatorModal} />
-
-      {/* ======= DAFTAR FRANCHISE (horizontal swiper, 6 saja) ======= */}
+      {/* === DAFTAR FRANCHISE === */}
       <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-4 pb-8">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold">Daftar Franchise</h2>
@@ -449,7 +465,7 @@ export default function Home() {
         </Swiper>
       </section>
 
-      {/* ======= DAFTAR BLOG BISNIS (Horizontal Swiper, 6 saja) ======= */}
+      {/* === DAFTAR BLOG === */}
       <section className="container mx-auto px-4 sm:px-6 lg:px-8 pb-8">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold">Blog Bisnis</h2>
@@ -491,7 +507,7 @@ export default function Home() {
         </Swiper>
       </section>
 
-      {/* ======= DAFTAR FORUM GLOBAL (Horizontal Swiper, 6 saja) ======= */}
+      {/* === DAFTAR FORUM === */}
       <section className="container mx-auto px-4 sm:px-6 lg:px-8 pb-14">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold">Forum Global</h2>
@@ -535,7 +551,7 @@ export default function Home() {
   );
 }
 
-// ================== MODAL KALKULATOR ==================
+// ==== MODAL KALKULATOR SEDERHANA ==== //
 interface CalculatorModalProps {
   show: boolean;
   setShow: (val: boolean) => void;
@@ -559,8 +575,6 @@ function CalculatorModal({ show, setShow }: CalculatorModalProps) {
     </div>
   );
 }
-
-// ================== KALKULATOR SEDERHANA ==================
 function Calculator() {
   const [display, setDisplay] = useState<string>('0');
   const handleButton = (val: string) => {
