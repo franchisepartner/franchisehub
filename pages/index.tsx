@@ -17,6 +17,7 @@ interface Franchise {
   location: string;
   logo_url: string;
   slug: string;
+  tags?: string;
 }
 interface Blog {
   id: string;
@@ -40,13 +41,17 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [showCalculatorModal, setShowCalculatorModal] = useState(false);
   const [banners, setBanners] = useState<string[]>([]);
+  // Search
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   useEffect(() => {
     // Franchise (hanya 6)
     const fetchFranchises = async () => {
       const { data, error } = await supabase
         .from('franchise_listings')
-        .select('id, franchise_name, description, category, investment_min, location, logo_url, slug')
+        .select('id, franchise_name, description, category, investment_min, location, logo_url, slug, tags')
         .order('created_at', { ascending: false })
         .limit(6);
       if (!error && data) {
@@ -126,6 +131,47 @@ export default function Home() {
     fetchThreads();
     setLoading(false);
   }, []);
+
+  // ==== LIVE SEARCH SUGGESTION
+  useEffect(() => {
+    if (!searchTerm) {
+      setSearchResults([]);
+      return;
+    }
+    const term = searchTerm.toLowerCase();
+    const results: any[] = [
+      ...franchises.map((fr) => ({
+        ...fr,
+        type: 'franchise',
+        label: fr.franchise_name,
+        desc: fr.category,
+        url: `/franchise/${fr.slug}`,
+        img: fr.logo_url,
+      })),
+      ...blogs.map((bl) => ({
+        ...bl,
+        type: 'blog',
+        label: bl.title,
+        desc: bl.category,
+        url: `/detail/${bl.slug}`,
+        img: bl.cover_url,
+      })),
+      ...threads.map((th) => ({
+        ...th,
+        type: 'thread',
+        label: th.title,
+        desc: 'Forum',
+        url: `/forum-global?open=${th.id}`,
+        img: th.image_url,
+      })),
+    ].filter(
+      (item) =>
+        item.label.toLowerCase().includes(term) ||
+        (item.desc && item.desc.toLowerCase().includes(term)) ||
+        (item.tags && item.tags.toLowerCase().includes(term))
+    );
+    setSearchResults(results.slice(0, 7));
+  }, [searchTerm, franchises, blogs, threads]);
 
   // === Data Menu Fitur (copy terbaikmu sebelumnya) ===
   const featureMenus = [
@@ -248,22 +294,72 @@ export default function Home() {
             ))
           )}
         </Swiper>
-        {/* Kotak Search */}
+        {/* --- Pencarian Modern --- */}
         <div className="absolute left-1/2 transform -translate-x-1/2 bottom-0 w-full max-w-3xl px-4 sm:px-6 lg:px-8 z-20">
-          <div className="bg-white rounded-xl shadow-lg p-4 relative">
-            <form className="flex space-x-2">
+          <div className="bg-white rounded-2xl shadow-2xl p-5 relative border-2 border-blue-200">
+            <form
+              className="flex space-x-3 items-center"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (searchResults[0]) window.location.href = searchResults[0].url;
+              }}
+              autoComplete="off"
+            >
               <input
                 type="text"
-                placeholder="Cari franchise untuk dijual..."
-                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                value={searchTerm}
+                placeholder="🔍  Cari franchise, blog, forum, tag, kategori di FranchiseHub..."
+                className="flex-1 px-5 py-4 border-2 border-blue-200 bg-blue-50 rounded-2xl text-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition font-semibold placeholder:text-gray-400"
+                onChange={e => {
+                  setSearchTerm(e.target.value);
+                  setShowSuggestions(true);
+                }}
+                onFocus={() => setShowSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
               />
               <button
                 type="submit"
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
+                className="px-7 py-3 bg-gradient-to-r from-blue-600 to-sky-500 shadow-xl text-white rounded-2xl font-bold text-lg hover:scale-105 hover:from-blue-700 hover:to-blue-600 active:scale-100 transition"
+                aria-label="Cari"
               >
                 Cari
               </button>
             </form>
+            {showSuggestions && searchTerm && (
+              <div className="absolute top-[66px] left-0 w-full bg-white rounded-2xl shadow-2xl border border-blue-200 z-40 animate-fadeIn max-h-80 overflow-auto">
+                {searchResults.length === 0 ? (
+                  <div className="p-4 text-gray-400 text-base">Tidak ditemukan</div>
+                ) : (
+                  searchResults.map((item, idx) => (
+                    <a
+                      key={item.url}
+                      href={item.url}
+                      className="flex items-center gap-4 px-4 py-3 hover:bg-blue-50 transition rounded-xl"
+                      tabIndex={-1}
+                    >
+                      {item.img ? (
+                        <img
+                          src={item.img}
+                          className="w-11 h-11 rounded-xl object-cover border shadow"
+                          alt={item.label}
+                        />
+                      ) : (
+                        <span className="w-11 h-11 flex items-center justify-center rounded-xl bg-gray-200 text-2xl">
+                          {item.type === 'franchise' ? '🏬' : item.type === 'blog' ? '📰' : '💬'}
+                        </span>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <span className="font-semibold truncate block">{item.label}</span>
+                        <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
+                          {item.type === 'franchise' ? 'Franchise' : item.type === 'blog' ? 'Blog' : 'Forum'}
+                        </span>
+                        <div className="text-xs text-gray-400 truncate">{item.desc}</div>
+                      </div>
+                    </a>
+                  ))
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
