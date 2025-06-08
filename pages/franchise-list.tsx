@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '../lib/supabaseClient';
-import { FaRedo } from 'react-icons/fa';
+import { FaRedo, FaCogs } from 'react-icons/fa';
 
 interface Franchise {
   id: string;
@@ -12,6 +12,7 @@ interface Franchise {
   location: string;
   logo_url: string;
   slug: string;
+  operation_mode?: string;
 }
 
 const SORT_OPTIONS = [
@@ -35,7 +36,7 @@ export default function FranchiseList() {
     const fetchFranchises = async () => {
       const { data, error } = await supabase
         .from('franchise_listings')
-        .select('id, franchise_name, description, category, investment_min, location, logo_url, slug')
+        .select('id, franchise_name, description, category, investment_min, location, logo_url, slug, operation_mode')
         .order('created_at', { ascending: false });
 
       if (!error && data) {
@@ -63,7 +64,6 @@ export default function FranchiseList() {
     if (category) {
       filtered = filtered.filter((f) => f.category === category);
     }
-
     switch (sort) {
       case 'created_asc':
         filtered.sort((a, b) => (a.id > b.id ? 1 : -1));
@@ -89,16 +89,34 @@ export default function FranchiseList() {
     setSort('created_desc');
   };
 
+  const modeBadge = (mode?: string) => {
+    if (mode === 'autopilot') {
+      return (
+        <span className="flex items-center gap-1 bg-blue-600 text-white text-xs font-bold px-2 py-0.5 rounded-lg shadow-sm uppercase tracking-wide">
+          <FaCogs className="text-white opacity-70" /> Autopilot
+        </span>
+      );
+    }
+    if (mode === 'semi') {
+      return (
+        <span className="flex items-center gap-1 bg-yellow-400 text-gray-800 text-xs font-bold px-2 py-0.5 rounded-lg shadow-sm uppercase tracking-wide">
+          <FaCogs className="text-gray-700 opacity-60" /> Semi Autopilot
+        </span>
+      );
+    }
+    return null;
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-2 sm:px-4 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-[#e7f0fd] via-white to-[#f7fafc] py-8 px-2 sm:px-4 lg:px-8">
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-7 gap-4">
-          <h1 className="text-3xl font-bold mb-1 md:mb-0 text-center md:text-left">
+          <h1 className="text-3xl font-bold mb-1 md:mb-0 text-center md:text-left text-[#11356a] tracking-tight drop-shadow-sm">
             Semua Listing Franchise
           </h1>
           <button
             onClick={handleReset}
-            className="flex items-center px-3 py-2 bg-gray-100 text-gray-700 rounded-full border hover:bg-gray-200 transition self-center md:self-auto"
+            className="flex items-center px-3 py-2 bg-white text-gray-700 border border-gray-300 rounded-full hover:bg-blue-50 hover:text-blue-600 shadow transition self-center md:self-auto"
             title="Reset Filter & Sort"
           >
             <FaRedo className="mr-2" /> Reset
@@ -108,13 +126,13 @@ export default function FranchiseList() {
         {/* FILTER & SORT */}
         <div className="flex flex-col md:flex-row md:items-end md:gap-6 gap-3 mb-8">
           <input
-            className="w-full md:w-1/3 border rounded-lg px-4 py-2"
+            className="w-full md:w-1/3 border-2 border-blue-200 rounded-xl px-4 py-2 shadow-sm focus:border-blue-500"
             placeholder="Cari nama franchise..."
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
           <select
-            className="border rounded-lg px-3 py-2 w-full md:w-1/5"
+            className="border-2 border-blue-200 rounded-xl px-3 py-2 w-full md:w-1/5 shadow-sm"
             value={category}
             onChange={e => setCategory(e.target.value)}
           >
@@ -124,7 +142,7 @@ export default function FranchiseList() {
             ))}
           </select>
           <select
-            className="border rounded-lg px-3 py-2 w-full md:w-1/5"
+            className="border-2 border-blue-200 rounded-xl px-3 py-2 w-full md:w-1/5 shadow-sm"
             value={sort}
             onChange={e => setSort(e.target.value)}
           >
@@ -143,27 +161,34 @@ export default function FranchiseList() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-8">
             {franchises.map((fr) => (
               <Link href={`/franchise/${fr.slug}`} key={fr.id} passHref>
-                <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition overflow-hidden cursor-pointer flex flex-col h-full border border-gray-100 hover:border-blue-200">
+                <div className="group bg-white rounded-3xl shadow-lg hover:shadow-2xl transition overflow-hidden cursor-pointer flex flex-col h-full border border-gray-100 hover:border-blue-400 ring-1 ring-blue-50 hover:ring-blue-300">
                   <div className="relative h-40">
                     <img
                       src={fr.logo_url}
                       alt={fr.franchise_name}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover transition group-hover:scale-105"
                       loading="lazy"
                     />
-                    <span className="absolute top-3 left-3 bg-yellow-400 text-xs font-semibold text-black px-2 py-1 rounded">
+                    <span className="absolute top-3 left-3 bg-yellow-400 text-xs font-semibold text-black px-2 py-1 rounded-xl shadow">
                       {fr.category}
                     </span>
+                    <span className="absolute top-3 right-3">{modeBadge(fr.operation_mode)}</span>
                   </div>
                   <div className="p-4 flex-1 flex flex-col">
-                    <h3 className="text-lg font-semibold text-gray-800 truncate">{fr.franchise_name}</h3>
+                    <h3 className="text-lg font-bold text-blue-900 truncate drop-shadow-sm">
+                      {fr.franchise_name}
+                    </h3>
                     <p className="text-xs text-gray-500">{fr.location}</p>
-                    <p className="mt-2 text-sm text-gray-700 flex-1 line-clamp-2">{fr.description}</p>
+                    <p className="mt-2 text-sm text-gray-700 flex-1 line-clamp-2">
+                      {fr.description}
+                    </p>
                     <div className="mt-3 flex items-center gap-2">
-                      <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-semibold">
+                      <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-bold shadow">
                         Rp {fr.investment_min.toLocaleString('id-ID')}
                       </span>
-                      <span className="text-gray-400 text-xs ml-auto">Lihat detail →</span>
+                      <span className="text-gray-400 text-xs ml-auto group-hover:text-blue-500 transition">
+                        Lihat detail →
+                      </span>
                     </div>
                   </div>
                 </div>
