@@ -1,5 +1,3 @@
-// pages/index.tsx
-
 import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { supabase } from '../lib/supabaseClient';
@@ -7,6 +5,18 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Navigation } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
+
+// ICONS (Lucide)
+import {
+  Megaphone,
+  MessagesSquare,
+  BookOpen,
+  LifeBuoy,
+  FileText,
+  ShieldCheck,
+  Building2,
+  Calculator,
+} from 'lucide-react';
 
 interface Franchise {
   id: string;
@@ -132,95 +142,57 @@ export default function Home() {
     setLoading(false);
   }, []);
 
-  // MENU FITUR (boleh custom sendiri, ini placeholder dari sebelumnya)
+  // ICONS MODERN/FLAT (Lucide) — fitur menu
   const featureMenus = [
     {
       label: 'Pengumuman',
       href: '/announcement',
       bg: 'bg-yellow-400',
-      icon: (
-        <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path d="M19 7v4.95a3 3 0 01-1.19 2.38l-2.54 2.03a1 1 0 00-.27.32l-1.37 2.44A1 1 0 0112 20h0a1 1 0 01-.87-.5l-1.36-2.43a1 1 0 00-.27-.32l-2.54-2.03A3 3 0 015 11.95V7m14 0V5a2 2 0 00-2-2H7a2 2 0 00-2 2v2m14 0H5" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      ),
+      icon: <Megaphone className="h-7 w-7 text-white" />,
     },
     {
-  label: 'Forum Global',
-  href: '/forum-global',
-  bg: 'bg-green-400',
-  icon: (
-    <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path d="M17 8h2a2 2 0 012 2v8a2 2 0 01-2 2H7a2 2 0 01-2-2v-2" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/>
-      <circle cx="9" cy="7" r="4" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  ),
-},
-{
-  label: 'Blog Global',
-  href: '/blog-global',
-  bg: 'bg-purple-400',
-  icon: (
-    <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path d="M12 20h9" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M19 20V4a2 2 0 00-2-2H7a2 2 0 00-2 2v16l5-2.18L15 20z" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  ),
-},
-{
-  label: 'Pusat Bantuan',
-  href: '/pusat-bantuan',
-  bg: 'bg-blue-400',
-  icon: (
-    <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <circle cx="12" cy="12" r="10" strokeWidth={2}/>
-      <path d="M12 16v.01M12 12a4 4 0 10-4-4" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  ),
-},
-{
-  label: 'S&K',
-  href: '/syarat-ketentuan',
-  bg: 'bg-gray-700',
-  icon: (
-    <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <rect x="4" y="4" width="16" height="16" rx="2" strokeWidth={2}/>
-      <path d="M8 8h8M8 12h8M8 16h4" strokeWidth={2} strokeLinecap="round"/>
-    </svg>
-  ),
-},
-{
-  label: 'Kebijakan Privasi',
-  href: '/privacy',
-  bg: 'bg-green-600',
-  icon: (
-    <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path d="M12 2L4 6v6c0 5.523 3.582 10 8 10s8-4.477 8-10V6l-8-4z" strokeWidth={2}/>
-    </svg>
-  ),
-},
-{
-  label: 'Jadi Franchisor',
-  href: '/franchisor',
-  bg: 'bg-teal-500',
-  icon: (
-    <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <circle cx="12" cy="7" r="4" strokeWidth={2}/>
-      <path d="M6 21v-2a4 4 0 018 0v2" strokeWidth={2}/>
-    </svg>
-  ),
-},
-{
-  label: 'Kalkulator',
-  href: '#',
-  bg: 'bg-pink-400',
-  icon: (
-    <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <rect x="3" y="3" width="18" height="18" rx="2" strokeWidth={2}/>
-      <path d="M8 6h8M8 10h8M8 14h8M8 18h4" strokeWidth={2}/>
-    </svg>
-  ),
-  action: () => setShowCalculatorModal(true),
-},
+      label: 'Forum Global',
+      href: '/forum-global',
+      bg: 'bg-green-400',
+      icon: <MessagesSquare className="h-7 w-7 text-white" />,
+    },
+    {
+      label: 'Blog Global',
+      href: '/blog-global',
+      bg: 'bg-purple-400',
+      icon: <BookOpen className="h-7 w-7 text-white" />,
+    },
+    {
+      label: 'Pusat Bantuan',
+      href: '/pusat-bantuan',
+      bg: 'bg-blue-400',
+      icon: <LifeBuoy className="h-7 w-7 text-white" />,
+    },
+    {
+      label: 'S&K',
+      href: '/syarat-ketentuan',
+      bg: 'bg-gray-700',
+      icon: <FileText className="h-7 w-7 text-white" />,
+    },
+    {
+      label: 'Kebijakan Privasi',
+      href: '/privacy',
+      bg: 'bg-green-600',
+      icon: <ShieldCheck className="h-7 w-7 text-white" />,
+    },
+    {
+      label: 'Jadi Franchisor',
+      href: '/franchisor',
+      bg: 'bg-teal-500',
+      icon: <Building2 className="h-7 w-7 text-white" />,
+    },
+    {
+      label: 'Kalkulator',
+      href: '#',
+      bg: 'bg-pink-400',
+      icon: <Calculator className="h-7 w-7 text-white" />,
+      action: () => setShowCalculatorModal(true),
+    },
   ];
 
   // ===== UNIVERSAL SEARCH (autocomplete)
@@ -313,7 +285,7 @@ export default function Home() {
           )}
         </Swiper>
         {/* ==== SEARCH BAR MODERN ==== */}
-        <div className="absolute left-1/2 transform -translate-x-1/2 bottom-0 w-full max-w-3xl px-4 sm:px-6 lg:px-8 z-20">
+        <div className="absolute left-1/2 transform -translate-x-1/2 bottom-0 w-full max-w-3xl px-4 sm:px-6 lg:px-8 z-30">
           <div className="bg-white rounded-xl shadow-2xl p-4 relative border-2 border-blue-100">
             <form
               className="flex space-x-2 items-center"
@@ -384,7 +356,7 @@ export default function Home() {
       </div>
 
       {/* ===== MENU FITUR ===== */}
-      <section className="relative mt-14 mb-6 z-20">
+      <section className="relative mt-14 mb-6 z-10"> {/* Pastikan z-10 (di bawah search) */}
         <div className="w-full flex justify-center">
           <div className="flex gap-4 overflow-x-auto px-2 pb-2 pt-1 max-w-full sm:justify-center scrollbar-thin scrollbar-thumb-gray-200"
             style={{ WebkitOverflowScrolling: 'touch' }}
@@ -477,7 +449,7 @@ export default function Home() {
           spaceBetween={24}
           breakpoints={{
             640: { slidesPerView: 2.15 },
-            1024: { slidesPerView: 3.15 },
+             1024: { slidesPerView: 3.15 },
             1280: { slidesPerView: 4.15 },
           }}
           autoplay={{ delay: 5000, disableOnInteraction: false }}
