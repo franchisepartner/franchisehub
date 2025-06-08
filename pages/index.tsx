@@ -1,4 +1,5 @@
 // pages/index.tsx
+
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -23,6 +24,7 @@ export default function Home() {
   const [franchises, setFranchises] = useState<Franchise[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCalculatorModal, setShowCalculatorModal] = useState(false);
+  const [bannerImages, setBannerImages] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchFranchises = async () => {
@@ -52,7 +54,22 @@ export default function Home() {
     fetchFranchises();
   }, []);
 
-  // === Data Menu Fitur
+  // Ambil gambar banner dari Supabase Storage
+  useEffect(() => {
+    async function fetchBanners() {
+      const { data } = await supabase.storage.from('homepage-banners').list('', { limit: 10 });
+      if (data) {
+        setBannerImages(
+          data
+            .filter(x => x.name)
+            .map(x => supabase.storage.from('homepage-banners').getPublicUrl(x.name).data.publicUrl)
+        );
+      }
+    }
+    fetchBanners();
+  }, []);
+
+  // === Data Menu Fitur (tidak diubah) ===
   const featureMenus = [
     {
       label: 'Pengumuman',
@@ -154,30 +171,19 @@ export default function Home() {
           navigation
           className="w-full h-full"
         >
-          <SwiperSlide>
-            <Image
-              src="/banner-franchisehub.PNG"
-              alt="Banner FranchiseHub 1"
-              fill
-              className="object-cover"
-            />
-          </SwiperSlide>
-          <SwiperSlide>
-            <Image
-              src="/banner-franchisehub1.PNG"
-              alt="Banner FranchiseHub 2"
-              fill
-              className="object-cover"
-            />
-          </SwiperSlide>
-          <SwiperSlide>
-            <Image
-              src="/banner-franchisehub2.PNG"
-              alt="Banner FranchiseHub 3"
-              fill
-              className="object-cover"
-            />
-          </SwiperSlide>
+          {bannerImages.length === 0 ? (
+            <SwiperSlide>
+              <div className="flex items-center justify-center w-full h-full bg-gray-200 rounded-xl text-gray-400 text-xl font-bold">
+                Belum ada banner diunggah
+              </div>
+            </SwiperSlide>
+          ) : (
+            bannerImages.map((img, idx) => (
+              <SwiperSlide key={idx}>
+                <Image src={img} alt={`Banner ${idx + 1}`} fill className="object-cover" />
+              </SwiperSlide>
+            ))
+          )}
         </Swiper>
 
         {/* Curve putih di pojok kiri bawah */}
