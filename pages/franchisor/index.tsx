@@ -1,8 +1,8 @@
-// pages/franchisor/index.tsx
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabaseClient'
 import { v4 as uuidv4 } from 'uuid'
 import { useRouter } from 'next/router'
+import { FiLock } from 'react-icons/fi'
 
 export default function FranchisorForm() {
   const [brand_name, setBrandName] = useState('')
@@ -16,16 +16,32 @@ export default function FranchisorForm() {
   const [ktpFile, setKtpFile] = useState<File | null>(null)
   const [status, setStatus] = useState<'idle' | 'pending' | 'approved'>('idle')
   const [loading, setLoading] = useState(false)
+  const [session, setSession] = useState<any>(null)
   const router = useRouter()
 
+  // Cek login & status pengajuan saat mount
   useEffect(() => {
-    checkStatus()
+    const init = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      setSession(session)
+      if (session?.user) {
+        await checkStatus(session.user)
+      }
+    }
+    init()
+    // Listen auth state
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+      if (session?.user) checkStatus(session.user)
+      else setStatus('idle')
+    })
+    return () => listener?.subscription.unsubscribe()
+    // eslint-disable-next-line
   }, [])
 
-  const checkStatus = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-
+  // Cek status pengajuan franchisor
+  const checkStatus = async (user: any) => {
+    // Cek & buat profil jika belum ada
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('id, role')
@@ -38,20 +54,18 @@ export default function FranchisorForm() {
         role: 'franchisee'
       })
     }
-
-    const { data, error } = await supabase
+    // Cek status pengajuan
+    const { data } = await supabase
       .from('franchisor_applications')
       .select('status')
       .eq('user_id', user.id)
       .single()
-
-    if (data?.status === 'pending') {
-      setStatus('pending')
-    } else if (data?.status === 'approved') {
-      setStatus('approved')
-    }
+    if (data?.status === 'pending') setStatus('pending')
+    else if (data?.status === 'approved') setStatus('approved')
+    else setStatus('idle')
   }
 
+  // Submit pengajuan
   const handleSubmit = async () => {
     if (
       !brand_name || !description || !email || !whatsapp || !website ||
@@ -62,7 +76,6 @@ export default function FranchisorForm() {
     }
 
     setLoading(true)
-
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
@@ -83,6 +96,7 @@ export default function FranchisorForm() {
       return
     }
 
+    // Hapus pengajuan lama jika ada
     await supabase
       .from('franchisor_applications')
       .delete()
@@ -112,6 +126,7 @@ export default function FranchisorForm() {
     setLoading(false)
   }
 
+  // Ubah role jadi franchisor setelah payment
   const handlePaymentComplete = async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
@@ -128,11 +143,26 @@ export default function FranchisorForm() {
     }
   }
 
+  // ==== UI ====
   return (
     <div className="max-w-xl mx-auto p-6">
       <h1 className="text-2xl font-semibold mb-4">Form Pengajuan Jadi Franchisor</h1>
 
-      {status === 'approved' ? (
+      {/* Belum login */}
+      {!session ? (
+        <div className="flex flex-col items-center justify-center py-12">
+          <FiLock size={56} className="text-blue-500 mb-4" />
+          <p className="text-lg text-gray-700 mb-4 text-center font-medium">
+            Anda harus login untuk mengajukan menjadi Franchisor.
+          </p>
+          <button
+            onClick={() => router.push('/login')}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full shadow font-bold text-lg flex items-center gap-2"
+          >
+            <FiLock className="inline mr-1" /> Login untuk Melanjutkan
+          </button>
+        </div>
+      ) : status === 'approved' ? (
         <div className="bg-green-100 border border-green-300 p-4 rounded mb-4">
           <p className="text-green-700 font-medium mb-2">
             ✅ Pendaftaran anda telah disetujui Administrator FranchiseHub.
