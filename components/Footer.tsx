@@ -6,31 +6,30 @@ export default function Footer() {
 
   return (
     <footer className="bg-gray-900 text-white py-10">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
-        {/* Tentang Kami */}
-        <div>
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row md:items-start md:justify-between gap-10">
+        {/* Kiri: Tentang & Kontak */}
+        <div className="flex-1 min-w-[220px]">
+          {/* Tentang */}
           <h4 className="font-semibold mb-3">Tentang Kami</h4>
-          <p className="text-sm text-gray-300 leading-relaxed">
-            FranchiseHub adalah platform terdepan untuk menemukan dan mengelola peluang franchise di Indonesia. 
+          <p className="text-sm text-gray-300 leading-relaxed mb-5">
+            FranchiseHub adalah platform terdepan untuk menemukan dan mengelola peluang franchise di Indonesia.
             Kami hadir untuk membantu Anda berkembang dan terhubung dengan berbagai peluang usaha terbaik.
           </p>
+          {/* Kontak */}
+          <div>
+            <h4 className="font-semibold mb-2">Kontak Kami</h4>
+            <p className="text-sm text-gray-300">
+              Email: <a href="mailto:mesebeng17@gmail.com" className="underline hover:text-blue-400">mesebeng17@gmail.com</a>
+            </p>
+            <p className="text-sm text-gray-300">
+              Telepon: <a href="tel:+6281238796380" className="underline hover:text-blue-400">+62 8123 8796 380</a>
+            </p>
+          </div>
         </div>
-        
-        {/* Kontak Kami */}
-        <div>
-          <h4 className="font-semibold mb-3">Kontak Kami</h4>
-          <p className="text-sm text-gray-300">Email: <a href="mailto:mesebeng17@gmail.com" className="underline hover:text-blue-400">mesebeng17@gmail.com</a></p>
-          <p className="text-sm text-gray-300">Telepon: <a href="tel:+6281238796380" className="underline hover:text-blue-400">+62 8123 8796 380</a></p>
-        </div>
-        
-        {/* Dukungan & Pengembangan */}
-        <div className="flex flex-col items-center md:items-end">
+        {/* Kanan: Dukungan & Pengembangan */}
+        <div className="flex flex-col items-center md:items-end justify-center">
           <button
-            className="
-              flex flex-col items-center group
-              focus:outline-none
-              transition
-            "
+            className="flex flex-col items-center group focus:outline-none transition"
             aria-label="Dukungan FranchiseHub"
             onClick={() => router.push('/pengembangan')}
             type="button"
@@ -45,7 +44,9 @@ export default function Footer() {
                 priority
               />
             </span>
-            <span className="text-base font-semibold text-white mb-1">Dukungan &amp; Pengembangan</span>
+            <span className="text-base font-semibold text-white mb-1">
+              Dukungan &amp; Pengembangan
+            </span>
             <span className="text-xs text-blue-300 group-hover:text-white transition">
               franchisehub.com
             </span>
