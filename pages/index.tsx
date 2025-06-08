@@ -1,3 +1,5 @@
+// pages/index.tsx
+
 import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { supabase } from '../lib/supabaseClient';
@@ -5,10 +7,9 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Navigation } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
-
 import {
-  Megaphone, Globe, BookOpenText, LifeBuoy, FileSignature,
-  ShieldCheck, UserPlus, Calculator as CalculatorIcon,
+  Megaphone, Globe, BookOpenText, LifeBuoy,
+  FileSignature, ShieldCheck, UserPlus, Calculator as CalculatorIcon
 } from 'lucide-react';
 
 interface Franchise {
@@ -45,7 +46,7 @@ export default function Home() {
   const [showCalculatorModal, setShowCalculatorModal] = useState(false);
   const [banners, setBanners] = useState<string[]>([]);
 
-  // Search
+  // Universal search
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
@@ -55,19 +56,19 @@ export default function Home() {
   useEffect(() => {
     // Franchise (6)
     const fetchFranchises = async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('franchise_listings')
         .select('id, franchise_name, description, category, investment_min, location, logo_url, slug, tags')
         .order('created_at', { ascending: false })
         .limit(6);
-      setFranchises(
-        (data || []).map((franchise: Franchise) => ({
+      if (!error && data) {
+        setFranchises(data.map((franchise) => ({
           ...franchise,
           logo_url: franchise.logo_url
             ? supabase.storage.from('listing-images').getPublicUrl(franchise.logo_url).data.publicUrl
             : '/logo192.png',
-        }))
-      );
+        })));
+      }
     };
     // Blog (6)
     const fetchBlogs = async () => {
@@ -135,36 +136,60 @@ export default function Home() {
     setLoading(false);
   }, []);
 
-  // Bar fitur modern
+  // Modern Menu Fitur
   const featureMenus = [
     {
-      label: 'Pengumuman', href: '/announcement', bg: 'from-yellow-400 to-yellow-300', icon: <Megaphone className="h-7 w-7" />,
+      label: 'Pengumuman',
+      href: '/announcement',
+      bg: 'from-yellow-400 to-yellow-300',
+      icon: <Megaphone className="h-7 w-7" />,
     },
     {
-      label: 'Forum Global', href: '/forum-global', bg: 'from-green-400 to-green-300', icon: <Globe className="h-7 w-7" />,
+      label: 'Forum Global',
+      href: '/forum-global',
+      bg: 'from-green-400 to-green-300',
+      icon: <Globe className="h-7 w-7" />,
     },
     {
-      label: 'Blog Global', href: '/blog-global', bg: 'from-purple-500 to-purple-300', icon: <BookOpenText className="h-7 w-7" />,
+      label: 'Blog Global',
+      href: '/blog-global',
+      bg: 'from-purple-500 to-purple-300',
+      icon: <BookOpenText className="h-7 w-7" />,
     },
     {
-      label: 'Pusat Bantuan', href: '/pusat-bantuan', bg: 'from-blue-500 to-blue-400', icon: <LifeBuoy className="h-7 w-7" />,
+      label: 'Pusat Bantuan',
+      href: '/pusat-bantuan',
+      bg: 'from-blue-500 to-blue-400',
+      icon: <LifeBuoy className="h-7 w-7" />,
     },
     {
-      label: 'S&K', href: '/syarat-ketentuan', bg: 'from-gray-700 to-gray-500', icon: <FileSignature className="h-7 w-7" />,
+      label: 'S&K',
+      href: '/syarat-ketentuan',
+      bg: 'from-gray-700 to-gray-500',
+      icon: <FileSignature className="h-7 w-7" />,
     },
     {
-      label: 'Kebijakan Privasi', href: '/privacy', bg: 'from-green-600 to-green-400', icon: <ShieldCheck className="h-7 w-7" />,
+      label: 'Kebijakan Privasi',
+      href: '/privacy',
+      bg: 'from-green-600 to-green-400',
+      icon: <ShieldCheck className="h-7 w-7" />,
     },
     {
-      label: 'Jadi Franchisor', href: '/franchisor', bg: 'from-teal-500 to-teal-300', icon: <UserPlus className="h-7 w-7" />,
+      label: 'Jadi Franchisor',
+      href: '/franchisor',
+      bg: 'from-teal-500 to-teal-300',
+      icon: <UserPlus className="h-7 w-7" />,
     },
     {
-      label: 'Kalkulator', href: '#', bg: 'from-pink-500 to-pink-400', icon: <CalculatorIcon className="h-7 w-7" />,
+      label: 'Kalkulator',
+      href: '#',
+      bg: 'from-pink-500 to-pink-400',
+      icon: <CalculatorIcon className="h-7 w-7" />,
       action: () => setShowCalculatorModal(true),
     },
   ];
 
-  // UNIVERSAL SEARCH (autocomplete)
+  // ===== UNIVERSAL SEARCH (autocomplete)
   useEffect(() => {
     if (!searchTerm) {
       setSearchResults([]);
@@ -207,8 +232,6 @@ export default function Home() {
     setSearchResults(results.slice(0, 7));
     setSelectedIdx(-1);
   }, [searchTerm, franchises, blogs, threads]);
-
-  // Keyboard navigation (tidak menabrak iPad/mobile)
   useEffect(() => {
     if (!showSearchDropdown) return;
     function handleKey(e: KeyboardEvent) {
@@ -256,8 +279,8 @@ export default function Home() {
           )}
         </Swiper>
         {/* ==== SEARCH BAR MODERN SHINE ==== */}
-        <div className="absolute left-1/2 transform -translate-x-1/2 bottom-0 w-full max-w-3xl px-4 sm:px-6 lg:px-8 z-30">
-          <div className="bg-white/90 rounded-xl shadow-xl p-4 relative border-2 border-blue-100 backdrop-blur-md transition-all ring-1 ring-blue-200 focus-within:ring-2 focus-within:ring-blue-400">
+        <div className="absolute left-1/2 transform -translate-x-1/2 bottom-0 w-full max-w-3xl px-4 sm:px-6 lg:px-8 z-20">
+          <div className="bg-white/80 rounded-xl shadow-[0_8px_32px_0_rgba(31,38,135,0.12)] p-4 relative border-2 border-blue-100 backdrop-blur-md transition-all">
             <form
               className="flex space-x-2 items-center"
               autoComplete="off"
@@ -279,12 +302,8 @@ export default function Home() {
               />
               <button
                 type="submit"
-                className="px-6 py-3 font-bold bg-gradient-to-r from-blue-500 via-cyan-400 to-blue-600 text-white rounded-xl shadow-lg text-base flex items-center gap-2 hover:from-blue-600 transition"
+                className="px-6 py-3 relative font-bold bg-gradient-to-r from-blue-500 via-cyan-400 to-blue-600 text-white rounded-xl shadow-lg text-base flex items-center gap-2 hover:from-blue-600 transition"
                 tabIndex={-1}
-                style={{
-                  boxShadow: '0 2px 16px 0 rgba(55,176,246,0.10)',
-                  filter: 'brightness(1.06) drop-shadow(0 4px 12px #5ecfff33)'
-                }}
               >
                 <svg className="h-6 w-6 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <circle cx="11" cy="11" r="8" strokeWidth={2} />
@@ -294,7 +313,7 @@ export default function Home() {
               </button>
             </form>
             {showSearchDropdown && searchTerm && (
-              <div className="absolute left-0 w-full bg-white/95 rounded-b-xl shadow-2xl z-40 border-t border-blue-100 max-h-80 overflow-y-auto animate-fade-in backdrop-blur-lg">
+              <div className="absolute left-0 w-full bg-white/90 rounded-b-xl shadow-2xl z-50 border-t border-blue-100 max-h-80 overflow-y-auto animate-fade-in backdrop-blur-lg">
                 {searchResults.length === 0 ? (
                   <div className="p-4 text-gray-400 text-center">Tidak ditemukan.</div>
                 ) : (
@@ -331,7 +350,7 @@ export default function Home() {
       </div>
 
       {/* ===== MENU FITUR MODERN ===== */}
-      <section className="relative mt-7 mb-6 z-20">
+      <section className="relative mt-14 mb-6 z-20">
         <div className="w-full flex justify-center">
           <div className="flex gap-4 overflow-x-auto px-2 pb-2 pt-1 max-w-full sm:justify-center scrollbar-thin scrollbar-thumb-gray-200"
             style={{ WebkitOverflowScrolling: 'touch' }}
@@ -346,16 +365,12 @@ export default function Home() {
                   }
                   className={`
                     bg-gradient-to-br ${menu.bg}
-                    shadow-md border-2 border-white/30
+                    shadow-xl border-2 border-white/50
                     rounded-full flex items-center justify-center
                     w-16 h-16 md:w-16 md:h-16 mb-1 focus:outline-none
                     relative overflow-hidden transition hover:scale-105 active:scale-95 group
                   `}
                   aria-label={menu.label}
-                  style={{
-                    boxShadow: '0 2px 12px 0 rgba(54,172,244,0.12)',
-                    filter: 'brightness(1.04) drop-shadow(0 3px 10px #99e7f633)'
-                  }}
                 >
                   {menu.icon}
                 </button>
@@ -368,11 +383,137 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ...DAFTAR FRANCHISE, BLOG, FORUM seperti sebelumnya... */}
-      {/* (Copy bagian bawah filemu sebelumnya di sini tanpa diubah) */}
+      {/* ===== DAFTAR FRANCHISE ===== */}
+      <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-4 pb-8">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold">Daftar Franchise</h2>
+          <Link href="/franchise-list" className="text-blue-600 text-sm hover:underline">Lihat Semua →</Link>
+        </div>
+        <Swiper
+          modules={[Autoplay, Navigation]}
+          slidesPerView={1.15}
+          spaceBetween={24}
+          breakpoints={{
+            640: { slidesPerView: 2.15 },
+            1024: { slidesPerView: 3.15 },
+            1280: { slidesPerView: 4.15 },
+          }}
+          autoplay={{ delay: 5000, disableOnInteraction: false }}
+          navigation
+          style={{ width: '100%', minHeight: 280 }}
+        >
+          {franchises.map((fr) => (
+            <SwiperSlide key={fr.id}>
+              <Link href={`/franchise/${fr.slug}`}>
+                <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden cursor-pointer flex flex-col h-full border-2 border-blue-50">
+                  <div className="relative h-40">
+                    <img
+                      src={fr.logo_url}
+                      alt={fr.franchise_name}
+                      className="w-full h-full object-cover"
+                    />
+                    <span className="absolute top-3 left-3 bg-yellow-400 text-xs font-semibold text-black px-2 py-1 rounded">
+                      {fr.category}
+                    </span>
+                  </div>
+                  <div className="p-4 flex-1 flex flex-col">
+                    <h3 className="text-lg font-semibold text-gray-800 truncate">
+                      {fr.franchise_name}
+                    </h3>
+                    <p className="mt-1 text-sm text-gray-500">{fr.location}</p>
+                    <p className="mt-2 text-sm text-gray-700">
+                      Investasi Mulai: Rp {fr.investment_min.toLocaleString('id-ID')}
+                    </p>
+                  </div>
+                </div>
+              </Link>
+            </SwiperSlide>
+          ))}
+        </Swiper>
+      </section>
 
-      {/* Kalkulator */}
-      <CalculatorModal show={showCalculatorModal} setShow={setShowCalculatorModal} />
+      {/* ===== DAFTAR BLOG ===== */}
+      <section className="container mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold">Blog Bisnis</h2>
+          <Link href="/blog-global" className="text-blue-600 text-sm hover:underline">Lihat Semua →</Link>
+        </div>
+        <Swiper
+          modules={[Autoplay, Navigation]}
+          slidesPerView={1.15}
+          spaceBetween={24}
+          breakpoints={{
+            640: { slidesPerView: 2.15 },
+            1024: { slidesPerView: 3.15 },
+            1280: { slidesPerView: 4.15 },
+          }}
+          autoplay={{ delay: 5000, disableOnInteraction: false }}
+          navigation
+          style={{ width: '100%', minHeight: 280 }}
+        >
+          {blogs.map((b) => (
+            <SwiperSlide key={b.id}>
+              <Link href={`/detail/${b.slug}`}>
+                <div className="bg-white border rounded-xl shadow-sm hover:shadow-lg transition cursor-pointer flex flex-col overflow-hidden h-full">
+                  <div className="h-36 flex items-center justify-center bg-gray-50">
+                    {b.cover_url ? (
+                      <img src={b.cover_url} alt={b.title} className="object-cover w-full h-full" />
+                    ) : (
+                      <span className="text-gray-400 text-sm">Tanpa Cover</span>
+                    )}
+                  </div>
+                  <div className="p-3 flex-1 flex flex-col">
+                    <span className="inline-block bg-purple-200 text-purple-800 px-2 py-0.5 rounded text-xs font-semibold mb-1">{b.category}</span>
+                    <div className="font-semibold truncate">{b.title}</div>
+                    <div className="text-xs text-gray-500">{new Date(b.created_at).toLocaleDateString()}</div>
+                  </div>
+                </div>
+              </Link>
+            </SwiperSlide>
+          ))}
+        </Swiper>
+      </section>
+
+      {/* ===== DAFTAR FORUM ===== */}
+      <section className="container mx-auto px-4 sm:px-6 lg:px-8 pb-14">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold">Forum Global</h2>
+          <Link href="/forum-global" className="text-blue-600 text-sm hover:underline">Lihat Semua →</Link>
+        </div>
+        <Swiper
+          modules={[Autoplay, Navigation]}
+          slidesPerView={1.15}
+          spaceBetween={24}
+          breakpoints={{
+            640: { slidesPerView: 2.15 },
+            1024: { slidesPerView: 3.15 },
+            1280: { slidesPerView: 4.15 },
+          }}
+          autoplay={{ delay: 5000, disableOnInteraction: false }}
+          navigation
+          style={{ width: '100%', minHeight: 280 }}
+        >
+          {threads.map((t) => (
+            <SwiperSlide key={t.id}>
+              <Link href={{ pathname: '/forum-global', query: { open: t.id } }} scroll={false}>
+                <div className="bg-white border rounded-xl shadow-sm hover:shadow-lg transition cursor-pointer flex flex-col overflow-hidden h-full">
+                  <div className="h-36 flex items-center justify-center bg-gray-50">
+                    {t.image_url ? (
+                      <img src={t.image_url} alt={t.title} className="object-cover w-full h-full" />
+                    ) : (
+                      <span className="text-gray-400 text-sm">Tanpa Gambar</span>
+                    )}
+                  </div>
+                  <div className="p-3 flex-1 flex flex-col">
+                    <div className="font-semibold truncate">{t.title}</div>
+                    <div className="text-xs text-gray-500">{new Date(t.created_at).toLocaleDateString()}</div>
+                  </div>
+                </div>
+              </Link>
+            </SwiperSlide>
+          ))}
+        </Swiper>
+      </section>
     </div>
   );
 }
