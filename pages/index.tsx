@@ -1,3 +1,5 @@
+// pages/index.tsx
+
 import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { supabase } from '../lib/supabaseClient';
@@ -5,6 +7,7 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Navigation } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
+
 import {
   Megaphone, Globe, BookOpenText, LifeBuoy, FileSignature,
   ShieldCheck, UserPlus, Calculator as CalculatorIcon,
@@ -44,7 +47,7 @@ export default function Home() {
   const [showCalculatorModal, setShowCalculatorModal] = useState(false);
   const [banners, setBanners] = useState<string[]>([]);
 
-  // Search
+  // Universal search
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
@@ -134,7 +137,7 @@ export default function Home() {
     setLoading(false);
   }, []);
 
-  // Bar fitur modern (tidak menimpa search)
+  // Modern menu fitur (tidak overlap)
   const featureMenus = [
     {
       label: 'Pengumuman', href: '/announcement', bg: 'from-yellow-400 to-yellow-300', icon: <Megaphone className="h-7 w-7" />,
@@ -163,7 +166,7 @@ export default function Home() {
     },
   ];
 
-  // UNIVERSAL SEARCH (autocomplete)
+  // Universal Search (autocomplete)
   useEffect(() => {
     if (!searchTerm) {
       setSearchResults([]);
@@ -207,7 +210,7 @@ export default function Home() {
     setSelectedIdx(-1);
   }, [searchTerm, franchises, blogs, threads]);
 
-  // Keyboard navigation
+  // Keyboard navigation (non-overlap on mobile)
   useEffect(() => {
     if (!showSearchDropdown) return;
     function handleKey(e: KeyboardEvent) {
@@ -227,11 +230,11 @@ export default function Home() {
   return (
     <div className="relative min-h-screen bg-white">
       {/* ==== BANNER SWIPER ==== */}
-      <div className="relative w-full h-[300px] sm:h-[340px] md:h-[420px] lg:h-[500px] overflow-visible pb-16 bg-white">
+      <div className="relative w-full h-[240px] xs:h-[280px] sm:h-[340px] md:h-[420px] lg:h-[500px] overflow-visible pb-10 sm:pb-16 bg-white">
         <Swiper
           modules={[Autoplay, Navigation]}
           autoplay={{ delay: 5000, disableOnInteraction: false }}
-          loop={true}
+          loop
           navigation
           className="w-full h-full"
         >
@@ -255,8 +258,13 @@ export default function Home() {
           )}
         </Swiper>
         {/* ==== SEARCH BAR ==== */}
-        <div className="absolute left-1/2 transform -translate-x-1/2 bottom-0 w-full max-w-3xl px-4 sm:px-6 lg:px-8 z-30">
-          <div className="bg-white/90 rounded-xl shadow-xl p-4 relative border-2 border-blue-100 backdrop-blur-md transition-all ring-1 ring-blue-200 focus-within:ring-2 focus-within:ring-blue-400">
+        <div className="absolute left-1/2 transform -translate-x-1/2 bottom-0 w-full max-w-[98vw] sm:max-w-3xl mx-auto px-2 sm:px-4 z-30">
+          <div className="bg-white/90 rounded-xl shadow-xl p-3 sm:p-4 relative border-2 border-blue-100 backdrop-blur-md ring-1 ring-blue-200 focus-within:ring-2 focus-within:ring-blue-400"
+            style={{
+              boxShadow: '0 2px 18px 0 rgba(54,172,244,0.10)',
+              filter: 'brightness(1.04)'
+            }}
+          >
             <form
               className="flex space-x-2 items-center"
               autoComplete="off"
@@ -278,11 +286,11 @@ export default function Home() {
               />
               <button
                 type="submit"
-                className="px-6 py-3 font-bold bg-gradient-to-r from-blue-500 via-cyan-400 to-blue-600 text-white rounded-xl shadow-lg text-base flex items-center gap-2 hover:from-blue-600 transition"
+                className="px-5 py-3 font-bold bg-gradient-to-r from-blue-500 via-cyan-400 to-blue-600 text-white rounded-xl shadow-lg text-base flex items-center gap-2 hover:from-blue-600 transition"
                 tabIndex={-1}
                 style={{
-                  boxShadow: '0 2px 16px 0 rgba(55,176,246,0.10)',
-                  filter: 'brightness(1.06) drop-shadow(0 4px 12px #5ecfff33)'
+                  boxShadow: '0 2px 16px 0 rgba(55,176,246,0.08)',
+                  filter: 'brightness(1.06)'
                 }}
               >
                 <svg className="h-6 w-6 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -292,6 +300,7 @@ export default function Home() {
                 Cari
               </button>
             </form>
+            {/* Search Dropdown */}
             {showSearchDropdown && searchTerm && (
               <div className="absolute left-0 w-full bg-white/95 rounded-b-xl shadow-2xl z-40 border-t border-blue-100 max-h-80 overflow-y-auto animate-fade-in backdrop-blur-lg">
                 {searchResults.length === 0 ? (
@@ -332,11 +341,17 @@ export default function Home() {
       {/* ===== MENU FITUR MODERN ===== */}
       <section className="relative mt-7 mb-6 z-20">
         <div className="w-full flex justify-center">
-          <div className="flex gap-4 overflow-x-auto px-2 pb-2 pt-1 max-w-full sm:justify-center scrollbar-thin scrollbar-thumb-gray-200"
-            style={{ WebkitOverflowScrolling: 'touch' }}
-          >
+          <div className="
+            flex gap-3 overflow-x-auto px-2 pb-2 pt-2 max-w-full sm:justify-center
+            scrollbar-thin scrollbar-thumb-gray-200 bg-white/70
+            rounded-xl shadow-sm
+          "
+            style={{
+              WebkitOverflowScrolling: 'touch',
+              marginTop: '-22px'
+            }}>
             {featureMenus.map((menu, idx) => (
-              <div key={idx} className="flex flex-col items-center min-w-[90px] max-w-[100px]">
+              <div key={idx} className="flex flex-col items-center min-w-[78px] max-w-[90px]">
                 <button
                   onClick={
                     menu.action
@@ -347,13 +362,13 @@ export default function Home() {
                     bg-gradient-to-br ${menu.bg}
                     shadow-md border-2 border-white/30
                     rounded-full flex items-center justify-center
-                    w-16 h-16 md:w-16 md:h-16 mb-1 focus:outline-none
+                    w-14 h-14 md:w-16 md:h-16 mb-1 focus:outline-none
                     relative overflow-hidden transition hover:scale-105 active:scale-95 group
                   `}
                   aria-label={menu.label}
                   style={{
-                    boxShadow: '0 2px 12px 0 rgba(54,172,244,0.12)',
-                    filter: 'brightness(1.04) drop-shadow(0 3px 10px #99e7f633)'
+                    boxShadow: '0 2px 8px 0 rgba(54,172,244,0.10)',
+                    filter: 'brightness(1.03)'
                   }}
                 >
                   {menu.icon}
@@ -367,24 +382,25 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ===== DAFTAR FRANCHISE ===== */}
-      <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-4 pb-8">
+      {/* === DAFTAR FRANCHISE === */}
+      <section className="container mx-auto px-2 sm:px-4 md:px-6 lg:px-8 mt-2 pb-8">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold">Daftar Franchise</h2>
+          <h2 className="text-xl sm:text-2xl font-bold">Daftar Franchise</h2>
           <Link href="/franchise-list" className="text-blue-600 text-sm hover:underline">Lihat Semua →</Link>
         </div>
         <Swiper
           modules={[Autoplay, Navigation]}
-          slidesPerView={1.15}
-          spaceBetween={24}
+          slidesPerView={1.1}
+          spaceBetween={16}
           breakpoints={{
-            640: { slidesPerView: 2.15 },
-            1024: { slidesPerView: 3.15 },
-            1280: { slidesPerView: 4.15 },
+            400: { slidesPerView: 1.3, spaceBetween: 20 },
+            640: { slidesPerView: 2.2, spaceBetween: 22 },
+            1024: { slidesPerView: 3.15, spaceBetween: 24 },
+            1280: { slidesPerView: 4.15, spaceBetween: 24 },
           }}
           autoplay={{ delay: 5000, disableOnInteraction: false }}
           navigation
-          style={{ width: '100%', minHeight: 280 }}
+          style={{ width: '100%', minHeight: 260 }}
         >
           {franchises.map((fr) => (
             <SwiperSlide key={fr.id}>
@@ -416,30 +432,31 @@ export default function Home() {
         </Swiper>
       </section>
 
-      {/* ===== DAFTAR BLOG ===== */}
-      <section className="container mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+      {/* === DAFTAR BLOG === */}
+      <section className="container mx-auto px-2 sm:px-4 md:px-6 lg:px-8 pb-8">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold">Blog Bisnis</h2>
+          <h2 className="text-xl sm:text-2xl font-bold">Blog Bisnis</h2>
           <Link href="/blog-global" className="text-blue-600 text-sm hover:underline">Lihat Semua →</Link>
         </div>
         <Swiper
           modules={[Autoplay, Navigation]}
           slidesPerView={1.15}
-          spaceBetween={24}
+          spaceBetween={16}
           breakpoints={{
-            640: { slidesPerView: 2.15 },
-            1024: { slidesPerView: 3.15 },
-            1280: { slidesPerView: 4.15 },
+            400: { slidesPerView: 1.3, spaceBetween: 20 },
+            640: { slidesPerView: 2.2, spaceBetween: 22 },
+            1024: { slidesPerView: 3.15, spaceBetween: 24 },
+            1280: { slidesPerView: 4.15, spaceBetween: 24 },
           }}
           autoplay={{ delay: 5000, disableOnInteraction: false }}
           navigation
-          style={{ width: '100%', minHeight: 280 }}
+          style={{ width: '100%', minHeight: 240 }}
         >
           {blogs.map((b) => (
             <SwiperSlide key={b.id}>
               <Link href={`/detail/${b.slug}`}>
                 <div className="bg-white border rounded-xl shadow-sm hover:shadow-lg transition cursor-pointer flex flex-col overflow-hidden h-full">
-                  <div className="h-36 flex items-center justify-center bg-gray-50">
+                  <div className="h-32 flex items-center justify-center bg-gray-50">
                     {b.cover_url ? (
                       <img src={b.cover_url} alt={b.title} className="object-cover w-full h-full" />
                     ) : (
@@ -458,30 +475,31 @@ export default function Home() {
         </Swiper>
       </section>
 
-      {/* ===== DAFTAR FORUM ===== */}
-      <section className="container mx-auto px-4 sm:px-6 lg:px-8 pb-14">
+      {/* === DAFTAR FORUM === */}
+      <section className="container mx-auto px-2 sm:px-4 md:px-6 lg:px-8 pb-16">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold">Forum Global</h2>
+          <h2 className="text-xl sm:text-2xl font-bold">Forum Global</h2>
           <Link href="/forum-global" className="text-blue-600 text-sm hover:underline">Lihat Semua →</Link>
         </div>
         <Swiper
           modules={[Autoplay, Navigation]}
           slidesPerView={1.15}
-          spaceBetween={24}
+          spaceBetween={16}
           breakpoints={{
-            640: { slidesPerView: 2.15 },
-            1024: { slidesPerView: 3.15 },
-            1280: { slidesPerView: 4.15 },
+            400: { slidesPerView: 1.3, spaceBetween: 20 },
+            640: { slidesPerView: 2.2, spaceBetween: 22 },
+            1024: { slidesPerView: 3.15, spaceBetween: 24 },
+            1280: { slidesPerView: 4.15, spaceBetween: 24 },
           }}
           autoplay={{ delay: 5000, disableOnInteraction: false }}
           navigation
-          style={{ width: '100%', minHeight: 280 }}
+          style={{ width: '100%', minHeight: 200 }}
         >
           {threads.map((t) => (
             <SwiperSlide key={t.id}>
               <Link href={{ pathname: '/forum-global', query: { open: t.id } }} scroll={false}>
                 <div className="bg-white border rounded-xl shadow-sm hover:shadow-lg transition cursor-pointer flex flex-col overflow-hidden h-full">
-                  <div className="h-36 flex items-center justify-center bg-gray-50">
+                  <div className="h-32 flex items-center justify-center bg-gray-50">
                     {t.image_url ? (
                       <img src={t.image_url} alt={t.title} className="object-cover w-full h-full" />
                     ) : (
@@ -499,7 +517,6 @@ export default function Home() {
         </Swiper>
       </section>
 
-      {/* Kalkulator */}
       <CalculatorModal show={showCalculatorModal} setShow={setShowCalculatorModal} />
     </div>
   );
