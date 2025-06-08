@@ -1,4 +1,5 @@
-/import { useEffect, useState } from 'react';
+// pages/index.tsx
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '../lib/supabaseClient';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -6,125 +7,82 @@ import { Autoplay, Navigation } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 
-interface Franchise {
-  id: string;
-  franchise_name: string;
-  description: string;
-  category: string;
-  investment_min: number;
-  location: string;
-  logo_url: string;
-  slug: string;
-}
-
-interface Blog {
-  id: string;
-  title: string;
-  slug: string;
-  category: string;
-  cover_url: string;
-  created_at: string;
-  signed_cover_url?: string | null;
-}
-
-interface Thread {
-  id: string;
-  title: string;
-  created_at: string;
-  created_by: string;
+// Helper untuk ekstrak <img src="..."> pertama dari konten blog (HTML)
+function extractFirstImage(html: string): string | null {
+  if (!html) return null;
+  const match = html.match(/<img [^>]*src=['"]([^'"]+)['"]/i);
+  return match ? match[1] : null;
 }
 
 export default function Home() {
-  const [franchises, setFranchises] = useState<Franchise[]>([]);
-  const [blogs, setBlogs] = useState<Blog[]>([]);
-  const [threads, setThreads] = useState<Thread[]>([]);
+  const [franchises, setFranchises] = useState<any[]>([]);
+  const [blogs, setBlogs] = useState<any[]>([]);
+  const [threads, setThreads] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCalculatorModal, setShowCalculatorModal] = useState(false);
-
-  // Banner state (signedUrl)
   const [banners, setBanners] = useState<string[]>([]);
 
   useEffect(() => {
-    // Franchise Listing (signed logo)
+    // --- Fetch Banner dari storage private (signedUrl) ---
+    const fetchBanners = async () => {
+      const { data, error } = await supabase.storage
+        .from('homepage-banners')
+        .list('', { limit: 20, sortBy: { column: 'name', order: 'asc' } });
+
+      if (!data || error) return setBanners([]);
+      const urls = await Promise.all(
+        data
+          .filter(item => item.name.match(/\.(jpg|jpeg|png|webp)$/i))
+          .map(async (item) => {
+            const { data: signed } = await supabase
+              .storage
+              .from('homepage-banners')
+              .createSignedUrl(item.name, 60 * 60);
+            return signed?.signedUrl || '';
+          })
+      );
+      setBanners(urls.filter(Boolean));
+    };
+
+    // --- Fetch Franchise (limit 6) ---
     const fetchFranchises = async () => {
       const { data, error } = await supabase
         .from('franchise_listings')
         .select('id, franchise_name, description, category, investment_min, location, logo_url, slug')
         .order('created_at', { ascending: false })
         .limit(6);
-
-      if (error || !data) {
-        setFranchises([]);
-      } else {
-        // logo_url: path. Wajib signed URL!
-        const withUrl = await Promise.all(
-          data.map(async (fr) => {
-            if (!fr.logo_url) return { ...fr, logo_url: '' };
-            const { data: signed } = await supabase
-              .storage
-              .from('listing-images')
-              .createSignedUrl(fr.logo_url, 60 * 60);
-            return { ...fr, logo_url: signed?.signedUrl || '' };
-          })
-        );
-        setFranchises(withUrl);
-      }
+      if (!data || error) return setFranchises([]);
+      setFranchises(
+        data.map(f => ({
+          ...f,
+          logo_url:
+            f.logo_url
+              ? supabase.storage.from('listing-images').getPublicUrl(f.logo_url).data.publicUrl
+              : '/logo192.png'
+        }))
+      );
     };
 
-    // Banner Storage (signed url)
-    const fetchBanners = async () => {
-      const { data, error } = await supabase.storage
-        .from('homepage-banners')
-        .list('', { limit: 20, sortBy: { column: 'name', order: 'asc' } });
-      if (error || !data) {
-        setBanners([]);
-        return;
-      }
-      const promises = data
-        .filter(item => item.name.match(/\.(jpg|jpeg|png|webp)$/i))
-        .map(async (item) => {
-          const { data: signed } = await supabase
-            .storage
-            .from('homepage-banners')
-            .createSignedUrl(item.name, 60 * 60);
-          return signed?.signedUrl || '';
-        });
-      const urls = (await Promise.all(promises)).filter(Boolean);
-      setBanners(urls);
-    };
-
-    // Blog (signed cover)
+    // --- Fetch Blog Bisnis (limit 6, HARUS SELECT content & cover_url) ---
     const fetchBlogs = async () => {
       const { data, error } = await supabase
         .from('blogs')
-        .select('id, title, slug, category, cover_url, created_at')
+        .select('id, title, slug, category, author, created_at, cover_url, content')
         .order('created_at', { ascending: false })
         .limit(6);
-      if (error || !data) {
-        setBlogs([]);
-        return;
-      }
-      const blogsWithCovers = await Promise.all(
-        data.map(async (blog) => {
-          if (!blog.cover_url) return { ...blog, signed_cover_url: null };
-          const { data: signed } = await supabase
-            .storage
-            .from('blog-assets')
-            .createSignedUrl(blog.cover_url, 60 * 60);
-          return { ...blog, signed_cover_url: signed?.signedUrl || null };
-        })
-      );
-      setBlogs(blogsWithCovers);
+      if (!data || error) return setBlogs([]);
+      setBlogs(data);
     };
 
-    // Forum (ambil 6 thread terbaru)
+    // --- Fetch Forum/Thread (limit 6) ---
     const fetchThreads = async () => {
       const { data, error } = await supabase
         .from('threads')
-        .select('id, title, created_at, created_by')
+        .select('id, title, created_by, created_at, image_url')
         .order('created_at', { ascending: false })
         .limit(6);
-      setThreads(error || !data ? [] : data);
+      if (!data || error) return setThreads([]);
+      setThreads(data);
     };
 
     fetchBanners();
@@ -134,7 +92,7 @@ export default function Home() {
     setLoading(false);
   }, []);
 
-  // === Data Menu Fitur
+  // === Data Menu Fitur (copy dari versi terbaik sebelumnya)
   const featureMenus = [
     {
       label: 'Pengumuman',
@@ -227,12 +185,12 @@ export default function Home() {
 
   return (
     <div className="relative min-h-screen bg-white">
-      {/* ======= SWIPER BANNER DARI STORAGE ======= */}
+      {/* ======= SWIPER BANNER ======= */}
       <div className="relative w-full h-[300px] sm:h-[340px] md:h-[420px] lg:h-[500px] overflow-visible pb-16 bg-white">
         <Swiper
           modules={[Autoplay, Navigation]}
           autoplay={{ delay: 5000, disableOnInteraction: false }}
-          loop
+          loop={true}
           navigation
           className="w-full h-full"
         >
@@ -318,11 +276,11 @@ export default function Home() {
       {/* ======= MODAL KALKULATOR ======= */}
       <CalculatorModal show={showCalculatorModal} setShow={setShowCalculatorModal} />
 
-      {/* ======= DAFTAR FRANCHISE SLIDER ======= */}
-      <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-4 pb-8">
+      {/* ======= DAFTAR FRANCHISE (Swiper Horizontal 6 listing) ======= */}
+      <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-4 pb-6">
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-2xl font-bold text-gray-800">Daftar Franchise</h2>
-          <Link href="/franchise" className="text-blue-600 font-semibold text-sm hover:underline flex items-center">
+          <Link href="/franchise-list" className="text-blue-600 font-semibold text-sm hover:underline flex items-center">
             Lihat Semua &rarr;
           </Link>
         </div>
@@ -342,28 +300,22 @@ export default function Home() {
             className="py-4"
           >
             {franchises.map((fr) => (
-              <SwiperSlide key={fr.id} style={{ height: '100%' }}>
+              <SwiperSlide key={fr.id} style={{ height: "100%" }}>
                 <Link href={`/franchise/${fr.slug}`} passHref>
                   <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden cursor-pointer flex flex-col h-full">
-                    <div className="relative h-48 bg-gray-50">
-                      {fr.logo_url ? (
-                        <img
-                          src={fr.logo_url}
-                          alt={fr.franchise_name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-gray-400 flex items-center justify-center w-full h-full">Tanpa Logo</span>
-                      )}
+                    <div className="relative h-40">
+                      <img
+                        src={fr.logo_url}
+                        alt={fr.franchise_name}
+                        className="w-full h-full object-cover"
+                      />
                       <span className="absolute top-3 left-3 bg-yellow-400 text-xs font-semibold text-black px-2 py-1 rounded">
                         {fr.category}
                       </span>
                     </div>
                     <div className="p-4 flex-1">
-                      <h3 className="text-lg font-semibold text-gray-800">
-                        {fr.franchise_name}
-                      </h3>
-                      <p className="mt-1 text-sm text-gray-500">{fr.location}</p>
+                      <h3 className="text-base font-semibold text-gray-800">{fr.franchise_name}</h3>
+                      <p className="mt-1 text-xs text-gray-400">{fr.location}</p>
                       <p className="mt-2 text-sm text-gray-700">
                         Investasi Mulai: Rp {fr.investment_min.toLocaleString('id-ID')}
                       </p>
@@ -376,8 +328,8 @@ export default function Home() {
         )}
       </section>
 
-      {/* ======= DAFTAR BLOG SLIDER ======= */}
-      <section className="container mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+      {/* ======= BLOG BISNIS ======= */}
+      <section className="container mx-auto px-4 sm:px-6 lg:px-8 pb-6">
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-2xl font-bold text-gray-800">Blog Bisnis</h2>
           <Link href="/blog-global" className="text-blue-600 font-semibold text-sm hover:underline flex items-center">
@@ -385,7 +337,7 @@ export default function Home() {
           </Link>
         </div>
         {blogs.length === 0 ? (
-          <p className="text-center text-gray-500">Belum ada blog.</p>
+          <p className="text-center text-gray-500">Belum ada blog bisnis.</p>
         ) : (
           <Swiper
             modules={[Autoplay, Navigation]}
@@ -399,37 +351,51 @@ export default function Home() {
             }}
             className="py-4"
           >
-            {blogs.map((blog) => (
-              <SwiperSlide key={blog.id} style={{ height: '100%' }}>
-                <Link href={`/detail/${blog.slug}`} passHref>
-                  <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden cursor-pointer flex flex-col h-full">
-                    <div className="relative h-28 bg-gray-50 flex items-center justify-center">
-                      {blog.signed_cover_url ? (
-                        <img
-                          src={blog.signed_cover_url}
-                          alt={blog.title}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-gray-400">Tanpa Cover</span>
-                      )}
-                      <span className="absolute top-3 left-3 bg-purple-400 text-xs font-semibold text-white px-2 py-1 rounded">
-                        {blog.category || 'Blog'}
-                      </span>
+            {blogs.map((blog) => {
+              // 1. Prioritas cover_url
+              let imageUrl = "";
+              if (blog.cover_url) {
+                imageUrl = blog.cover_url.startsWith("http")
+                  ? blog.cover_url
+                  : supabase.storage.from("blog-assets").getPublicUrl(blog.cover_url).data.publicUrl || "";
+              }
+              // 2. Jika tidak ada cover_url, ekstrak gambar dari konten
+              if (!imageUrl) {
+                const firstImg = extractFirstImage(blog.content);
+                if (firstImg) imageUrl = firstImg;
+              }
+              return (
+                <SwiperSlide key={blog.id} style={{ height: "100%" }}>
+                  <Link href={`/detail/${blog.slug}`} passHref>
+                    <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden cursor-pointer flex flex-col h-full">
+                      <div className="relative h-40 bg-gray-50 flex items-center justify-center">
+                        {imageUrl ? (
+                          <img
+                            src={imageUrl}
+                            alt={blog.title}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-gray-400">Tanpa Cover</span>
+                        )}
+                        <span className="absolute top-3 left-3 bg-purple-400 text-xs font-semibold text-white px-2 py-1 rounded">
+                          {blog.category || "Blog"}
+                        </span>
+                      </div>
+                      <div className="p-4 flex-1">
+                        <h3 className="text-base font-semibold text-gray-800">{blog.title}</h3>
+                        <p className="mt-1 text-xs text-gray-400">{new Date(blog.created_at).toLocaleDateString("id-ID")}</p>
+                      </div>
                     </div>
-                    <div className="p-4 flex-1">
-                      <h3 className="text-base font-semibold text-gray-800">{blog.title}</h3>
-                      <p className="mt-1 text-xs text-gray-400">{new Date(blog.created_at).toLocaleDateString('id-ID')}</p>
-                    </div>
-                  </div>
-                </Link>
-              </SwiperSlide>
-            ))}
+                  </Link>
+                </SwiperSlide>
+              );
+            })}
           </Swiper>
         )}
       </section>
 
-      {/* ======= DAFTAR FORUM SLIDER ======= */}
+      {/* ======= FORUM GLOBAL ======= */}
       <section className="container mx-auto px-4 sm:px-6 lg:px-8 pb-12">
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-2xl font-bold text-gray-800">Forum Global</h2>
@@ -438,7 +404,7 @@ export default function Home() {
           </Link>
         </div>
         {threads.length === 0 ? (
-          <p className="text-center text-gray-500">Belum ada diskusi forum.</p>
+          <p className="text-center text-gray-500">Belum ada thread forum.</p>
         ) : (
           <Swiper
             modules={[Autoplay, Navigation]}
@@ -453,15 +419,23 @@ export default function Home() {
             className="py-4"
           >
             {threads.map((thread) => (
-              <SwiperSlide key={thread.id} style={{ height: '100%' }}>
-                <Link href={`/forum-global?thread=${thread.id}`} passHref>
+              <SwiperSlide key={thread.id} style={{ height: "100%" }}>
+                <Link href={`/forum-global/${thread.id}`} passHref>
                   <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden cursor-pointer flex flex-col h-full">
-                    <div className="relative h-16 flex items-center px-4 bg-blue-50 font-semibold text-base text-blue-900">
-                      {thread.title}
+                    <div className="relative h-40 bg-gray-50 flex items-center justify-center">
+                      {thread.image_url ? (
+                        <img
+                          src={thread.image_url}
+                          alt={thread.title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-gray-400">Tanpa Gambar</span>
+                      )}
                     </div>
                     <div className="p-4 flex-1">
-                      <p className="mt-1 text-xs text-gray-400">Oleh: {thread.created_by}</p>
-                      <p className="mt-1 text-xs text-gray-400">{new Date(thread.created_at).toLocaleDateString('id-ID')}</p>
+                      <h3 className="text-base font-semibold text-gray-800">{thread.title}</h3>
+                      <p className="mt-1 text-xs text-gray-400">{new Date(thread.created_at).toLocaleDateString("id-ID")}</p>
                     </div>
                   </div>
                 </Link>
@@ -541,6 +515,7 @@ function Calculator() {
     else if (val === '=') {
       try {
         const sanitized = display.replace(/×/g, '*').replace(/÷/g, '/');
+        // eslint-disable-next-line no-eval
         setDisplay(String(eval(sanitized)));
       } catch {
         setDisplay('Error');
