@@ -3,13 +3,13 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { supabase } from '../lib/supabaseClient';
+import { FaBullhorn, FaComments, FaBookOpen, FaLifeRing, FaFileAlt, FaShieldAlt, FaUserTie, FaCalculator } from 'react-icons/fa';
 
+// ==== IMPORT SWIPER ====
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Navigation } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
-
-import { FaBullhorn, FaComments, FaBookOpen, FaLifeRing, FaFileAlt, FaShieldAlt, FaUserTie, FaCalculator } from 'react-icons/fa';
 
 interface Franchise {
   id: string;
@@ -18,66 +18,67 @@ interface Franchise {
   category: string;
   investment_min: number;
   location: string;
-  logo_url: string;
-  slug: string;
+  logo_url: string; // URL publik gambar logo dari Supabase Storage
+  slug: string;     // Digunakan untuk halaman detail franchise
 }
 
+// --- ICON MENU BAR ---
 const MENU = [
   {
     label: 'Pengumuman',
+    path: '/announcement',
     icon: <FaBullhorn size={28} />,
     color: 'bg-yellow-400 text-white',
-    ring: 'ring-yellow-200',
-    path: '/announcement'
+    ring: 'ring-yellow-300',
   },
   {
     label: 'Forum Global',
+    path: '/forum-global',
     icon: <FaComments size={28} />,
     color: 'bg-green-400 text-white',
-    ring: 'ring-green-200',
-    path: '/forum-global'
+    ring: 'ring-green-300',
   },
   {
     label: 'Blog Global',
+    path: '/blog-global',
     icon: <FaBookOpen size={28} />,
     color: 'bg-purple-400 text-white',
-    ring: 'ring-purple-200',
-    path: '/blog-global'
+    ring: 'ring-purple-300',
   },
   {
     label: 'Pusat Bantuan',
+    path: '/pusat-bantuan',
     icon: <FaLifeRing size={28} />,
     color: 'bg-blue-400 text-white',
-    ring: 'ring-blue-200',
-    path: '/pusat-bantuan'
+    ring: 'ring-blue-300',
   },
   {
     label: 'S&K',
+    path: '/syarat-ketentuan',
     icon: <FaFileAlt size={28} />,
     color: 'bg-gray-800 text-white',
-    ring: 'ring-gray-300',
-    path: '/syarat-ketentuan'
+    ring: 'ring-gray-400',
   },
   {
     label: 'Kebijakan Privasi',
+    path: '/privacy',
     icon: <FaShieldAlt size={28} />,
     color: 'bg-green-600 text-white',
-    ring: 'ring-green-200',
-    path: '/privacy'
+    ring: 'ring-green-500',
   },
   {
     label: 'Jadi Franchisor',
+    path: '/franchisor',
     icon: <FaUserTie size={28} />,
     color: 'bg-teal-500 text-white',
-    ring: 'ring-teal-200',
-    path: '/franchisor'
+    ring: 'ring-teal-300',
   },
   {
     label: 'Kalkulator',
+    path: '#calculator',
     icon: <FaCalculator size={28} />,
     color: 'bg-pink-400 text-white',
-    ring: 'ring-pink-200',
-    path: '#calculator'
+    ring: 'ring-pink-300',
   },
 ];
 
@@ -110,13 +111,12 @@ export default function Home() {
       }
       setLoading(false);
     };
+
     fetchFranchises();
   }, []);
 
   const handleMenuClick = (menu: any) => {
-    if (menu.path === '#calculator') {
-      setShowCalculatorModal(true);
-    }
+    if (menu.path === '#calculator') setShowCalculatorModal(true);
   };
 
   return (
@@ -155,11 +155,14 @@ export default function Home() {
             />
           </SwiperSlide>
         </Swiper>
+
         {/* Curve putih di pojok kiri bawah */}
         <div className="absolute bottom-0 left-0 w-40 h-20 bg-white rounded-tl-full"></div>
+
         {/* ======= KOTAK SEARCH ======= */}
         <div className="absolute left-1/2 transform -translate-x-1/2 -bottom-10 w-full max-w-3xl px-4 sm:px-6 lg:px-8 z-20">
           <div className="bg-white rounded-xl shadow-lg p-4 relative">
+            {/* Logo kecil di kanan atas tombol pencarian */}
             <div className="absolute -top-12 right-6 bg-white rounded-t-full overflow-hidden shadow-md">
               <Image
                 src="/22C6DD46-5682-4FDD-998B-710D24A74856.png"
@@ -186,46 +189,51 @@ export default function Home() {
          </div>
       </div>
 
-      {/* ======= BAR IKON UTAMA - Center Desktop, Scrollable Mobile ======= */}
-      <section className="relative mt-20 bg-white z-10 flex justify-center">
-        <div className="w-full max-w-4xl mx-auto">
-          <div className="overflow-x-auto scrollbar-hide">
-            <div className="flex items-stretch justify-center gap-3 flex-nowrap min-w-[600px] px-2 md:px-0 pb-2">
-              {MENU.map(menu => (
-                <div
-                  key={menu.label}
-                  className="flex flex-col items-center cursor-pointer select-none min-w-[80px]"
-                  onClick={() => menu.path === '#calculator' ? handleMenuClick(menu) : undefined}
+      {/* ======= BAR IKON UTAMA ======= */}
+      <section className="relative mt-20 bg-white z-10 w-full">
+        <div className="overflow-x-auto scrollbar-hide w-full">
+          <div
+            className="
+              flex flex-nowrap items-stretch gap-3
+              px-2 sm:px-4 md:justify-center
+              w-full
+            "
+            style={{ WebkitOverflowScrolling: 'touch' }}
+          >
+            {MENU.map(menu => (
+              <div
+                key={menu.label}
+                className="flex flex-col items-center cursor-pointer select-none min-w-[90px] flex-shrink-0"
+                onClick={() => menu.path === '#calculator' ? handleMenuClick(menu) : undefined}
+              >
+                <Link
+                  href={menu.path === '#calculator' ? '#' : menu.path}
+                  passHref
+                  onClick={e => {
+                    if (menu.path === '#calculator') {
+                      e.preventDefault();
+                      setShowCalculatorModal(true);
+                    }
+                  }}
+                  className="flex flex-col items-center"
                 >
-                  <Link
-                    href={menu.path === '#calculator' ? '#' : menu.path}
-                    passHref
-                    onClick={e => {
-                      if (menu.path === '#calculator') {
-                        e.preventDefault();
-                        setShowCalculatorModal(true);
-                      }
-                    }}
-                    className="flex flex-col items-center"
+                  <div
+                    className={`
+                      ${menu.color}
+                      rounded-full shadow-lg ring-2 ${menu.ring}
+                      flex items-center justify-center
+                      hover:scale-105 hover:shadow-xl transition
+                      w-14 h-14 sm:w-16 sm:h-16 mb-2
+                    `}
                   >
-                    <div
-                      className={`
-                        ${menu.color}
-                        rounded-full shadow-lg ring-2 ${menu.ring}
-                        flex items-center justify-center
-                        hover:scale-105 hover:shadow-xl transition
-                        w-14 h-14 sm:w-16 sm:h-16 mb-2
-                      `}
-                    >
-                      {menu.icon}
-                    </div>
-                    <span className="block w-20 sm:w-24 text-xs text-gray-700 text-center font-medium leading-tight truncate">
-                      {menu.label}
-                    </span>
-                  </Link>
-                </div>
-              ))}
-            </div>
+                    {menu.icon}
+                  </div>
+                  <span className="block w-20 sm:w-24 text-xs text-gray-700 text-center font-medium leading-tight truncate">
+                    {menu.label}
+                  </span>
+                </Link>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -309,7 +317,7 @@ export default function Home() {
   );
 }
 
-// ================== MODAL KALKULATOR ==================
+// ================== KOMONEN CALCULATOR MODAL ==================
 interface CalculatorModalProps {
   show: boolean;
   setShow: (val: boolean) => void;
@@ -340,7 +348,7 @@ function CalculatorModal({ show, setShow }: CalculatorModalProps) {
   );
 }
 
-// ================== KALKULATOR ==================
+// ================== KOMONEN CALCULATOR SEDERHANA ==================
 function Calculator() {
   const [display, setDisplay] = useState<string>('0');
 
