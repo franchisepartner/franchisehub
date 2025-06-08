@@ -11,7 +11,7 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 
 import {
-  FaBell, FaHeart, FaComments, FaBookOpen, FaLifeRing, FaFileContract, FaStar,
+  FaBullhorn, FaComments, FaBookOpen, FaLifeRing, FaFileContract, FaStar,
   FaUserTie, FaUserShield, FaClipboardList, FaCalculator
 } from 'react-icons/fa';
 
@@ -207,7 +207,7 @@ export default function Home() {
   );
 }
 
-// ========== MENU BAR FITUR UTAMA (MODERN) ==========
+// ======= MENU BAR FITUR UTAMA (MODERN SEDANG) =======
 function MenuBarFiturUtama({ setShowCalculatorModal }: { setShowCalculatorModal: (v: boolean) => void }) {
   const [role, setRole] = useState<string>('');
   const [loggedIn, setLoggedIn] = useState(false);
@@ -231,10 +231,9 @@ function MenuBarFiturUtama({ setShowCalculatorModal }: { setShowCalculatorModal:
     setRole(data?.role || '');
   };
 
-  // Semua tombol utama, cek show agar bisa menyesuaikan role
+  // Tombol utama (no notifikasi/favorit, pengumuman selalu paling awal)
   let menu = [
-    { icon: <FaBell className="text-blue-600" />, label: 'Notifikasiku', path: '/notifikasi', show: loggedIn },
-    { icon: <FaHeart className="text-red-500" />, label: 'Favoritku', path: '/favorit', show: loggedIn },
+    { icon: <FaBullhorn className="text-yellow-600" />, label: 'Pengumuman', path: '/announcement', show: true },
     { icon: <FaComments className="text-green-600" />, label: 'Forum Global', path: '/forum-global', show: true },
     { icon: <FaBookOpen className="text-purple-600" />, label: 'Blog Global', path: '/blog-global', show: true },
     { icon: <FaLifeRing className="text-indigo-600" />, label: 'Pusat Bantuan', path: '/pusat-bantuan', show: true },
@@ -251,21 +250,21 @@ function MenuBarFiturUtama({ setShowCalculatorModal }: { setShowCalculatorModal:
 
   return (
     <section className="relative mt-20 bg-white z-10 drop-shadow-md">
-      <div className="overflow-x-auto whitespace-nowrap py-6 px-4 sm:px-6 lg:px-8">
+      <div className="overflow-x-auto whitespace-nowrap py-4 px-4 sm:px-6 lg:px-8">
         <div className="inline-flex space-x-6 items-center">
           {menu.map(({ icon, label, path }, idx) => (
             <div
               key={idx}
-              className="inline-flex flex-col items-center w-20 cursor-pointer group"
+              className="inline-flex flex-col items-center w-16 cursor-pointer group"
               onClick={() => {
                 if (path === '#kalkulator') setShowCalculatorModal(true);
                 else router.push(path);
               }}
             >
-              <div className="bg-white rounded-full shadow p-3 group-hover:bg-blue-50 transition">
-                {icon}
+              <div className="bg-white rounded-full shadow p-2.5 group-hover:bg-blue-50 transition w-16 h-16 flex items-center justify-center">
+                <span className="text-[22px]">{icon}</span>
               </div>
-              <span className="text-xs text-gray-600 mt-1 text-center group-hover:text-blue-700">{label}</span>
+              <span className="text-[12px] text-gray-600 mt-1 text-center group-hover:text-blue-700">{label}</span>
             </div>
           ))}
         </div>
