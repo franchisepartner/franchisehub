@@ -1,5 +1,3 @@
-// pages/index.tsx
-
 import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { supabase } from '../lib/supabaseClient';
@@ -49,7 +47,6 @@ export default function Home() {
   const [franchises, setFranchises] = useState<Franchise[]>([]);
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [threads, setThreads] = useState<Thread[]>([]);
-  const [loading, setLoading] = useState(true);
   const [showCalculatorModal, setShowCalculatorModal] = useState(false);
   const [banners, setBanners] = useState<string[]>([]);
 
@@ -63,12 +60,12 @@ export default function Home() {
   useEffect(() => {
     // Franchise (6)
     const fetchFranchises = async () => {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('franchise_listings')
         .select('id, franchise_name, description, category, investment_min, location, logo_url, slug, tags')
         .order('created_at', { ascending: false })
         .limit(6);
-      if (!error && data) {
+      if (data) {
         setFranchises(data.map((franchise) => ({
           ...franchise,
           logo_url: franchise.logo_url
@@ -140,7 +137,6 @@ export default function Home() {
     fetchFranchises();
     fetchBlogs();
     fetchThreads();
-    setLoading(false);
   }, []);
 
   // === Modern Menu Fitur dengan lucide icons ===
@@ -196,7 +192,7 @@ export default function Home() {
     },
   ];
 
-  // ===== UNIVERSAL SEARCH (autocomplete)
+  // UNIVERSAL SEARCH (autocomplete)
   useEffect(() => {
     if (!searchTerm) {
       setSearchResults([]);
@@ -239,7 +235,6 @@ export default function Home() {
     setSearchResults(results.slice(0, 7));
     setSelectedIdx(-1);
   }, [searchTerm, franchises, blogs, threads]);
-
   useEffect(() => {
     if (!showSearchDropdown) return;
     function handleKey(e: KeyboardEvent) {
@@ -286,9 +281,9 @@ export default function Home() {
             ))
           )}
         </Swiper>
-        {/* ==== SEARCH BAR MODERN SHINE ==== */}
-        <div className="absolute left-1/2 transform -translate-x-1/2 bottom-0 w-full max-w-3xl px-4 sm:px-6 lg:px-8 z-50">
-          <div className="bg-white/90 rounded-xl shadow-2xl p-4 relative border-2 border-blue-100 backdrop-blur-md transition-all">
+        {/* ==== SEARCH BAR MODERN LIGHT ==== */}
+        <div className="absolute left-1/2 transform -translate-x-1/2 bottom-0 w-full max-w-3xl px-4 sm:px-6 lg:px-8 z-20">
+          <div className="bg-white/85 rounded-xl shadow-[0_8px_32px_0_rgba(31,38,135,0.09)] p-4 relative border-2 border-blue-100 backdrop-blur-md transition-all">
             <form
               className="flex space-x-2 items-center"
               autoComplete="off"
@@ -310,20 +305,22 @@ export default function Home() {
               />
               <button
                 type="submit"
-                className="px-6 py-3 relative font-bold bg-gradient-to-r from-blue-500 via-cyan-400 to-blue-600 text-white rounded-xl shadow-lg text-base flex items-center gap-2 hover:from-blue-600 transition shine-effect"
+                className="px-6 py-3 relative font-bold bg-gradient-to-r from-blue-500 via-cyan-400 to-blue-600 text-white rounded-xl shadow-lg text-base flex items-center gap-2 hover:shadow-blue-300/40 focus:shadow-cyan-300/70 transition"
                 tabIndex={-1}
+                style={{
+                  boxShadow: '0 0 16px 2px rgba(56, 189, 248, 0.23), 0 4px 12px 0 rgba(37, 99, 235, 0.12)'
+                }}
               >
                 <svg className="h-6 w-6 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <circle cx="11" cy="11" r="8" strokeWidth={2} />
                   <path d="M21 21l-4-4" strokeWidth={2} strokeLinecap="round" />
                 </svg>
                 Cari
-                <span className="shine" />
               </button>
             </form>
             {/* Search Dropdown */}
             {showSearchDropdown && searchTerm && (
-              <div className="absolute left-0 w-full bg-white/95 rounded-b-xl shadow-2xl z-[100] border-t border-blue-100 max-h-80 overflow-y-auto animate-fade-in backdrop-blur-lg">
+              <div className="absolute left-0 w-full bg-white/90 rounded-b-xl shadow-2xl z-50 border-t border-blue-100 max-h-80 overflow-y-auto animate-fade-in backdrop-blur-lg">
                 {searchResults.length === 0 ? (
                   <div className="p-4 text-gray-400 text-center">Tidak ditemukan.</div>
                 ) : (
@@ -356,8 +353,6 @@ export default function Home() {
               </div>
             )}
           </div>
-          {/* Padding untuk mencegah overlap dengan menu fitur */}
-          <div className="pb-8 md:pb-0" />
         </div>
       </div>
 
@@ -383,9 +378,13 @@ export default function Home() {
                     relative overflow-hidden transition hover:scale-105 active:scale-95 group
                   `}
                   aria-label={menu.label}
+                  style={{
+                    boxShadow: '0 4px 12px 0 rgba(0,0,0,0.10), 0 0 10px 2px rgba(37,99,235,0.07)',
+                  }}
                 >
                   {menu.icon}
-                  <span className="shine absolute left-0 top-0 h-full w-full pointer-events-none group-hover:opacity-80" />
+                  {/* Soft light effect: */}
+                  <span className="absolute pointer-events-none top-0 left-0 w-full h-full bg-white/0 group-hover:bg-white/10 rounded-full transition" />
                 </button>
                 <span className="block text-center text-xs font-semibold text-gray-700 mt-1 truncate w-full drop-shadow-sm">
                   {menu.label}
@@ -527,30 +526,6 @@ export default function Home() {
           ))}
         </Swiper>
       </section>
-      <style jsx global>{`
-        .shine-effect {
-          overflow: hidden;
-          position: relative;
-        }
-        .shine-effect .shine,
-        .group .shine {
-          content: '';
-          position: absolute;
-          top: 0; left: -100%;
-          width: 60%;
-          height: 100%;
-          background: linear-gradient(100deg,rgba(255,255,255,0) 60%,rgba(255,255,255,0.35) 80%,rgba(255,255,255,0));
-          z-index: 10;
-          pointer-events: none;
-          transform: skewX(-16deg);
-          animation: shine-move 2s infinite linear;
-        }
-        @keyframes shine-move {
-          0% { left: -70%; }
-          70% { left: 110%; }
-          100% { left: 110%; }
-        }
-      `}</style>
     </div>
   );
 }
