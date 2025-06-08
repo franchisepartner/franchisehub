@@ -14,7 +14,7 @@ export default function Pengembangan() {
         <div className="flex flex-col items-center pt-12 pb-8 px-2">
           <div className="w-full max-w-xl relative rounded-3xl shadow-xl overflow-hidden mb-8">
             <Image
-              src="/0251617F-F986-41F9-92B6-F65588700B55.png"
+              src="/CCD5FC44-D602-4286-A273-6FEDD8CFEDA2.jpeg"
               alt="Ilustrasi Pengembangan FranchiseHub"
               width={768}
               height={768}
