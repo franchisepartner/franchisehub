@@ -13,6 +13,7 @@ interface Franchise {
   logo_url: string;
   slug: string;
   operation_mode?: string;
+  tags?: string;
 }
 
 const SORT_OPTIONS = [
@@ -36,7 +37,7 @@ export default function FranchiseList() {
     const fetchFranchises = async () => {
       const { data, error } = await supabase
         .from('franchise_listings')
-        .select('id, franchise_name, description, category, investment_min, location, logo_url, slug, operation_mode')
+        .select('id, franchise_name, description, category, investment_min, location, logo_url, slug, operation_mode, tags')
         .order('created_at', { ascending: false });
 
       if (!error && data) {
@@ -58,7 +59,10 @@ export default function FranchiseList() {
     let filtered = [...allFranchises];
     if (search) {
       filtered = filtered.filter((f) =>
-        f.franchise_name.toLowerCase().includes(search.toLowerCase())
+        f.franchise_name.toLowerCase().includes(search.toLowerCase()) ||
+        (f.tags || '').toLowerCase().split(',').some(tag =>
+          tag.trim().includes(search.toLowerCase())
+        )
       );
     }
     if (category) {
@@ -128,7 +132,7 @@ export default function FranchiseList() {
         <div className="flex flex-col md:flex-row md:items-end md:gap-6 gap-3 mb-8">
           <input
             className="w-full md:w-1/3 border-2 border-blue-200 rounded-xl px-4 py-2 shadow-sm focus:border-blue-500"
-            placeholder="Cari nama franchise..."
+            placeholder="Cari nama franchise atau tag..."
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
