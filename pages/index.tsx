@@ -1,7 +1,5 @@
 // pages/index.tsx
-
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { supabase } from '../lib/supabaseClient';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -24,9 +22,12 @@ export default function Home() {
   const [franchises, setFranchises] = useState<Franchise[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCalculatorModal, setShowCalculatorModal] = useState(false);
-  const [bannerImages, setBannerImages] = useState<string[]>([]);
+
+  // Banner state (signedUrl)
+  const [banners, setBanners] = useState<string[]>([]);
 
   useEffect(() => {
+    // Fetch franchise listing
     const fetchFranchises = async () => {
       const { data, error } = await supabase
         .from('franchise_listings')
@@ -51,25 +52,36 @@ export default function Home() {
       setLoading(false);
     };
 
+    // Fetch banners from private bucket, signed URL
+    const fetchBanners = async () => {
+      const { data, error } = await supabase.storage
+        .from('homepage-banners')
+        .list('', { limit: 20, sortBy: { column: 'name', order: 'asc' } });
+
+      if (error || !data) {
+        setBanners([]);
+        return;
+      }
+
+      const promises = data
+        .filter(item => item.name.match(/\.(jpg|jpeg|png|webp)$/i))
+        .map(async (item) => {
+          const { data: signed } = await supabase
+            .storage
+            .from('homepage-banners')
+            .createSignedUrl(item.name, 60 * 60);
+          return signed?.signedUrl || '';
+        });
+
+      const urls = (await Promise.all(promises)).filter(Boolean);
+      setBanners(urls);
+    };
+
+    fetchBanners();
     fetchFranchises();
   }, []);
 
-  // Ambil gambar banner dari Supabase Storage
-  useEffect(() => {
-    async function fetchBanners() {
-      const { data } = await supabase.storage.from('homepage-banners').list('', { limit: 10 });
-      if (data) {
-        setBannerImages(
-          data
-            .filter(x => x.name)
-            .map(x => supabase.storage.from('homepage-banners').getPublicUrl(x.name).data.publicUrl)
-        );
-      }
-    }
-    fetchBanners();
-  }, []);
-
-  // === Data Menu Fitur (tidak diubah) ===
+  // === Data Menu Fitur
   const featureMenus = [
     {
       label: 'Pengumuman',
@@ -162,7 +174,7 @@ export default function Home() {
 
   return (
     <div className="relative min-h-screen bg-white">
-      {/* ======= BANNER + CAROUSEL ======= */}
+      {/* ======= SWIPER BANNER DARI STORAGE ======= */}
       <div className="relative w-full h-[300px] sm:h-[340px] md:h-[420px] lg:h-[500px] overflow-visible pb-16 bg-white">
         <Swiper
           modules={[Autoplay, Navigation]}
@@ -171,25 +183,26 @@ export default function Home() {
           navigation
           className="w-full h-full"
         >
-          {bannerImages.length === 0 ? (
+          {banners.length === 0 ? (
             <SwiperSlide>
-              <div className="flex items-center justify-center w-full h-full bg-gray-200 rounded-xl text-gray-400 text-xl font-bold">
-                Belum ada banner diunggah
+              <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400 text-lg">
+                Tidak ada banner
               </div>
             </SwiperSlide>
           ) : (
-            bannerImages.map((img, idx) => (
-              <SwiperSlide key={idx}>
-                <Image src={img} alt={`Banner ${idx + 1}`} fill className="object-cover" />
+            banners.map((url, i) => (
+              <SwiperSlide key={i}>
+                <img
+                  src={url}
+                  alt={`Banner ${i + 1}`}
+                  className="object-cover w-full h-full"
+                  style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+                />
               </SwiperSlide>
             ))
           )}
         </Swiper>
-
-        {/* Curve putih di pojok kiri bawah */}
-        <div className="absolute bottom-0 left-0 w-40 h-20 bg-white rounded-tl-full"></div>
-
-        {/* ======= KOTAK SEARCH ======= */}
+        {/* Kotak Search */}
         <div className="absolute left-1/2 transform -translate-x-1/2 bottom-0 w-full max-w-3xl px-4 sm:px-6 lg:px-8 z-20">
           <div className="bg-white rounded-xl shadow-lg p-4 relative">
             <form className="flex space-x-2">
@@ -209,7 +222,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ======= BAR MENU FITUR ======= */}
+      {/* ======= MENU FITUR ======= */}
       <section className="relative mt-14 mb-6 z-20">
         <div className="w-full flex justify-center">
           <div
