@@ -1,12 +1,15 @@
+// pages/index.tsx
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { supabase } from '../lib/supabaseClient';
+import { FaBullhorn, FaComments, FaBookOpen, FaLifeRing, FaFileAlt, FaShieldAlt, FaUserTie, FaCalculator } from 'react-icons/fa';
+
+// ==== IMPORT SWIPER ====
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Navigation } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
-import { FaBullhorn, FaComments, FaBookOpen, FaLifeRing, FaFileAlt, FaShieldAlt, FaUserTie, FaCalculator } from 'react-icons/fa';
 
 interface Franchise {
   id: string;
@@ -22,59 +25,59 @@ interface Franchise {
 const MENU = [
   {
     label: 'Pengumuman',
+    icon: <FaBullhorn size={28} />,
     path: '/announcement',
     color: 'bg-yellow-400 text-white',
-    ring: 'ring-yellow-300',
-    icon: <FaBullhorn size={28} />,
+    ring: 'ring-yellow-400',
   },
   {
     label: 'Forum Global',
+    icon: <FaComments size={28} />,
     path: '/forum-global',
     color: 'bg-green-400 text-white',
-    ring: 'ring-green-300',
-    icon: <FaComments size={28} />,
+    ring: 'ring-green-400',
   },
   {
     label: 'Blog Global',
-    path: '/blog-global',
-    color: 'bg-purple-500 text-white',
-    ring: 'ring-purple-400',
     icon: <FaBookOpen size={28} />,
+    path: '/blog-global',
+    color: 'bg-violet-400 text-white',
+    ring: 'ring-violet-400',
   },
   {
     label: 'Pusat Bantuan',
+    icon: <FaLifeRing size={28} />,
     path: '/pusat-bantuan',
     color: 'bg-blue-400 text-white',
-    ring: 'ring-blue-300',
-    icon: <FaLifeRing size={28} />,
+    ring: 'ring-blue-400',
   },
   {
     label: 'S&K',
+    icon: <FaFileAlt size={28} />,
     path: '/syarat-ketentuan',
     color: 'bg-gray-700 text-white',
     ring: 'ring-gray-400',
-    icon: <FaFileAlt size={26} />,
   },
   {
     label: 'Kebijakan Privasi',
+    icon: <FaShieldAlt size={28} />,
     path: '/privacy',
     color: 'bg-green-600 text-white',
-    ring: 'ring-green-400',
-    icon: <FaShieldAlt size={26} />,
+    ring: 'ring-green-600',
   },
   {
     label: 'Jadi Franchisor',
+    icon: <FaUserTie size={28} />,
     path: '/franchisor',
     color: 'bg-teal-500 text-white',
     ring: 'ring-teal-400',
-    icon: <FaUserTie size={28} />,
   },
   {
     label: 'Kalkulator',
+    icon: <FaCalculator size={28} />,
     path: '#calculator',
-    color: 'bg-pink-500 text-white',
-    ring: 'ring-pink-300',
-    icon: <FaCalculator size={26} />,
+    color: 'bg-pink-400 text-white',
+    ring: 'ring-pink-400',
   },
 ];
 
@@ -93,13 +96,7 @@ export default function Home() {
       if (!error && data) {
         const franchisesWithImages = data.map((franchise) => ({
           ...franchise,
-          logo_url:
-            supabase
-              .storage
-              .from('listing-images')
-              .getPublicUrl(franchise.logo_url)
-              .data
-              .publicUrl!,
+          logo_url: supabase.storage.from('listing-images').getPublicUrl(franchise.logo_url).data.publicUrl!,
         }));
         setFranchises(franchisesWithImages);
       }
@@ -108,7 +105,8 @@ export default function Home() {
     fetchFranchises();
   }, []);
 
-  const handleMenuClick = (menu: typeof MENU[number]) => {
+  // Menu click handler
+  const handleMenuClick = (menu: any) => {
     if (menu.path === '#calculator') setShowCalculatorModal(true);
   };
 
@@ -133,7 +131,9 @@ export default function Home() {
             <Image src="/banner-franchisehub2.PNG" alt="Banner FranchiseHub 3" fill className="object-cover" />
           </SwiperSlide>
         </Swiper>
+        {/* Curve putih di pojok kiri bawah */}
         <div className="absolute bottom-0 left-0 w-40 h-20 bg-white rounded-tl-full"></div>
+        {/* ======= KOTAK SEARCH ======= */}
         <div className="absolute left-1/2 transform -translate-x-1/2 -bottom-10 w-full max-w-3xl px-4 sm:px-6 lg:px-8 z-20">
           <div className="bg-white rounded-xl shadow-lg p-4 relative">
             <div className="absolute -top-12 right-6 bg-white rounded-t-full overflow-hidden shadow-md">
@@ -142,7 +142,7 @@ export default function Home() {
                 alt="Logo FranchiseHub"
                 width={60}
                 height={60}
-                className="rounded-t-full object-cover shadow-md"
+                className="rounded-t-full rounded-b-none object-cover shadow-md"
               />
             </div>
             <form className="flex space-x-2">
@@ -162,15 +162,15 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ======= BAR IKON UTAMA HORIZONTAL SCROLL ======= */}
-      <section className="relative mt-20 bg-white z-10 w-full flex justify-center">
+      {/* ======= BAR IKON UTAMA: Always Center, Scroll Horizontal ======= */}
+      <section className="relative mt-20 bg-white z-10 flex justify-center">
         <div className="w-full max-w-5xl">
-          <div className="overflow-x-auto">
-            <div className="flex items-stretch justify-center gap-3 min-w-[600px] px-2 pb-2">
+          <div className="overflow-x-auto scrollbar-hide">
+            <div className="flex items-stretch justify-start gap-3 flex-nowrap min-w-[600px] pl-4 pb-2">
               {MENU.map(menu => (
                 <div
                   key={menu.label}
-                  className="flex flex-col items-center cursor-pointer select-none min-w-[90px]"
+                  className="flex flex-col items-center cursor-pointer select-none min-w-[80px]"
                   onClick={() => menu.path === '#calculator' ? handleMenuClick(menu) : undefined}
                 >
                   <Link
@@ -195,7 +195,7 @@ export default function Home() {
                     >
                       {menu.icon}
                     </div>
-                    <span className="block w-20 text-xs text-gray-700 text-center font-medium leading-tight truncate">
+                    <span className="block w-20 sm:w-24 text-xs text-gray-700 text-center font-medium leading-tight truncate">
                       {menu.label}
                     </span>
                   </Link>
@@ -207,10 +207,7 @@ export default function Home() {
       </section>
 
       {/* ======= MODAL KALKULATOR ======= */}
-      <CalculatorModal
-        show={showCalculatorModal}
-        setShow={setShowCalculatorModal}
-      />
+      <CalculatorModal show={showCalculatorModal} setShow={setShowCalculatorModal} />
 
       {/* ======= DAFTAR FRANCHISE ======= */}
       <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8 pb-12">
@@ -285,7 +282,7 @@ export default function Home() {
   );
 }
 
-// ===== Kalkulator Modal & Kalkulator Komponen Tetap (sama) =====
+// ================== MODAL KALKULATOR ==================
 interface CalculatorModalProps {
   show: boolean;
   setShow: (val: boolean) => void;
@@ -315,20 +312,27 @@ function CalculatorModal({ show, setShow }: CalculatorModalProps) {
     </div>
   );
 }
+
+// ================== KOMONEN KALKULATOR ==================
 function Calculator() {
   const [display, setDisplay] = useState<string>('0');
+
   const handleButton = (val: string) => {
     if (val === 'C') setDisplay('0');
     else if (val === '=') {
       try {
         const sanitized = display.replace(/×/g, '*').replace(/÷/g, '/');
-        setDisplay(String(eval(sanitized)));
-      } catch { setDisplay('Error'); }
+        // eslint-disable-next-line no-eval
+        const result = eval(sanitized);
+        setDisplay(String(result));
+      } catch {
+        setDisplay('Error');
+      }
     } else {
-      if (display === '0') setDisplay(val);
-      else setDisplay(display + val);
+      setDisplay(display === '0' ? val : display + val);
     }
   };
+
   const buttons: string[][] = [
     ['7', '8', '9', '÷'],
     ['4', '5', '6', '×'],
@@ -336,23 +340,22 @@ function Calculator() {
     ['0', '.', 'C', '+'],
     ['(', ')', '=', '']
   ];
+
   return (
     <div className="flex flex-col items-center">
       <div className="w-full bg-gray-100 rounded-md p-3 text-right text-2xl font-mono mb-4">{display}</div>
       <div className="w-full grid grid-cols-4 gap-2">
-        {buttons.flat().map((btn, idx) => (
-          btn === ''
-            ? <div key={idx} />
-            : (
-              <button
-                key={idx}
-                onClick={() => handleButton(btn)}
-                className="bg-gray-200 hover:bg-gray-300 rounded-md py-2 text-lg font-medium"
-              >
-                {btn}
-              </button>
-            )
-        ))}
+        {buttons.flat().map((btn, idx) =>
+          btn === '' ? <div key={idx} /> : (
+            <button
+              key={idx}
+              onClick={() => handleButton(btn)}
+              className="bg-gray-200 hover:bg-gray-300 rounded-md py-2 text-lg font-medium"
+            >
+              {btn}
+            </button>
+          )
+        )}
       </div>
     </div>
   );
