@@ -30,13 +30,9 @@ export default function BurgerMenu({ open, onClose }: Props) {
           .select('role')
           .eq('id', session.user.id)
           .single();
-
-        if (profile && !error) {
-          setRole(profile.role);
-        }
+        if (profile && !error) setRole(profile.role);
       }
     }
-
     fetchRole();
   }, [session]);
 
@@ -79,22 +75,6 @@ export default function BurgerMenu({ open, onClose }: Props) {
             Pengumuman Administrator 📣
           </Link>
         </li>
-
-        {session && (
-          <>
-            <li>
-              <Link href="/notifikasi" onClick={onClose}>
-                Notifikasiku
-              </Link>
-            </li>
-            <li>
-              <Link href="/favorit" onClick={onClose}>
-                Favoritku
-              </Link>
-            </li>
-          </>
-        )}
-
         <li>
           <Link href="/forum-global" onClick={onClose}>
             Forum Global
@@ -120,30 +100,7 @@ export default function BurgerMenu({ open, onClose }: Props) {
             Kebijakan Privasi
           </Link>
         </li>
-
-        {role === 'administrator' && (
-          <li>
-            <Link
-              href="/admin"
-              onClick={onClose}
-              className="text-purple-600 font-semibold hover:underline"
-            >
-              Dashboard Administrator
-            </Link>
-          </li>
-        )}
-
-        {role === 'franchisor' && (
-          <li>
-            <Link
-              href="/franchisor/dashboard"
-              onClick={onClose}
-              className="text-green-700 font-semibold hover:underline"
-            >
-              Dashboard Franchisor
-            </Link>
-          </li>
-        )}
+        {/* Hapus tombol Dashboard Administrator, Dashboard Franchisor, Notifikasiku, Favoritku */}
 
         {session && (
           <li>
