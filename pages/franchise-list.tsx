@@ -89,18 +89,19 @@ export default function FranchiseList() {
     setSort('created_desc');
   };
 
+  // Badge mode operasional, rapi di bawah kategori
   const modeBadge = (mode?: string) => {
     if (mode === 'autopilot') {
       return (
-        <span className="flex items-center gap-1 bg-blue-600 text-white text-xs font-bold px-2 py-0.5 rounded-lg shadow-sm uppercase tracking-wide">
-          <FaCogs className="text-white opacity-70" /> Autopilot
+        <span className="flex items-center gap-1 mt-1 bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm uppercase tracking-wide w-fit">
+          <FaCogs className="text-white opacity-80" /> Autopilot
         </span>
       );
     }
     if (mode === 'semi') {
       return (
-        <span className="flex items-center gap-1 bg-yellow-400 text-gray-800 text-xs font-bold px-2 py-0.5 rounded-lg shadow-sm uppercase tracking-wide">
-          <FaCogs className="text-gray-700 opacity-60" /> Semi Autopilot
+        <span className="flex items-center gap-1 mt-1 bg-yellow-400 text-gray-900 text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm uppercase tracking-wide w-fit">
+          <FaCogs className="text-gray-700 opacity-70" /> Semi Autopilot
         </span>
       );
     }
@@ -169,10 +170,12 @@ export default function FranchiseList() {
                       className="w-full h-full object-cover transition group-hover:scale-105"
                       loading="lazy"
                     />
-                    <span className="absolute top-3 left-3 bg-yellow-400 text-xs font-semibold text-black px-2 py-1 rounded-xl shadow">
+                    {/* Kategori */}
+                    <span className="absolute top-3 left-3 bg-yellow-400 text-xs font-bold text-black px-2 py-1 rounded-xl shadow">
                       {fr.category}
                     </span>
-                    <span className="absolute top-3 right-3">{modeBadge(fr.operation_mode)}</span>
+                    {/* Mode Operasi */}
+                    <span className="absolute left-3 top-10 z-10">{modeBadge(fr.operation_mode)}</span>
                   </div>
                   <div className="p-4 flex-1 flex flex-col">
                     <h3 className="text-lg font-bold text-blue-900 truncate drop-shadow-sm">
