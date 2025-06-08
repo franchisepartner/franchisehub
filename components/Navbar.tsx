@@ -37,7 +37,7 @@ export default function Navbar() {
   }, []);
 
   const fetchUserRole = async (userId: string) => {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('profiles')
       .select('role, is_admin')
       .eq('id', userId)
@@ -82,31 +82,31 @@ export default function Navbar() {
           </div>
         )}
 
-        {/* Kanan: Salam → Dashboard Franchisor/Administrator → Menu Burger */}
+        {/* Kanan: Salam → Icon Dashboard → Menu Burger */}
         <div className="flex items-center space-x-3">
           <p className="italic text-gray-500 text-sm">Halo, {userGreeting}!</p>
 
-          {/* Dashboard Franchisor (🎩) */}
+          {/* Dashboard Franchisor (🎩) hanya icon */}
           {role === 'franchisor' && (
             <button
-              className="flex items-center gap-1 px-3 py-1 rounded-lg bg-gray-100 hover:bg-blue-100 text-blue-700 font-medium transition"
+              className="flex items-center px-2 py-1 rounded-full bg-gray-100 hover:bg-blue-100 text-blue-700 font-medium text-2xl transition"
               onClick={() => router.push('/franchisor/dashboard')}
               title="Dashboard Franchisor"
+              style={{ minWidth: 44, minHeight: 44, justifyContent: 'center' }}
             >
-              <span className="text-lg">🎩</span>
-              <span className="hidden sm:inline">Dashboard</span>
+              🎩
             </button>
           )}
 
-          {/* Dashboard Administrator (🃏) */}
+          {/* Dashboard Administrator (🃏) hanya icon */}
           {isAdmin && (
             <button
-              className="flex items-center gap-1 px-3 py-1 rounded-lg bg-gray-100 hover:bg-pink-100 text-pink-700 font-medium transition"
+              className="flex items-center px-2 py-1 rounded-full bg-gray-100 hover:bg-pink-100 text-pink-700 font-medium text-2xl transition"
               onClick={() => router.push('/admin')}
               title="Dashboard Administrator"
+              style={{ minWidth: 44, minHeight: 44, justifyContent: 'center' }}
             >
-              <span className="text-lg">🃏</span>
-              <span className="hidden sm:inline">Administrator</span>
+              🃏
             </button>
           )}
 
