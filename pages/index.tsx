@@ -435,40 +435,6 @@ export default function Home() {
           ))}
         </Swiper>
       </section>
-
-      {/* ======= FOOTER ======= */}
-      <footer className="bg-gray-800 text-white py-12">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div>
-            <h4 className="font-semibold mb-4">Tentang FranchiseHub</h4>
-            <p className="text-sm text-gray-300">
-              FranchiseHub adalah platform terdepan untuk menemukan dan mengelola peluang franchise.
-            </p>
-          </div>
-          <div>
-            <h4 className="font-semibold mb-4">Menu Cepat</h4>
-            <ul className="space-y-2 text-sm text-gray-300">
-              <li><a href="#" className="hover:underline">Cari Agen</a></li>
-              <li><a href="#" className="hover:underline">Iklankan Franchise</a></li>
-              <li><a href="#" className="hover:underline">Jual Franchise</a></li>
-              <li><a href="#" className="hover:underline">Simulasi Investasi</a></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-semibold mb-4">Kontak Kami</h4>
-            <p className="text-sm text-gray-300">Email: support@franchisehub.co.id</p>
-            <p className="text-sm text-gray-300">Telepon: +62 812 3456 7890</p>
-            <div className="mt-4 flex space-x-4">
-              <a href="#" className="hover:text-gray-400">{/* Facebook */}</a>
-              <a href="#" className="hover:text-gray-400">{/* Twitter  */}</a>
-              <a href="#" className="hover:text-gray-400">{/* Instagram*/}</a>
-            </div>
-          </div>
-        </div>
-        <div className="mt-8 text-center text-sm text-gray-400">
-          &copy; 2025 FranchiseHub. Semua hak dilindungi.
-        </div>
-      </footer>
     </div>
   );
 }
