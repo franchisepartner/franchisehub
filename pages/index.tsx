@@ -8,7 +8,6 @@ import { Autoplay, Navigation } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 
-// Import icon lucide dan rename Calculator supaya tidak bentrok
 import {
   Megaphone,
   Globe,
@@ -16,9 +15,8 @@ import {
   LifeBuoy,
   FileSignature,
   ShieldCheck,
-  Building2,
+  UserPlus,
   Calculator as CalculatorIcon,
-  UserPlus
 } from 'lucide-react';
 
 interface Franchise {
@@ -150,50 +148,50 @@ export default function Home() {
     {
       label: 'Pengumuman',
       href: '/announcement',
-      bg: 'bg-yellow-400',
-      icon: <Megaphone className="h-7 w-7 text-white" />,
+      bg: 'from-yellow-400 to-yellow-300',
+      icon: <Megaphone className="h-7 w-7" />,
     },
     {
       label: 'Forum Global',
       href: '/forum-global',
-      bg: 'bg-green-400',
-      icon: <Globe className="h-7 w-7 text-white" />,
+      bg: 'from-green-400 to-green-300',
+      icon: <Globe className="h-7 w-7" />,
     },
     {
       label: 'Blog Global',
       href: '/blog-global',
-      bg: 'bg-purple-400',
-      icon: <BookOpenText className="h-7 w-7 text-white" />,
+      bg: 'from-purple-500 to-purple-300',
+      icon: <BookOpenText className="h-7 w-7" />,
     },
     {
       label: 'Pusat Bantuan',
       href: '/pusat-bantuan',
-      bg: 'bg-blue-400',
-      icon: <LifeBuoy className="h-7 w-7 text-white" />,
+      bg: 'from-blue-500 to-blue-400',
+      icon: <LifeBuoy className="h-7 w-7" />,
     },
     {
       label: 'S&K',
       href: '/syarat-ketentuan',
-      bg: 'bg-gray-700',
-      icon: <FileSignature className="h-7 w-7 text-white" />,
+      bg: 'from-gray-700 to-gray-500',
+      icon: <FileSignature className="h-7 w-7" />,
     },
     {
       label: 'Kebijakan Privasi',
       href: '/privacy',
-      bg: 'bg-green-600',
-      icon: <ShieldCheck className="h-7 w-7 text-white" />,
+      bg: 'from-green-600 to-green-400',
+      icon: <ShieldCheck className="h-7 w-7" />,
     },
     {
       label: 'Jadi Franchisor',
       href: '/franchisor',
-      bg: 'bg-teal-500',
-      icon: <UserPlus className="h-7 w-7 text-white" />,
+      bg: 'from-teal-500 to-teal-300',
+      icon: <UserPlus className="h-7 w-7" />,
     },
     {
       label: 'Kalkulator',
       href: '#',
-      bg: 'bg-pink-400',
-      icon: <CalculatorIcon className="h-7 w-7 text-white" />,
+      bg: 'from-pink-500 to-pink-400',
+      icon: <CalculatorIcon className="h-7 w-7" />,
       action: () => setShowCalculatorModal(true),
     },
   ];
@@ -287,9 +285,9 @@ export default function Home() {
             ))
           )}
         </Swiper>
-        {/* ==== SEARCH BAR MODERN ==== */}
+        {/* ==== SEARCH BAR MODERN SHINE ==== */}
         <div className="absolute left-1/2 transform -translate-x-1/2 bottom-0 w-full max-w-3xl px-4 sm:px-6 lg:px-8 z-20">
-          <div className="bg-white rounded-xl shadow-2xl p-4 relative border-2 border-blue-100">
+          <div className="bg-white/80 rounded-xl shadow-[0_8px_32px_0_rgba(31,38,135,0.12)] p-4 relative border-2 border-blue-100 backdrop-blur-md transition-all">
             <form
               className="flex space-x-2 items-center"
               autoComplete="off"
@@ -302,7 +300,7 @@ export default function Home() {
                 ref={inputRef}
                 type="text"
                 placeholder="Cari franchise, blog, forum, tag, dsb..."
-                className="flex-1 px-5 py-3 border-0 focus:ring-0 rounded-lg text-lg bg-gray-50"
+                className="flex-1 px-5 py-3 border-0 focus:ring-0 rounded-lg text-lg bg-gray-50 font-semibold shadow-inner"
                 value={searchTerm}
                 onFocus={() => setShowSearchDropdown(true)}
                 onBlur={() => setTimeout(() => setShowSearchDropdown(false), 180)}
@@ -311,19 +309,20 @@ export default function Home() {
               />
               <button
                 type="submit"
-                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-400 text-white rounded-lg font-bold shadow-lg text-base flex items-center gap-2 hover:from-blue-700 transition"
+                className="px-6 py-3 relative font-bold bg-gradient-to-r from-blue-500 via-cyan-400 to-blue-600 text-white rounded-xl shadow-lg text-base flex items-center gap-2 hover:from-blue-600 transition shine-effect"
                 tabIndex={-1}
               >
-                {/* Icon search modern */}
                 <svg className="h-6 w-6 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <circle cx="11" cy="11" r="8" strokeWidth={2} />
                   <path d="M21 21l-4-4" strokeWidth={2} strokeLinecap="round" />
                 </svg>
                 Cari
+                <span className="shine" />
               </button>
             </form>
+            {/* Search Dropdown */}
             {showSearchDropdown && searchTerm && (
-              <div className="absolute left-0 w-full bg-white rounded-b-xl shadow-2xl z-50 border-t border-blue-100 max-h-80 overflow-y-auto animate-fade-in">
+              <div className="absolute left-0 w-full bg-white/90 rounded-b-xl shadow-2xl z-50 border-t border-blue-100 max-h-80 overflow-y-auto animate-fade-in backdrop-blur-lg">
                 {searchResults.length === 0 ? (
                   <div className="p-4 text-gray-400 text-center">Tidak ditemukan.</div>
                 ) : (
@@ -359,7 +358,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ===== MENU FITUR ===== */}
+      {/* ===== MENU FITUR MODERN ===== */}
       <section className="relative mt-14 mb-6 z-20">
         <div className="w-full flex justify-center">
           <div className="flex gap-4 overflow-x-auto px-2 pb-2 pt-1 max-w-full sm:justify-center scrollbar-thin scrollbar-thumb-gray-200"
@@ -374,16 +373,18 @@ export default function Home() {
                       : () => window.location.href = menu.href
                   }
                   className={`
-                    ${menu.bg}
-                    rounded-full shadow-lg flex items-center justify-center
+                    bg-gradient-to-br ${menu.bg}
+                    shadow-xl border-2 border-white/50
+                    rounded-full flex items-center justify-center
                     w-16 h-16 md:w-16 md:h-16 mb-1 focus:outline-none
-                    transition hover:scale-105 active:scale-95
+                    relative overflow-hidden transition hover:scale-105 active:scale-95 group
                   `}
                   aria-label={menu.label}
                 >
                   {menu.icon}
+                  <span className="shine absolute left-0 top-0 h-full w-full pointer-events-none group-hover:opacity-80" />
                 </button>
-                <span className="block text-center text-xs font-medium text-gray-700 mt-1 truncate w-full">
+                <span className="block text-center text-xs font-semibold text-gray-700 mt-1 truncate w-full drop-shadow-sm">
                   {menu.label}
                 </span>
               </div>
@@ -414,7 +415,7 @@ export default function Home() {
           {franchises.map((fr) => (
             <SwiperSlide key={fr.id}>
               <Link href={`/franchise/${fr.slug}`}>
-                <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden cursor-pointer flex flex-col h-full">
+                <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden cursor-pointer flex flex-col h-full border-2 border-blue-50">
                   <div className="relative h-40">
                     <img
                       src={fr.logo_url}
@@ -523,6 +524,29 @@ export default function Home() {
           ))}
         </Swiper>
       </section>
+      <style jsx global>{`
+        .shine-effect {
+          overflow: hidden;
+          position: relative;
+        }
+        .shine-effect .shine {
+          content: '';
+          position: absolute;
+          top: 0; left: -100%;
+          width: 60%;
+          height: 100%;
+          background: linear-gradient(100deg,rgba(255,255,255,0) 60%,rgba(255,255,255,0.35) 80%,rgba(255,255,255,0));
+          z-index: 10;
+          pointer-events: none;
+          transform: skewX(-16deg);
+          animation: shine-move 2s infinite linear;
+        }
+        @keyframes shine-move {
+          0% { left: -70%; }
+          70% { left: 110%; }
+          100% { left: 110%; }
+        }
+      `}</style>
     </div>
   );
 }
