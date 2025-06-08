@@ -2,10 +2,11 @@
 import '../styles/globals.css';
 import type { AppProps } from 'next/app';
 import Navbar from '../components/Navbar';
+import Footer from '../components/Footer'; // ← Import Footer di sini!
 import { useRouter } from 'next/router';
 import { SessionContextProvider } from '@supabase/auth-helpers-react';
 import { supabase } from '../lib/supabaseClient';
-import { useState, useEffect } from 'react'; // Tambah useEffect di sini!
+import { useState, useEffect } from 'react';
 import ChatPasarPopup from '../components/ChatPasarPopup';
 
 export default function App({ Component, pageProps }: AppProps) {
@@ -42,6 +43,9 @@ export default function App({ Component, pageProps }: AppProps) {
       <main className={isHome ? '' : 'pt-0'}>
         <Component {...pageProps} />
       </main>
+
+      {/* Footer otomatis di semua halaman */}
+      <Footer />
 
       {/* Tombol gelembung chat di pojok kanan bawah */}
       <button 
