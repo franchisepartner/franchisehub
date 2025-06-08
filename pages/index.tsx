@@ -41,11 +41,8 @@ export default function Home() {
   const [franchises, setFranchises] = useState<Franchise[]>([]);
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [threads, setThreads] = useState<Thread[]>([]);
-  const [loading, setLoading] = useState(true);
   const [showCalculatorModal, setShowCalculatorModal] = useState(false);
   const [banners, setBanners] = useState<string[]>([]);
-
-  // Universal search
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
@@ -123,41 +120,18 @@ export default function Home() {
       );
       setBanners(urls.filter(Boolean));
     };
-
-    fetchBanners();
-    fetchFranchises();
-    fetchBlogs();
-    fetchThreads();
-    setLoading(false);
+    fetchBanners(); fetchFranchises(); fetchBlogs(); fetchThreads();
   }, []);
 
-  // Menu fitur modern
   const featureMenus = [
-    {
-      label: 'Pengumuman', href: '/announcement', bg: 'from-yellow-400 to-yellow-300', icon: <Megaphone className="h-7 w-7" />,
-    },
-    {
-      label: 'Forum Global', href: '/forum-global', bg: 'from-green-400 to-green-300', icon: <Globe className="h-7 w-7" />,
-    },
-    {
-      label: 'Blog Global', href: '/blog-global', bg: 'from-purple-500 to-purple-300', icon: <BookOpenText className="h-7 w-7" />,
-    },
-    {
-      label: 'Pusat Bantuan', href: '/pusat-bantuan', bg: 'from-blue-500 to-blue-400', icon: <LifeBuoy className="h-7 w-7" />,
-    },
-    {
-      label: 'S&K', href: '/syarat-ketentuan', bg: 'from-gray-700 to-gray-500', icon: <FileSignature className="h-7 w-7" />,
-    },
-    {
-      label: 'Kebijakan Privasi', href: '/privacy', bg: 'from-green-600 to-green-400', icon: <ShieldCheck className="h-7 w-7" />,
-    },
-    {
-      label: 'Jadi Franchisor', href: '/franchisor', bg: 'from-teal-500 to-teal-300', icon: <UserPlus className="h-7 w-7" />,
-    },
-    {
-      label: 'Kalkulator', href: '#', bg: 'from-pink-500 to-pink-400', icon: <CalculatorIcon className="h-7 w-7" />,
-      action: () => setShowCalculatorModal(true),
-    },
+    { label: 'Pengumuman', href: '/announcement', bg: 'from-yellow-400 to-yellow-300', icon: <Megaphone className="h-7 w-7" /> },
+    { label: 'Forum Global', href: '/forum-global', bg: 'from-green-400 to-green-300', icon: <Globe className="h-7 w-7" /> },
+    { label: 'Blog Global', href: '/blog-global', bg: 'from-purple-500 to-purple-300', icon: <BookOpenText className="h-7 w-7" /> },
+    { label: 'Pusat Bantuan', href: '/pusat-bantuan', bg: 'from-blue-500 to-blue-400', icon: <LifeBuoy className="h-7 w-7" /> },
+    { label: 'S&K', href: '/syarat-ketentuan', bg: 'from-gray-700 to-gray-500', icon: <FileSignature className="h-7 w-7" /> },
+    { label: 'Kebijakan Privasi', href: '/privacy', bg: 'from-green-600 to-green-400', icon: <ShieldCheck className="h-7 w-7" /> },
+    { label: 'Jadi Franchisor', href: '/franchisor', bg: 'from-teal-500 to-teal-300', icon: <UserPlus className="h-7 w-7" /> },
+    { label: 'Kalkulator', href: '#', bg: 'from-pink-500 to-pink-400', icon: <CalculatorIcon className="h-7 w-7" />, action: () => setShowCalculatorModal(true) },
   ];
 
   // UNIVERSAL SEARCH (autocomplete)
@@ -204,7 +178,6 @@ export default function Home() {
     setSelectedIdx(-1);
   }, [searchTerm, franchises, blogs, threads]);
 
-  // Keyboard navigation (tidak menabrak iPad/mobile)
   useEffect(() => {
     if (!showSearchDropdown) return;
     function handleKey(e: KeyboardEvent) {
@@ -224,7 +197,7 @@ export default function Home() {
   return (
     <div className="relative min-h-screen bg-white">
       {/* ==== BANNER SWIPER ==== */}
-      <div className="relative w-full h-[300px] sm:h-[340px] md:h-[420px] lg:h-[500px] overflow-visible pb-28 bg-white">
+      <div className="relative w-full h-[300px] sm:h-[340px] md:h-[420px] lg:h-[500px] overflow-visible pb-16 bg-white">
         <Swiper
           modules={[Autoplay, Navigation]}
           autoplay={{ delay: 5000, disableOnInteraction: false }}
@@ -252,9 +225,7 @@ export default function Home() {
           )}
         </Swiper>
         {/* ==== SEARCH BAR ==== */}
-        <div
-          className="absolute left-1/2 transform -translate-x-1/2 bottom-0 w-full max-w-3xl px-2 sm:px-6 lg:px-8 z-40"
-        >
+        <div className="absolute left-1/2 transform -translate-x-1/2 bottom-0 w-full max-w-3xl px-2 sm:px-4 md:px-6 lg:px-8 z-30">
           <div className="bg-white/90 rounded-xl shadow-xl p-4 relative border-2 border-blue-100 backdrop-blur-md transition-all ring-1 ring-blue-200 focus-within:ring-2 focus-within:ring-blue-400">
             <form
               className="flex space-x-2 items-center"
@@ -268,7 +239,7 @@ export default function Home() {
                 ref={inputRef}
                 type="text"
                 placeholder="Cari franchise, blog, forum, tag, dsb..."
-                className="flex-1 px-5 py-3 border-0 focus:ring-0 rounded-lg text-lg bg-gray-50 font-semibold shadow-inner"
+                className="flex-1 px-4 py-3 border-0 focus:ring-0 rounded-lg text-base md:text-lg bg-gray-50 font-semibold shadow-inner"
                 value={searchTerm}
                 onFocus={() => setShowSearchDropdown(true)}
                 onBlur={() => setTimeout(() => setShowSearchDropdown(false), 180)}
@@ -277,18 +248,18 @@ export default function Home() {
               />
               <button
                 type="submit"
-                className="px-6 py-3 font-bold bg-gradient-to-r from-blue-500 via-cyan-400 to-blue-600 text-white rounded-xl shadow-lg text-base flex items-center gap-2 hover:from-blue-600 transition"
+                className="px-4 md:px-6 py-3 font-bold bg-gradient-to-r from-blue-500 via-cyan-400 to-blue-600 text-white rounded-xl shadow-lg text-base flex items-center gap-2 hover:from-blue-600 transition"
                 tabIndex={-1}
                 style={{
                   boxShadow: '0 2px 16px 0 rgba(55,176,246,0.10)',
                   filter: 'brightness(1.06) drop-shadow(0 4px 12px #5ecfff33)'
                 }}
               >
-                <svg className="h-6 w-6 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="h-6 w-6 md:mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <circle cx="11" cy="11" r="8" strokeWidth={2} />
                   <path d="M21 21l-4-4" strokeWidth={2} strokeLinecap="round" />
                 </svg>
-                Cari
+                <span className="hidden md:inline">Cari</span>
               </button>
             </form>
             {showSearchDropdown && searchTerm && (
@@ -328,11 +299,10 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ===== MENU FITUR MODERN ===== */}
-      <section className="relative mt-4 mb-6 z-20">
+      {/* ===== MENU FITUR ===== */}
+      <section className="relative mt-8 mb-6 z-20">
         <div className="w-full flex justify-center">
-          <div
-            className="flex gap-4 overflow-x-auto px-2 pb-2 pt-2 max-w-full sm:justify-center scrollbar-thin scrollbar-thumb-gray-200"
+          <div className="flex gap-4 overflow-x-auto px-2 pb-2 pt-1 max-w-full sm:justify-center scrollbar-thin scrollbar-thumb-gray-200"
             style={{ WebkitOverflowScrolling: 'touch' }}
           >
             {featureMenus.map((menu, idx) => (
@@ -498,12 +468,14 @@ export default function Home() {
           ))}
         </Swiper>
       </section>
+
+      {/* MODAL KALKULATOR */}
       <CalculatorModal show={showCalculatorModal} setShow={setShowCalculatorModal} />
     </div>
   );
 }
 
-// ==== MODAL KALKULATOR SEDERHANA ==== //
+// ====== MODAL KALKULATOR ======
 interface CalculatorModalProps {
   show: boolean;
   setShow: (val: boolean) => void;
@@ -534,7 +506,6 @@ function Calculator() {
     else if (val === '=') {
       try {
         const sanitized = display.replace(/×/g, '*').replace(/÷/g, '/');
-        // eslint-disable-next-line no-eval
         setDisplay(String(eval(sanitized)));
       } catch {
         setDisplay('Error');
