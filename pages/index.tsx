@@ -1,16 +1,14 @@
 // pages/index.tsx
-
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { supabase } from '../lib/supabaseClient';
-import {
-  FaBullhorn, FaComments, FaBookOpen, FaLifeRing, FaFileContract, FaUserTie, FaCalculator, FaShieldAlt
-} from 'react-icons/fa';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Navigation } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
+// Icon
+import { FaBullhorn, FaComments, FaBookOpen, FaLifeRing, FaFileAlt, FaShieldAlt, FaUserTie, FaCalculator } from 'react-icons/fa';
 
 interface Franchise {
   id: string;
@@ -23,16 +21,64 @@ interface Franchise {
   slug: string;
 }
 
-// Warna spesifik untuk tiap menu
+// ==== MENU ICON UTAMA ====
 const MENU = [
-  { label: "Pengumuman", icon: <FaBullhorn size={22} />, path: "/announcement", color: "bg-yellow-400 text-white", ring: "ring-yellow-300" },
-  { label: "Forum Global", icon: <FaComments size={22} />, path: "/forum-global", color: "bg-green-500 text-white", ring: "ring-green-300" },
-  { label: "Blog Global", icon: <FaBookOpen size={22} />, path: "/blog-global", color: "bg-purple-500 text-white", ring: "ring-purple-300" },
-  { label: "Pusat Bantuan", icon: <FaLifeRing size={22} />, path: "/pusat-bantuan", color: "bg-blue-500 text-white", ring: "ring-blue-300" },
-  { label: "S&K", icon: <FaFileContract size={22} />, path: "/syarat-ketentuan", color: "bg-gray-800 text-white", ring: "ring-gray-400" },
-  { label: "Kebijakan Privasi", icon: <FaShieldAlt size={22} />, path: "/privacy", color: "bg-green-700 text-white", ring: "ring-green-400" },
-  { label: "Jadi Franchisor", icon: <FaUserTie size={22} />, path: "/franchisor", color: "bg-teal-600 text-white", ring: "ring-teal-300" },
-  { label: "Kalkulator", icon: <FaCalculator size={22} />, path: "#calculator", color: "bg-pink-500 text-white", ring: "ring-pink-300" },
+  {
+    label: 'Pengumuman',
+    path: '/announcement',
+    color: 'bg-yellow-400 text-white',
+    ring: 'ring-yellow-300',
+    icon: <FaBullhorn size={28} />,
+  },
+  {
+    label: 'Forum Global',
+    path: '/forum-global',
+    color: 'bg-green-400 text-white',
+    ring: 'ring-green-300',
+    icon: <FaComments size={28} />,
+  },
+  {
+    label: 'Blog Global',
+    path: '/blog-global',
+    color: 'bg-purple-500 text-white',
+    ring: 'ring-purple-400',
+    icon: <FaBookOpen size={28} />,
+  },
+  {
+    label: 'Pusat Bantuan',
+    path: '/pusat-bantuan',
+    color: 'bg-blue-400 text-white',
+    ring: 'ring-blue-300',
+    icon: <FaLifeRing size={28} />,
+  },
+  {
+    label: 'S&K',
+    path: '/syarat-ketentuan',
+    color: 'bg-gray-700 text-white',
+    ring: 'ring-gray-400',
+    icon: <FaFileAlt size={26} />,
+  },
+  {
+    label: 'Kebijakan Privasi',
+    path: '/privacy',
+    color: 'bg-green-600 text-white',
+    ring: 'ring-green-400',
+    icon: <FaShieldAlt size={26} />,
+  },
+  {
+    label: 'Jadi Franchisor',
+    path: '/franchisor',
+    color: 'bg-teal-500 text-white',
+    ring: 'ring-teal-400',
+    icon: <FaUserTie size={28} />,
+  },
+  {
+    label: 'Kalkulator',
+    path: '#calculator',
+    color: 'bg-pink-500 text-white',
+    ring: 'ring-pink-300',
+    icon: <FaCalculator size={26} />,
+  },
 ];
 
 export default function Home() {
@@ -47,9 +93,7 @@ export default function Home() {
         .select('id, franchise_name, description, category, investment_min, location, logo_url, slug')
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching franchises:', error);
-      } else if (data) {
+      if (!error && data) {
         const franchisesWithImages = data.map((franchise) => ({
           ...franchise,
           logo_url:
@@ -64,19 +108,25 @@ export default function Home() {
       }
       setLoading(false);
     };
-
     fetchFranchises();
   }, []);
 
-  const handleMenuClick = (menu: any) => {
+  // ==== Handler Kalkulator ====
+  const handleMenuClick = (menu: typeof MENU[number]) => {
     if (menu.path === '#calculator') setShowCalculatorModal(true);
   };
 
   return (
     <div className="relative min-h-screen bg-white">
-      {/* BANNER */}
+      {/* ======= BANNER + CAROUSEL ======= */}
       <div className="relative w-full h-[300px] sm:h-[340px] md:h-[420px] lg:h-[500px] overflow-visible pb-20 bg-white">
-        <Swiper modules={[Autoplay, Navigation]} autoplay={{ delay: 5000, disableOnInteraction: false }} loop navigation className="w-full h-full">
+        <Swiper
+          modules={[Autoplay, Navigation]}
+          autoplay={{ delay: 5000, disableOnInteraction: false }}
+          loop={true}
+          navigation
+          className="w-full h-full"
+        >
           <SwiperSlide>
             <Image src="/banner-franchisehub.PNG" alt="Banner FranchiseHub 1" fill className="object-cover" />
           </SwiperSlide>
@@ -87,7 +137,10 @@ export default function Home() {
             <Image src="/banner-franchisehub2.PNG" alt="Banner FranchiseHub 3" fill className="object-cover" />
           </SwiperSlide>
         </Swiper>
+
         <div className="absolute bottom-0 left-0 w-40 h-20 bg-white rounded-tl-full"></div>
+
+        {/* SEARCH BOX */}
         <div className="absolute left-1/2 transform -translate-x-1/2 -bottom-10 w-full max-w-3xl px-4 sm:px-6 lg:px-8 z-20">
           <div className="bg-white rounded-xl shadow-lg p-4 relative">
             <div className="absolute -top-12 right-6 bg-white rounded-t-full overflow-hidden shadow-md">
@@ -96,7 +149,7 @@ export default function Home() {
                 alt="Logo FranchiseHub"
                 width={60}
                 height={60}
-                className="rounded-t-full rounded-b-none object-cover shadow-md"
+                className="rounded-t-full object-cover shadow-md"
               />
             </div>
             <form className="flex space-x-2">
@@ -105,7 +158,10 @@ export default function Home() {
                 placeholder="Cari franchise untuk dijual..."
                 className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
-              <button type="submit" className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">
+              <button
+                type="submit"
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
+              >
                 Cari
               </button>
             </form>
@@ -113,14 +169,15 @@ export default function Home() {
         </div>
       </div>
 
-      {/* MENU ICON WARNA */}
-      <section className="relative mt-20 bg-white z-10">
-        <div className="flex justify-center">
-          <div className="flex flex-wrap justify-center gap-x-6 gap-y-5 w-full max-w-2xl">
+      {/* ======= BAR IKON UTAMA CENTERED ======= */}
+      <section className="relative mt-20 bg-white z-10 flex justify-center">
+        <div className="w-full max-w-3xl mx-auto">
+          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-8 gap-y-6 gap-x-4 justify-center items-center">
             {MENU.map(menu => (
               <div
                 key={menu.label}
-                className="flex flex-col items-center w-24 cursor-pointer select-none"
+                className="flex flex-col items-center cursor-pointer select-none"
+                style={{ minWidth: 90 }}
                 onClick={() => menu.path === '#calculator' ? handleMenuClick(menu) : undefined}
               >
                 <Link
@@ -132,19 +189,22 @@ export default function Home() {
                       setShowCalculatorModal(true);
                     }
                   }}
+                  className="flex flex-col items-center"
                 >
                   <div
                     className={`
                       ${menu.color}
                       rounded-full shadow-lg ring-2 ${menu.ring}
-                      flex items-center justify-center mb-1
+                      flex items-center justify-center
                       hover:scale-105 hover:shadow-xl transition
-                      w-14 h-14
+                      w-14 h-14 sm:w-16 sm:h-16 mb-2
                     `}
                   >
                     {menu.icon}
                   </div>
-                  <span className="text-xs text-gray-700 mt-1 text-center font-medium">{menu.label}</span>
+                  <span className="block w-20 text-xs text-gray-700 text-center font-medium leading-tight truncate">
+                    {menu.label}
+                  </span>
                 </Link>
               </div>
             ))}
@@ -152,10 +212,13 @@ export default function Home() {
         </div>
       </section>
 
-      {/* MODAL KALKULATOR */}
-      <CalculatorModal show={showCalculatorModal} setShow={setShowCalculatorModal} />
+      {/* ======= MODAL KALKULATOR ======= */}
+      <CalculatorModal
+        show={showCalculatorModal}
+        setShow={setShowCalculatorModal}
+      />
 
-      {/* DAFTAR FRANCHISE */}
+      {/* ======= DAFTAR FRANCHISE ======= */}
       <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8 pb-12">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Daftar Franchise</h2>
         {loading ? (
@@ -191,7 +254,7 @@ export default function Home() {
         )}
       </section>
 
-      {/* FOOTER */}
+      {/* ======= FOOTER ======= */}
       <footer className="bg-gray-800 text-white py-12">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
@@ -228,8 +291,11 @@ export default function Home() {
   );
 }
 
-// ======= MODAL KALKULATOR =======
-interface CalculatorModalProps { show: boolean; setShow: (val: boolean) => void; }
+// ================== KOMONEN CALCULATOR MODAL ==================
+interface CalculatorModalProps {
+  show: boolean;
+  setShow: (val: boolean) => void;
+}
 function CalculatorModal({ show, setShow }: CalculatorModalProps) {
   if (!show) return null;
   return (
@@ -239,7 +305,13 @@ function CalculatorModal({ show, setShow }: CalculatorModalProps) {
           onClick={() => setShow(false)}
           className="absolute top-3 right-3 text-gray-600 hover:text-gray-900"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
@@ -250,6 +322,7 @@ function CalculatorModal({ show, setShow }: CalculatorModalProps) {
   );
 }
 
+// ================== KOMONEN KALKULATOR ==================
 function Calculator() {
   const [display, setDisplay] = useState<string>('0');
   const handleButton = (val: string) => {
@@ -258,13 +331,11 @@ function Calculator() {
       try {
         const sanitized = display.replace(/×/g, '*').replace(/÷/g, '/');
         // eslint-disable-next-line no-eval
-        const result = eval(sanitized);
-        setDisplay(String(result));
-      } catch {
-        setDisplay('Error');
-      }
+        setDisplay(String(eval(sanitized)));
+      } catch { setDisplay('Error'); }
     } else {
-      setDisplay(display === '0' ? val : display + val);
+      if (display === '0') setDisplay(val);
+      else setDisplay(display + val);
     }
   };
   const buttons: string[][] = [
@@ -278,16 +349,19 @@ function Calculator() {
     <div className="flex flex-col items-center">
       <div className="w-full bg-gray-100 rounded-md p-3 text-right text-2xl font-mono mb-4">{display}</div>
       <div className="w-full grid grid-cols-4 gap-2">
-        {buttons.flat().map((btn, idx) =>
-          btn === '' ? <div key={idx} /> :
-            <button
-              key={idx}
-              onClick={() => handleButton(btn)}
-              className="bg-gray-200 hover:bg-gray-300 rounded-md py-2 text-lg font-medium"
-            >
-              {btn}
-            </button>
-        )}
+        {buttons.flat().map((btn, idx) => (
+          btn === ''
+            ? <div key={idx} />
+            : (
+              <button
+                key={idx}
+                onClick={() => handleButton(btn)}
+                className="bg-gray-200 hover:bg-gray-300 rounded-md py-2 text-lg font-medium"
+              >
+                {btn}
+              </button>
+            )
+        ))}
       </div>
     </div>
   );
