@@ -239,6 +239,7 @@ export default function Home() {
     setSearchResults(results.slice(0, 7));
     setSelectedIdx(-1);
   }, [searchTerm, franchises, blogs, threads]);
+
   useEffect(() => {
     if (!showSearchDropdown) return;
     function handleKey(e: KeyboardEvent) {
@@ -286,8 +287,8 @@ export default function Home() {
           )}
         </Swiper>
         {/* ==== SEARCH BAR MODERN SHINE ==== */}
-        <div className="absolute left-1/2 transform -translate-x-1/2 bottom-0 w-full max-w-3xl px-4 sm:px-6 lg:px-8 z-20">
-          <div className="bg-white/80 rounded-xl shadow-[0_8px_32px_0_rgba(31,38,135,0.12)] p-4 relative border-2 border-blue-100 backdrop-blur-md transition-all">
+        <div className="absolute left-1/2 transform -translate-x-1/2 bottom-0 w-full max-w-3xl px-4 sm:px-6 lg:px-8 z-50">
+          <div className="bg-white/90 rounded-xl shadow-2xl p-4 relative border-2 border-blue-100 backdrop-blur-md transition-all">
             <form
               className="flex space-x-2 items-center"
               autoComplete="off"
@@ -322,7 +323,7 @@ export default function Home() {
             </form>
             {/* Search Dropdown */}
             {showSearchDropdown && searchTerm && (
-              <div className="absolute left-0 w-full bg-white/90 rounded-b-xl shadow-2xl z-50 border-t border-blue-100 max-h-80 overflow-y-auto animate-fade-in backdrop-blur-lg">
+              <div className="absolute left-0 w-full bg-white/95 rounded-b-xl shadow-2xl z-[100] border-t border-blue-100 max-h-80 overflow-y-auto animate-fade-in backdrop-blur-lg">
                 {searchResults.length === 0 ? (
                   <div className="p-4 text-gray-400 text-center">Tidak ditemukan.</div>
                 ) : (
@@ -355,6 +356,8 @@ export default function Home() {
               </div>
             )}
           </div>
+          {/* Padding untuk mencegah overlap dengan menu fitur */}
+          <div className="pb-8 md:pb-0" />
         </div>
       </div>
 
@@ -529,7 +532,8 @@ export default function Home() {
           overflow: hidden;
           position: relative;
         }
-        .shine-effect .shine {
+        .shine-effect .shine,
+        .group .shine {
           content: '';
           position: absolute;
           top: 0; left: -100%;
