@@ -11,6 +11,7 @@ export default function Navbar() {
   const router = useRouter();
   const [navbarSession, setNavbarSession] = useState<any>(null);
   const [role, setRole] = useState<string>('Franchisee');
+  const [isAdmin, setIsAdmin] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
   const isHomePage = router.pathname === '/';
@@ -38,12 +39,13 @@ export default function Navbar() {
   const fetchUserRole = async (userId: string) => {
     const { data, error } = await supabase
       .from('profiles')
-      .select('role')
+      .select('role, is_admin')
       .eq('id', userId)
       .single();
 
-    if (data && data.role) {
-      setRole(data.role);
+    if (data) {
+      setRole(data.role || 'Franchisee');
+      setIsAdmin(!!data.is_admin || data.role === 'administrator');
     }
   };
 
@@ -80,10 +82,35 @@ export default function Navbar() {
           </div>
         )}
 
-        {/* Kanan: Salam → Dashboard Franchisor/Dashboard Administrator → Menu Burger */}
-        <div className="flex items-center space-x-4">
+        {/* Kanan: Salam → Dashboard Franchisor/Administrator → Menu Burger */}
+        <div className="flex items-center space-x-3">
           <p className="italic text-gray-500 text-sm">Halo, {userGreeting}!</p>
 
+          {/* Dashboard Franchisor (🎩) */}
+          {role === 'franchisor' && (
+            <button
+              className="flex items-center gap-1 px-3 py-1 rounded-lg bg-gray-100 hover:bg-blue-100 text-blue-700 font-medium transition"
+              onClick={() => router.push('/franchisor/dashboard')}
+              title="Dashboard Franchisor"
+            >
+              <span className="text-lg">🎩</span>
+              <span className="hidden sm:inline">Dashboard</span>
+            </button>
+          )}
+
+          {/* Dashboard Administrator (🃏) */}
+          {isAdmin && (
+            <button
+              className="flex items-center gap-1 px-3 py-1 rounded-lg bg-gray-100 hover:bg-pink-100 text-pink-700 font-medium transition"
+              onClick={() => router.push('/admin')}
+              title="Dashboard Administrator"
+            >
+              <span className="text-lg">🃏</span>
+              <span className="hidden sm:inline">Administrator</span>
+            </button>
+          )}
+
+          {/* Burger Menu */}
           <button
             onClick={() => setMenuOpen(true)}
             className="text-2xl"
@@ -93,7 +120,6 @@ export default function Navbar() {
           </button>
         </div>
       </nav>
-
       <BurgerMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
     </>
   );
