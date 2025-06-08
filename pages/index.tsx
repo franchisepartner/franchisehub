@@ -1,3 +1,5 @@
+// pages/index.tsx
+
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '../lib/supabaseClient';
@@ -24,65 +26,58 @@ export default function Home() {
   const [banners, setBanners] = useState<string[]>([]);
 
   useEffect(() => {
-    // Fetch listing (dengan signed url logo)
+    // Fetch franchise listing
     const fetchFranchises = async () => {
       const { data, error } = await supabase
         .from('franchise_listings')
         .select('id, franchise_name, description, category, investment_min, location, logo_url, slug')
         .order('created_at', { ascending: false });
-
       if (error) {
         console.error('Error fetching franchises:', error);
       } else if (data) {
-        const urls = await Promise.all(
-          data.map(async (franchise) => {
-            if (!franchise.logo_url) return '';
+        const franchisesWithImages = await Promise.all(data.map(async (franchise) => {
+          let logo_url = '';
+          if (franchise.logo_url) {
             const { data: signed } = await supabase
               .storage
               .from('listing-images')
               .createSignedUrl(franchise.logo_url, 60 * 60);
-            return signed?.signedUrl || '';
-          })
-        );
-        const franchisesWithImages = data.map((franchise, idx) => ({
-          ...franchise,
-          logo_url: urls[idx],
+            logo_url = signed?.signedUrl || '';
+          }
+          return { ...franchise, logo_url };
         }));
         setFranchises(franchisesWithImages);
       }
       setLoading(false);
     };
 
-    // Fetch banner (dengan signed url)
+    // Fetch banners from private bucket, signed URL
     const fetchBanners = async () => {
       const { data, error } = await supabase.storage
         .from('homepage-banners')
         .list('', { limit: 20, sortBy: { column: 'name', order: 'asc' } });
-
       if (error || !data) {
         setBanners([]);
         return;
       }
-
-      const urls = await Promise.all(
-        data
-          .filter(item => item.name.match(/\.(jpg|jpeg|png|webp)$/i))
-          .map(async (item) => {
-            const { data: signed } = await supabase
-              .storage
-              .from('homepage-banners')
-              .createSignedUrl(item.name, 60 * 60);
-            return signed?.signedUrl || '';
-          })
-      );
-      setBanners(urls.filter(Boolean));
+      const promises = data
+        .filter(item => item.name.match(/\.(jpg|jpeg|png|webp)$/i))
+        .map(async (item) => {
+          const { data: signed } = await supabase
+            .storage
+            .from('homepage-banners')
+            .createSignedUrl(item.name, 60 * 60);
+          return signed?.signedUrl || '';
+        });
+      const urls = (await Promise.all(promises)).filter(Boolean);
+      setBanners(urls);
     };
 
     fetchBanners();
     fetchFranchises();
   }, []);
 
-  // Menu fitur
+  // === Data Menu Fitur
   const featureMenus = [
     {
       label: 'Pengumuman',
@@ -175,7 +170,7 @@ export default function Home() {
 
   return (
     <div className="relative min-h-screen bg-white">
-      {/* ======= SWIPER BANNER DARI STORAGE ======= */}
+      {/* ======= SWIPER BANNER ======= */}
       <div className="relative w-full h-[300px] sm:h-[340px] md:h-[420px] lg:h-[500px] overflow-visible pb-16 bg-white">
         <Swiper
           modules={[Autoplay, Navigation]}
@@ -266,34 +261,34 @@ export default function Home() {
       {/* ======= MODAL KALKULATOR ======= */}
       <CalculatorModal show={showCalculatorModal} setShow={setShowCalculatorModal} />
 
-      {/* ======= DAFTAR FRANCHISE SLIDER (horizontal) ======= */}
+      {/* ======= DAFTAR FRANCHISE SLIDER ======= */}
       <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-4 pb-12">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-gray-800">Daftar Franchise</h2>
-          <Link href="/franchise-list">
-            <span className="text-blue-600 text-sm font-medium hover:underline cursor-pointer flex items-center gap-1">
-              Lihat Semua <span aria-hidden="true">→</span>
-            </span>
+          <Link href="/franchise-list" passHref>
+            <span className="text-blue-600 text-sm font-semibold hover:underline cursor-pointer">Lihat Semua &rarr;</span>
           </Link>
         </div>
         {loading ? (
           <p className="text-center text-gray-500">Memuat daftar franchise...</p>
         ) : (
           <Swiper
-            modules={[Navigation]}
+            modules={[Navigation, Autoplay]}
+            slidesPerView={1.15}
+            spaceBetween={24}
             navigation
-            slidesPerView={1.1}
-            spaceBetween={16}
+            autoplay={{ delay: 5000, disableOnInteraction: false }}
             breakpoints={{
-              640: { slidesPerView: 2.2 },
-              1024: { slidesPerView: 3.2 },
+              640: { slidesPerView: 2 },
+              1024: { slidesPerView: 3 },
             }}
             className="w-full"
+            style={{ paddingBottom: 32 }}
           >
             {franchises.slice(0, 6).map((fr) => (
-              <SwiperSlide key={fr.id} style={{height: '320px'}}>
+              <SwiperSlide key={fr.id}>
                 <Link href={`/franchise/${fr.slug}`} passHref>
-                  <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden cursor-pointer h-full flex flex-col">
+                  <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden cursor-pointer">
                     <div className="relative h-48">
                       <img
                         src={fr.logo_url}
@@ -304,8 +299,10 @@ export default function Home() {
                         {fr.category}
                       </span>
                     </div>
-                    <div className="p-4 flex-1 flex flex-col">
-                      <h3 className="text-lg font-semibold text-gray-800">{fr.franchise_name}</h3>
+                    <div className="p-4">
+                      <h3 className="text-lg font-semibold text-gray-800">
+                        {fr.franchise_name}
+                      </h3>
                       <p className="mt-1 text-sm text-gray-500">{fr.location}</p>
                       <p className="mt-2 text-sm text-gray-700">
                         Investasi Mulai: Rp {fr.investment_min.toLocaleString('id-ID')}
@@ -356,7 +353,7 @@ export default function Home() {
   );
 }
 
-// ================== MODAL KALKULATOR ==================
+// ========== MODAL KALKULATOR ==========
 interface CalculatorModalProps {
   show: boolean;
   setShow: (val: boolean) => void;
@@ -381,7 +378,7 @@ function CalculatorModal({ show, setShow }: CalculatorModalProps) {
   );
 }
 
-// ================== KALKULATOR SEDERHANA ==================
+// ========== KALKULATOR SEDERHANA ==========
 function Calculator() {
   const [display, setDisplay] = useState<string>('0');
   const handleButton = (val: string) => {
