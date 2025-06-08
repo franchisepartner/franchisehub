@@ -1,19 +1,15 @@
 // pages/index.tsx
+
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabaseClient';
+import { FaBullhorn, FaComments, FaBookOpen, FaLifeRing, FaFileContract, FaUserTie, FaCalculator, FaShieldAlt } from 'react-icons/fa';
 
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Navigation } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
-
-import {
-  FaBullhorn, FaComments, FaBookOpen, FaLifeRing, FaFileContract, FaStar,
-  FaUserTie, FaUserShield, FaClipboardList, FaCalculator
-} from 'react-icons/fa';
 
 interface Franchise {
   id: string;
@@ -25,6 +21,17 @@ interface Franchise {
   logo_url: string;
   slug: string;
 }
+
+const MENU = [
+  { label: "Pengumuman", icon: <FaBullhorn size={22} />, path: "/announcement" },
+  { label: "Forum Global", icon: <FaComments size={22} />, path: "/forum-global" },
+  { label: "Blog Global", icon: <FaBookOpen size={22} />, path: "/blog-global" },
+  { label: "Pusat Bantuan", icon: <FaLifeRing size={22} />, path: "/pusat-bantuan" },
+  { label: "S&K", icon: <FaFileContract size={22} />, path: "/syarat-ketentuan" },
+  { label: "Kebijakan Privasi", icon: <FaShieldAlt size={22} />, path: "/privacy" },
+  { label: "Jadi Franchisor", icon: <FaUserTie size={22} />, path: "/franchisor" },
+  { label: "Kalkulator", icon: <FaCalculator size={22} />, path: "#calculator" }, // special action
+];
 
 export default function Home() {
   const [franchises, setFranchises] = useState<Franchise[]>([]);
@@ -59,6 +66,11 @@ export default function Home() {
     fetchFranchises();
   }, []);
 
+  // Handler menu kalkulator
+  const handleMenuClick = (menu: any) => {
+    if (menu.path === '#calculator') setShowCalculatorModal(true);
+  };
+
   return (
     <div className="relative min-h-screen bg-white">
       {/* ======= BANNER + CAROUSEL ======= */}
@@ -71,34 +83,23 @@ export default function Home() {
           className="w-full h-full"
         >
           <SwiperSlide>
-            <Image
-              src="/banner-franchisehub.PNG"
-              alt="Banner FranchiseHub 1"
-              fill
-              className="object-cover"
-            />
+            <Image src="/banner-franchisehub.PNG" alt="Banner FranchiseHub 1" fill className="object-cover" />
           </SwiperSlide>
           <SwiperSlide>
-            <Image
-              src="/banner-franchisehub1.PNG"
-              alt="Banner FranchiseHub 2"
-              fill
-              className="object-cover"
-            />
+            <Image src="/banner-franchisehub1.PNG" alt="Banner FranchiseHub 2" fill className="object-cover" />
           </SwiperSlide>
           <SwiperSlide>
-            <Image
-              src="/banner-franchisehub2.PNG"
-              alt="Banner FranchiseHub 3"
-              fill
-              className="object-cover"
-            />
+            <Image src="/banner-franchisehub2.PNG" alt="Banner FranchiseHub 3" fill className="object-cover" />
           </SwiperSlide>
         </Swiper>
+
+        {/* Curve putih di pojok kiri bawah */}
         <div className="absolute bottom-0 left-0 w-40 h-20 bg-white rounded-tl-full"></div>
+
         {/* ======= KOTAK SEARCH ======= */}
         <div className="absolute left-1/2 transform -translate-x-1/2 -bottom-10 w-full max-w-3xl px-4 sm:px-6 lg:px-8 z-20">
           <div className="bg-white rounded-xl shadow-lg p-4 relative">
+            {/* Logo kecil di kanan atas tombol pencarian */}
             <div className="absolute -top-12 right-6 bg-white rounded-t-full overflow-hidden shadow-md">
               <Image
                 src="/22C6DD46-5682-4FDD-998B-710D24A74856.png"
@@ -125,14 +126,39 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ======= BAR IKON UTAMA (DYNAMIC) ======= */}
-      <MenuBarFiturUtama setShowCalculatorModal={setShowCalculatorModal} />
+      {/* ======= MENU ICON RESPONSIF (SELALU DI TENGAH) ======= */}
+      <section className="relative mt-20 bg-white z-10">
+        <div className="flex justify-center">
+          <div className="flex flex-wrap justify-center gap-x-6 gap-y-4 w-full max-w-2xl">
+            {MENU.map(menu => (
+              <div
+                key={menu.label}
+                className="flex flex-col items-center w-24 cursor-pointer select-none"
+                onClick={() => menu.path === '#calculator' ? handleMenuClick(menu) : undefined}
+              >
+                <Link
+                  href={menu.path === '#calculator' ? '#' : menu.path}
+                  passHref
+                  onClick={e => {
+                    if (menu.path === '#calculator') {
+                      e.preventDefault();
+                      setShowCalculatorModal(true);
+                    }
+                  }}
+                >
+                  <div className="bg-white rounded-full shadow p-3 flex items-center justify-center mb-1 hover:bg-blue-50 transition">
+                    {menu.icon}
+                  </div>
+                  <span className="text-xs text-gray-700 mt-0.5 text-center">{menu.label}</span>
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* ======= MODAL KALKULATOR ======= */}
-      <CalculatorModal
-        show={showCalculatorModal}
-        setShow={setShowCalculatorModal}
-      />
+      <CalculatorModal show={showCalculatorModal} setShow={setShowCalculatorModal} />
 
       {/* ======= DAFTAR FRANCHISE ======= */}
       <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8 pb-12">
@@ -155,9 +181,7 @@ export default function Home() {
                     </span>
                   </div>
                   <div className="p-4">
-                    <h3 className="text-lg font-semibold text-gray-800">
-                      {fr.franchise_name}
-                    </h3>
+                    <h3 className="text-lg font-semibold text-gray-800">{fr.franchise_name}</h3>
                     <p className="mt-1 text-sm text-gray-500">{fr.location}</p>
                     <p className="mt-2 text-sm text-gray-700">
                       Investasi Mulai: Rp {fr.investment_min.toLocaleString('id-ID')}
@@ -207,73 +231,7 @@ export default function Home() {
   );
 }
 
-// ======= MENU BAR FITUR UTAMA (MODERN SEDANG) =======
-function MenuBarFiturUtama({ setShowCalculatorModal }: { setShowCalculatorModal: (v: boolean) => void }) {
-  const [role, setRole] = useState<string>('');
-  const [loggedIn, setLoggedIn] = useState(false);
-  const router = useRouter();
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setLoggedIn(!!data.session);
-      if (data.session) fetchRole(data.session.user.id);
-    });
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setLoggedIn(!!session?.user);
-      if (session?.user) fetchRole(session.user.id);
-      else setRole('');
-    });
-    return () => listener?.subscription.unsubscribe();
-  }, []);
-
-  const fetchRole = async (userId: string) => {
-    const { data } = await supabase.from('profiles').select('role').eq('id', userId).single();
-    setRole(data?.role || '');
-  };
-
-  // Tombol utama (no notifikasi/favorit, pengumuman selalu paling awal)
-  let menu = [
-    { icon: <FaBullhorn className="text-yellow-600" />, label: 'Pengumuman', path: '/announcement', show: true },
-    { icon: <FaComments className="text-green-600" />, label: 'Forum Global', path: '/forum-global', show: true },
-    { icon: <FaBookOpen className="text-purple-600" />, label: 'Blog Global', path: '/blog-global', show: true },
-    { icon: <FaLifeRing className="text-indigo-600" />, label: 'Pusat Bantuan', path: '/pusat-bantuan', show: true },
-    { icon: <FaFileContract className="text-gray-700" />, label: 'S&K', path: '/syarat-ketentuan', show: true },
-    { icon: <FaStar className="text-green-700" />, label: 'Kebijakan Privasi', path: '/privacy', show: true },
-    { icon: <FaClipboardList className="text-amber-600" />, label: 'Kelola Listing', path: '/franchisor/manage-listings', show: role === 'franchisor' },
-    { icon: <FaUserTie className="text-green-700" />, label: 'Dashboard', path: '/franchisor/dashboard', show: role === 'franchisor' },
-    { icon: <FaUserShield className="text-purple-700" />, label: 'Admin', path: '/admin', show: role === 'administrator' },
-    { icon: <FaUserTie className="text-teal-600" />, label: 'Jadi Franchisor', path: '/franchisor', show: !role || role === 'franchisee' },
-    { icon: <FaCalculator className="text-gray-800" />, label: 'Kalkulator', path: '#kalkulator', show: true }
-  ];
-
-  menu = menu.filter((m) => m.show);
-
-  return (
-    <section className="relative mt-20 bg-white z-10 drop-shadow-md">
-      <div className="overflow-x-auto whitespace-nowrap py-4 px-4 sm:px-6 lg:px-8">
-        <div className="inline-flex space-x-6 items-center">
-          {menu.map(({ icon, label, path }, idx) => (
-            <div
-              key={idx}
-              className="inline-flex flex-col items-center w-16 cursor-pointer group"
-              onClick={() => {
-                if (path === '#kalkulator') setShowCalculatorModal(true);
-                else router.push(path);
-              }}
-            >
-              <div className="bg-white rounded-full shadow p-2.5 group-hover:bg-blue-50 transition w-16 h-16 flex items-center justify-center">
-                <span className="text-[22px]">{icon}</span>
-              </div>
-              <span className="text-[12px] text-gray-600 mt-1 text-center group-hover:text-blue-700">{label}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ================== MODAL KALKULATOR ==================
+// ================== KOMONEN CALCULATOR MODAL ==================
 interface CalculatorModalProps {
   show: boolean;
   setShow: (val: boolean) => void;
@@ -298,14 +256,13 @@ function CalculatorModal({ show, setShow }: CalculatorModalProps) {
   );
 }
 
-// ============== Kalkulator Sederhana ==============
+// ================== KOMONEN CALCULATOR SEDERHANA ==================
 function Calculator() {
   const [display, setDisplay] = useState<string>('0');
 
   const handleButton = (val: string) => {
-    if (val === 'C') {
-      setDisplay('0');
-    } else if (val === '=') {
+    if (val === 'C') setDisplay('0');
+    else if (val === '=') {
       try {
         const sanitized = display.replace(/×/g, '*').replace(/÷/g, '/');
         // eslint-disable-next-line no-eval
@@ -315,8 +272,7 @@ function Calculator() {
         setDisplay('Error');
       }
     } else {
-      if (display === '0') setDisplay(val);
-      else setDisplay(display + val);
+      setDisplay(display === '0' ? val : display + val);
     }
   };
 
@@ -334,18 +290,16 @@ function Calculator() {
         {display}
       </div>
       <div className="w-full grid grid-cols-4 gap-2">
-        {buttons.flat().map((btn, idx) => {
-          if (btn === '') return <div key={idx} />;
-          return (
-            <button
-              key={idx}
-              onClick={() => handleButton(btn)}
-              className="bg-gray-200 hover:bg-gray-300 rounded-md py-2 text-lg font-medium"
-            >
-              {btn}
-            </button>
-          );
-        })}
+        {buttons.flat().map((btn, idx) => (
+          btn === '' ? <div key={idx} /> :
+          <button
+            key={idx}
+            onClick={() => handleButton(btn)}
+            className="bg-gray-200 hover:bg-gray-300 rounded-md py-2 text-lg font-medium"
+          >
+            {btn}
+          </button>
+        ))}
       </div>
     </div>
   );
