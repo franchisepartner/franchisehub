@@ -18,17 +18,14 @@ interface Franchise {
   logo_url: string;
   slug: string;
 }
-
 interface Blog {
   id: string;
   title: string;
   slug: string;
+  cover_url: string;
   category: string;
-  author: string;
   created_at: string;
-  cover_url?: string;
 }
-
 interface Thread {
   id: string;
   title: string;
@@ -44,95 +41,93 @@ export default function Home() {
   const [showCalculatorModal, setShowCalculatorModal] = useState(false);
   const [banners, setBanners] = useState<string[]>([]);
 
-  // Fetch all content on load
   useEffect(() => {
-    // Franchise (6 terbaru)
+    // Franchise (hanya 6)
     const fetchFranchises = async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('franchise_listings')
         .select('id, franchise_name, description, category, investment_min, location, logo_url, slug')
         .order('created_at', { ascending: false })
         .limit(6);
-
-      setFranchises(
-        (data || []).map((fr: any) => ({
-          ...fr,
-          logo_url: fr.logo_url
-            ? supabase.storage.from('listing-images').getPublicUrl(fr.logo_url).data.publicUrl
+      if (!error && data) {
+        setFranchises(data.map((franchise) => ({
+          ...franchise,
+          logo_url: franchise.logo_url
+            ? supabase.storage.from('listing-images').getPublicUrl(franchise.logo_url).data.publicUrl
             : '/logo192.png',
-        }))
-      );
+        })));
+      }
     };
 
-    // Blog (6 terbaru)
+    // Blog (hanya 6)
     const fetchBlogs = async () => {
       const { data } = await supabase
         .from('blogs')
-        .select('id, title, slug, category, author, created_at, cover_url')
+        .select('id, title, slug, cover_url, category, created_at')
         .order('created_at', { ascending: false })
         .limit(6);
-
       setBlogs(
         (data || []).map((b: any) => ({
           ...b,
           cover_url: b.cover_url
             ? (b.cover_url.startsWith('http')
-                ? b.cover_url
-                : supabase.storage.from('blog-assets').getPublicUrl(b.cover_url).data.publicUrl
-              )
-            : undefined,
+              ? b.cover_url
+              : supabase.storage.from('blog-assets').getPublicUrl(b.cover_url).data.publicUrl)
+            : '/logo192.png',
         }))
       );
     };
 
-    // Forum Threads (6 terbaru)
+    // Forum (hanya 6)
     const fetchThreads = async () => {
       const { data } = await supabase
         .from('threads')
         .select('id, title, image_url, created_at')
         .order('created_at', { ascending: false })
         .limit(6);
-
       setThreads(
         (data || []).map((t: any) => ({
           ...t,
           image_url: t.image_url
             ? (t.image_url.startsWith('http')
-                ? t.image_url
-                : supabase.storage.from('thread-images').getPublicUrl(t.image_url).data.publicUrl
-              )
+              ? t.image_url
+              : supabase.storage.from('thread-images').getPublicUrl(t.image_url).data.publicUrl)
             : undefined,
         }))
       );
     };
 
-    // Banners (private bucket with signed url)
+    // Banner (private bucket, signed URL)
     const fetchBanners = async () => {
       const { data } = await supabase.storage
         .from('homepage-banners')
-        .list('', { limit: 12, sortBy: { column: 'name', order: 'asc' } });
-      if (!data) return setBanners([]);
-
-      const promises = data
-        .filter(item => item.name.match(/\.(jpg|jpeg|png|webp)$/i))
-        .map(async (item) => {
-          const { data: signed } = await supabase
-            .storage
-            .from('homepage-banners')
-            .createSignedUrl(item.name, 3600);
-          return signed?.signedUrl || '';
-        });
-
-      setBanners((await Promise.all(promises)).filter(Boolean));
+        .list('', { limit: 20, sortBy: { column: 'name', order: 'asc' } });
+      if (!data) {
+        setBanners([]);
+        return;
+      }
+      const urls = await Promise.all(
+        data
+          .filter(item => item.name.match(/\.(jpg|jpeg|png|webp)$/i))
+          .map(async (item) => {
+            const { data: signed } = await supabase
+              .storage
+              .from('homepage-banners')
+              .createSignedUrl(item.name, 60 * 60);
+            return signed?.signedUrl || '';
+          })
+      );
+      setBanners(urls.filter(Boolean));
     };
 
-    setLoading(true);
-    Promise.all([fetchFranchises(), fetchBlogs(), fetchThreads(), fetchBanners()]).then(() =>
-      setLoading(false)
-    );
+    fetchBanners();
+    fetchFranchises();
+    fetchBlogs();
+    fetchThreads();
+    setLoading(false);
   }, []);
 
-  // === MENU FITUR (copy-paste terbaikmu, silakan modifikasi warna/icon sesuai keinginan)
+  // === Data Menu Fitur (copy terbaikmu sebelumnya) ===
   const featureMenus = [
     {
       label: 'Pengumuman',
@@ -276,14 +271,7 @@ export default function Home() {
       {/* ======= MENU FITUR ======= */}
       <section className="relative mt-14 mb-6 z-20">
         <div className="w-full flex justify-center">
-          <div
-            className="
-              flex gap-4 overflow-x-auto
-              px-2 pb-2 pt-1
-              max-w-full
-              sm:justify-center
-              scrollbar-thin scrollbar-thumb-gray-200
-            "
+          <div className="flex gap-4 overflow-x-auto px-2 pb-2 pt-1 max-w-full sm:justify-center scrollbar-thin scrollbar-thumb-gray-200"
             style={{ WebkitOverflowScrolling: 'touch' }}
           >
             {featureMenus.map((menu, idx) => (
@@ -316,113 +304,136 @@ export default function Home() {
       {/* ======= MODAL KALKULATOR ======= */}
       <CalculatorModal show={showCalculatorModal} setShow={setShowCalculatorModal} />
 
-      {/* ======= DAFTAR FRANCHISE (Horizontal Swiper) ======= */}
+      {/* ======= DAFTAR FRANCHISE (horizontal swiper, 6 saja) ======= */}
       <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-4 pb-8">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold text-gray-800">Daftar Franchise</h2>
+          <h2 className="text-2xl font-bold">Daftar Franchise</h2>
           <Link href="/franchise-list" className="text-blue-600 text-sm hover:underline">Lihat Semua →</Link>
         </div>
-        {loading ? (
-          <p className="text-center text-gray-500">Memuat daftar franchise...</p>
-        ) : (
-          <Swiper
-            modules={[Navigation, Autoplay]}
-            slidesPerView={1.15}
-            spaceBetween={24}
-            breakpoints={{
-              640: { slidesPerView: 2.25 },
-              1024: { slidesPerView: 3.25 },
-            }}
-            autoplay={{ delay: 5000, disableOnInteraction: false }}
-            navigation
-            style={{ width: '100%', minHeight: 320 }}
-          >
-            {franchises.map((fr) => (
-              <SwiperSlide key={fr.id}>
-                <Link href={`/franchise/${fr.slug}`} passHref>
-                  <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden cursor-pointer h-full flex flex-col">
-                    <div className="relative h-48">
-                      <img
-                        src={fr.logo_url}
-                        alt={fr.franchise_name}
-                        className="w-full h-full object-cover"
-                      />
-                      <span className="absolute top-3 left-3 bg-yellow-400 text-xs font-semibold text-black px-2 py-1 rounded">
-                        {fr.category}
-                      </span>
-                    </div>
-                    <div className="p-4 flex-1 flex flex-col">
-                      <h3 className="text-lg font-semibold text-gray-800 mb-1">{fr.franchise_name}</h3>
-                      <p className="mt-1 text-sm text-gray-500">{fr.location}</p>
-                      <p className="mt-2 text-sm text-gray-700">
-                        Investasi Mulai: Rp {fr.investment_min.toLocaleString('id-ID')}
-                      </p>
-                    </div>
+        <Swiper
+          modules={[Autoplay, Navigation]}
+          slidesPerView={1.15}
+          spaceBetween={24}
+          breakpoints={{
+            640: { slidesPerView: 2.15 },
+            1024: { slidesPerView: 3.15 },
+            1280: { slidesPerView: 4.15 },
+          }}
+          autoplay={{ delay: 5000, disableOnInteraction: false }}
+          navigation
+          style={{ width: '100%', minHeight: 280 }}
+        >
+          {franchises.map((fr) => (
+            <SwiperSlide key={fr.id}>
+              <Link href={`/franchise/${fr.slug}`}>
+                <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden cursor-pointer flex flex-col h-full">
+                  <div className="relative h-40">
+                    <img
+                      src={fr.logo_url}
+                      alt={fr.franchise_name}
+                      className="w-full h-full object-cover"
+                    />
+                    <span className="absolute top-3 left-3 bg-yellow-400 text-xs font-semibold text-black px-2 py-1 rounded">
+                      {fr.category}
+                    </span>
                   </div>
-                </Link>
-              </SwiperSlide>
-            ))}
-          </Swiper>
-        )}
+                  <div className="p-4 flex-1 flex flex-col">
+                    <h3 className="text-lg font-semibold text-gray-800 truncate">
+                      {fr.franchise_name}
+                    </h3>
+                    <p className="mt-1 text-sm text-gray-500">{fr.location}</p>
+                    <p className="mt-2 text-sm text-gray-700">
+                      Investasi Mulai: Rp {fr.investment_min.toLocaleString('id-ID')}
+                    </p>
+                  </div>
+                </div>
+              </Link>
+            </SwiperSlide>
+          ))}
+        </Swiper>
       </section>
 
-      {/* ======= DAFTAR BLOG BISNIS ======= */}
+      {/* ======= DAFTAR BLOG BISNIS (Horizontal Swiper, 6 saja) ======= */}
       <section className="container mx-auto px-4 sm:px-6 lg:px-8 pb-8">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold">Blog Bisnis</h2>
           <Link href="/blog-global" className="text-blue-600 text-sm hover:underline">Lihat Semua →</Link>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        <Swiper
+          modules={[Autoplay, Navigation]}
+          slidesPerView={1.15}
+          spaceBetween={24}
+          breakpoints={{
+            640: { slidesPerView: 2.15 },
+            1024: { slidesPerView: 3.15 },
+            1280: { slidesPerView: 4.15 },
+          }}
+          autoplay={{ delay: 5000, disableOnInteraction: false }}
+          navigation
+          style={{ width: '100%', minHeight: 280 }}
+        >
           {blogs.map((b) => (
-            <Link key={b.id} href={`/detail/${b.slug}`}>
-              <div className="bg-white border rounded-xl shadow-sm hover:shadow-lg transition cursor-pointer flex flex-col overflow-hidden">
-                <div className="h-36 flex items-center justify-center bg-gray-50">
-                  {b.cover_url ? (
-                    <img src={b.cover_url} alt={b.title} className="object-cover w-full h-full" />
-                  ) : (
-                    <span className="text-gray-400 text-sm">Tanpa Cover</span>
-                  )}
+            <SwiperSlide key={b.id}>
+              <Link href={`/detail/${b.slug}`}>
+                <div className="bg-white border rounded-xl shadow-sm hover:shadow-lg transition cursor-pointer flex flex-col overflow-hidden h-full">
+                  <div className="h-36 flex items-center justify-center bg-gray-50">
+                    {b.cover_url ? (
+                      <img src={b.cover_url} alt={b.title} className="object-cover w-full h-full" />
+                    ) : (
+                      <span className="text-gray-400 text-sm">Tanpa Cover</span>
+                    )}
+                  </div>
+                  <div className="p-3 flex-1 flex flex-col">
+                    <span className="inline-block bg-purple-200 text-purple-800 px-2 py-0.5 rounded text-xs font-semibold mb-1">{b.category}</span>
+                    <div className="font-semibold truncate">{b.title}</div>
+                    <div className="text-xs text-gray-500">{new Date(b.created_at).toLocaleDateString()}</div>
+                  </div>
                 </div>
-                <div className="p-3">
-                  <span className="inline-block bg-purple-200 text-purple-800 px-2 py-0.5 rounded text-xs font-semibold mb-1">{b.category}</span>
-                  <div className="font-semibold truncate">{b.title}</div>
-                  <div className="text-xs text-gray-500">{new Date(b.created_at).toLocaleDateString()}</div>
-                </div>
-              </div>
-            </Link>
+              </Link>
+            </SwiperSlide>
           ))}
-        </div>
+        </Swiper>
       </section>
 
-      {/* ======= DAFTAR FORUM GLOBAL ======= */}
+      {/* ======= DAFTAR FORUM GLOBAL (Horizontal Swiper, 6 saja) ======= */}
       <section className="container mx-auto px-4 sm:px-6 lg:px-8 pb-14">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold">Forum Global</h2>
           <Link href="/forum-global" className="text-blue-600 text-sm hover:underline">Lihat Semua →</Link>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        <Swiper
+          modules={[Autoplay, Navigation]}
+          slidesPerView={1.15}
+          spaceBetween={24}
+          breakpoints={{
+            640: { slidesPerView: 2.15 },
+            1024: { slidesPerView: 3.15 },
+            1280: { slidesPerView: 4.15 },
+          }}
+          autoplay={{ delay: 5000, disableOnInteraction: false }}
+          navigation
+          style={{ width: '100%', minHeight: 280 }}
+        >
           {threads.map((t) => (
-            <Link
-              key={t.id}
-              href={{ pathname: '/forum-global', query: { open: t.id } }}
-              scroll={false}
-            >
-              <div className="bg-white border rounded-xl shadow-sm hover:shadow-lg transition cursor-pointer flex flex-col overflow-hidden">
-                <div className="h-36 flex items-center justify-center bg-gray-50">
-                  {t.image_url ? (
-                    <img src={t.image_url} alt={t.title} className="object-cover w-full h-full" />
-                  ) : (
-                    <span className="text-gray-400 text-sm">Tanpa Gambar</span>
-                  )}
+            <SwiperSlide key={t.id}>
+              <Link href={{ pathname: '/forum-global', query: { open: t.id } }} scroll={false}>
+                <div className="bg-white border rounded-xl shadow-sm hover:shadow-lg transition cursor-pointer flex flex-col overflow-hidden h-full">
+                  <div className="h-36 flex items-center justify-center bg-gray-50">
+                    {t.image_url ? (
+                      <img src={t.image_url} alt={t.title} className="object-cover w-full h-full" />
+                    ) : (
+                      <span className="text-gray-400 text-sm">Tanpa Gambar</span>
+                    )}
+                  </div>
+                  <div className="p-3 flex-1 flex flex-col">
+                    <div className="font-semibold truncate">{t.title}</div>
+                    <div className="text-xs text-gray-500">{new Date(t.created_at).toLocaleDateString()}</div>
+                  </div>
                 </div>
-                <div className="p-3">
-                  <div className="font-semibold truncate">{t.title}</div>
-                  <div className="text-xs text-gray-500">{new Date(t.created_at).toLocaleDateString()}</div>
-                </div>
-              </div>
-            </Link>
+              </Link>
+            </SwiperSlide>
           ))}
-        </div>
+        </Swiper>
       </section>
 
       {/* ======= FOOTER ======= */}
