@@ -1,5 +1,3 @@
-// pages/index.tsx
-
 import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { supabase } from '../lib/supabaseClient';
@@ -8,8 +6,8 @@ import { Autoplay, Navigation } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import {
-  Megaphone, Globe, BookOpenText, LifeBuoy,
-  FileSignature, ShieldCheck, UserPlus, Calculator as CalculatorIcon
+  Megaphone, Globe, BookOpenText, LifeBuoy, FileSignature,
+  ShieldCheck, UserPlus, Calculator as CalculatorIcon,
 } from 'lucide-react';
 
 interface Franchise {
@@ -46,7 +44,7 @@ export default function Home() {
   const [showCalculatorModal, setShowCalculatorModal] = useState(false);
   const [banners, setBanners] = useState<string[]>([]);
 
-  // Universal search
+  // Search
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
@@ -56,19 +54,19 @@ export default function Home() {
   useEffect(() => {
     // Franchise (6)
     const fetchFranchises = async () => {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('franchise_listings')
         .select('id, franchise_name, description, category, investment_min, location, logo_url, slug, tags')
         .order('created_at', { ascending: false })
         .limit(6);
-      if (!error && data) {
-        setFranchises(data.map((franchise) => ({
+      setFranchises(
+        (data || []).map((franchise: Franchise) => ({
           ...franchise,
           logo_url: franchise.logo_url
             ? supabase.storage.from('listing-images').getPublicUrl(franchise.logo_url).data.publicUrl
             : '/logo192.png',
-        })));
-      }
+        }))
+      );
     };
     // Blog (6)
     const fetchBlogs = async () => {
@@ -136,60 +134,36 @@ export default function Home() {
     setLoading(false);
   }, []);
 
-  // Modern Menu Fitur
+  // Bar fitur modern (tidak menimpa search)
   const featureMenus = [
     {
-      label: 'Pengumuman',
-      href: '/announcement',
-      bg: 'from-yellow-400 to-yellow-300',
-      icon: <Megaphone className="h-7 w-7" />,
+      label: 'Pengumuman', href: '/announcement', bg: 'from-yellow-400 to-yellow-300', icon: <Megaphone className="h-7 w-7" />,
     },
     {
-      label: 'Forum Global',
-      href: '/forum-global',
-      bg: 'from-green-400 to-green-300',
-      icon: <Globe className="h-7 w-7" />,
+      label: 'Forum Global', href: '/forum-global', bg: 'from-green-400 to-green-300', icon: <Globe className="h-7 w-7" />,
     },
     {
-      label: 'Blog Global',
-      href: '/blog-global',
-      bg: 'from-purple-500 to-purple-300',
-      icon: <BookOpenText className="h-7 w-7" />,
+      label: 'Blog Global', href: '/blog-global', bg: 'from-purple-500 to-purple-300', icon: <BookOpenText className="h-7 w-7" />,
     },
     {
-      label: 'Pusat Bantuan',
-      href: '/pusat-bantuan',
-      bg: 'from-blue-500 to-blue-400',
-      icon: <LifeBuoy className="h-7 w-7" />,
+      label: 'Pusat Bantuan', href: '/pusat-bantuan', bg: 'from-blue-500 to-blue-400', icon: <LifeBuoy className="h-7 w-7" />,
     },
     {
-      label: 'S&K',
-      href: '/syarat-ketentuan',
-      bg: 'from-gray-700 to-gray-500',
-      icon: <FileSignature className="h-7 w-7" />,
+      label: 'S&K', href: '/syarat-ketentuan', bg: 'from-gray-700 to-gray-500', icon: <FileSignature className="h-7 w-7" />,
     },
     {
-      label: 'Kebijakan Privasi',
-      href: '/privacy',
-      bg: 'from-green-600 to-green-400',
-      icon: <ShieldCheck className="h-7 w-7" />,
+      label: 'Kebijakan Privasi', href: '/privacy', bg: 'from-green-600 to-green-400', icon: <ShieldCheck className="h-7 w-7" />,
     },
     {
-      label: 'Jadi Franchisor',
-      href: '/franchisor',
-      bg: 'from-teal-500 to-teal-300',
-      icon: <UserPlus className="h-7 w-7" />,
+      label: 'Jadi Franchisor', href: '/franchisor', bg: 'from-teal-500 to-teal-300', icon: <UserPlus className="h-7 w-7" />,
     },
     {
-      label: 'Kalkulator',
-      href: '#',
-      bg: 'from-pink-500 to-pink-400',
-      icon: <CalculatorIcon className="h-7 w-7" />,
+      label: 'Kalkulator', href: '#', bg: 'from-pink-500 to-pink-400', icon: <CalculatorIcon className="h-7 w-7" />,
       action: () => setShowCalculatorModal(true),
     },
   ];
 
-  // ===== UNIVERSAL SEARCH (autocomplete)
+  // UNIVERSAL SEARCH (autocomplete)
   useEffect(() => {
     if (!searchTerm) {
       setSearchResults([]);
@@ -232,6 +206,8 @@ export default function Home() {
     setSearchResults(results.slice(0, 7));
     setSelectedIdx(-1);
   }, [searchTerm, franchises, blogs, threads]);
+
+  // Keyboard navigation
   useEffect(() => {
     if (!showSearchDropdown) return;
     function handleKey(e: KeyboardEvent) {
@@ -278,9 +254,9 @@ export default function Home() {
             ))
           )}
         </Swiper>
-        {/* ==== SEARCH BAR MODERN SHINE ==== */}
-        <div className="absolute left-1/2 transform -translate-x-1/2 bottom-0 w-full max-w-3xl px-4 sm:px-6 lg:px-8 z-20">
-          <div className="bg-white/80 rounded-xl shadow-[0_8px_32px_0_rgba(31,38,135,0.12)] p-4 relative border-2 border-blue-100 backdrop-blur-md transition-all">
+        {/* ==== SEARCH BAR ==== */}
+        <div className="absolute left-1/2 transform -translate-x-1/2 bottom-0 w-full max-w-3xl px-4 sm:px-6 lg:px-8 z-30">
+          <div className="bg-white/90 rounded-xl shadow-xl p-4 relative border-2 border-blue-100 backdrop-blur-md transition-all ring-1 ring-blue-200 focus-within:ring-2 focus-within:ring-blue-400">
             <form
               className="flex space-x-2 items-center"
               autoComplete="off"
@@ -302,8 +278,12 @@ export default function Home() {
               />
               <button
                 type="submit"
-                className="px-6 py-3 relative font-bold bg-gradient-to-r from-blue-500 via-cyan-400 to-blue-600 text-white rounded-xl shadow-lg text-base flex items-center gap-2 hover:from-blue-600 transition"
+                className="px-6 py-3 font-bold bg-gradient-to-r from-blue-500 via-cyan-400 to-blue-600 text-white rounded-xl shadow-lg text-base flex items-center gap-2 hover:from-blue-600 transition"
                 tabIndex={-1}
+                style={{
+                  boxShadow: '0 2px 16px 0 rgba(55,176,246,0.10)',
+                  filter: 'brightness(1.06) drop-shadow(0 4px 12px #5ecfff33)'
+                }}
               >
                 <svg className="h-6 w-6 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <circle cx="11" cy="11" r="8" strokeWidth={2} />
@@ -313,7 +293,7 @@ export default function Home() {
               </button>
             </form>
             {showSearchDropdown && searchTerm && (
-              <div className="absolute left-0 w-full bg-white/90 rounded-b-xl shadow-2xl z-50 border-t border-blue-100 max-h-80 overflow-y-auto animate-fade-in backdrop-blur-lg">
+              <div className="absolute left-0 w-full bg-white/95 rounded-b-xl shadow-2xl z-40 border-t border-blue-100 max-h-80 overflow-y-auto animate-fade-in backdrop-blur-lg">
                 {searchResults.length === 0 ? (
                   <div className="p-4 text-gray-400 text-center">Tidak ditemukan.</div>
                 ) : (
@@ -350,7 +330,7 @@ export default function Home() {
       </div>
 
       {/* ===== MENU FITUR MODERN ===== */}
-      <section className="relative mt-14 mb-6 z-20">
+      <section className="relative mt-7 mb-6 z-20">
         <div className="w-full flex justify-center">
           <div className="flex gap-4 overflow-x-auto px-2 pb-2 pt-1 max-w-full sm:justify-center scrollbar-thin scrollbar-thumb-gray-200"
             style={{ WebkitOverflowScrolling: 'touch' }}
@@ -365,12 +345,16 @@ export default function Home() {
                   }
                   className={`
                     bg-gradient-to-br ${menu.bg}
-                    shadow-xl border-2 border-white/50
+                    shadow-md border-2 border-white/30
                     rounded-full flex items-center justify-center
                     w-16 h-16 md:w-16 md:h-16 mb-1 focus:outline-none
                     relative overflow-hidden transition hover:scale-105 active:scale-95 group
                   `}
                   aria-label={menu.label}
+                  style={{
+                    boxShadow: '0 2px 12px 0 rgba(54,172,244,0.12)',
+                    filter: 'brightness(1.04) drop-shadow(0 3px 10px #99e7f633)'
+                  }}
                 >
                   {menu.icon}
                 </button>
@@ -514,6 +498,9 @@ export default function Home() {
           ))}
         </Swiper>
       </section>
+
+      {/* Kalkulator */}
+      <CalculatorModal show={showCalculatorModal} setShow={setShowCalculatorModal} />
     </div>
   );
 }
