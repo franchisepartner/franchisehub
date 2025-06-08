@@ -1,5 +1,7 @@
 // pages/index.tsx
+
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { supabase } from '../lib/supabaseClient';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -23,16 +25,13 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [showCalculatorModal, setShowCalculatorModal] = useState(false);
 
-  // Banner state (signedUrl)
-  const [banners, setBanners] = useState<string[]>([]);
-
   useEffect(() => {
-    // Fetch franchise listing
     const fetchFranchises = async () => {
       const { data, error } = await supabase
         .from('franchise_listings')
         .select('id, franchise_name, description, category, investment_min, location, logo_url, slug')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(6); // Hanya 6 listing saja!
 
       if (error) {
         console.error('Error fetching franchises:', error);
@@ -40,44 +39,19 @@ export default function Home() {
         const franchisesWithImages = data.map((franchise) => ({
           ...franchise,
           logo_url:
-            supabase
-              .storage
-              .from('listing-images')
-              .getPublicUrl(franchise.logo_url)
-              .data
-              .publicUrl!,
+            franchise.logo_url
+              ? supabase
+                  .storage
+                  .from('listing-images')
+                  .getPublicUrl(franchise.logo_url)
+                  .data.publicUrl || '/logo192.png'
+              : '/logo192.png',
         }));
         setFranchises(franchisesWithImages);
       }
       setLoading(false);
     };
 
-    // Fetch banners from private bucket, signed URL
-    const fetchBanners = async () => {
-      const { data, error } = await supabase.storage
-        .from('homepage-banners')
-        .list('', { limit: 20, sortBy: { column: 'name', order: 'asc' } });
-
-      if (error || !data) {
-        setBanners([]);
-        return;
-      }
-
-      const promises = data
-        .filter(item => item.name.match(/\.(jpg|jpeg|png|webp)$/i))
-        .map(async (item) => {
-          const { data: signed } = await supabase
-            .storage
-            .from('homepage-banners')
-            .createSignedUrl(item.name, 60 * 60);
-          return signed?.signedUrl || '';
-        });
-
-      const urls = (await Promise.all(promises)).filter(Boolean);
-      setBanners(urls);
-    };
-
-    fetchBanners();
     fetchFranchises();
   }, []);
 
@@ -174,7 +148,7 @@ export default function Home() {
 
   return (
     <div className="relative min-h-screen bg-white">
-      {/* ======= SWIPER BANNER DARI STORAGE ======= */}
+      {/* ======= BANNER + CAROUSEL ======= */}
       <div className="relative w-full h-[300px] sm:h-[340px] md:h-[420px] lg:h-[500px] overflow-visible pb-16 bg-white">
         <Swiper
           modules={[Autoplay, Navigation]}
@@ -183,26 +157,36 @@ export default function Home() {
           navigation
           className="w-full h-full"
         >
-          {banners.length === 0 ? (
-            <SwiperSlide>
-              <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400 text-lg">
-                Tidak ada banner
-              </div>
-            </SwiperSlide>
-          ) : (
-            banners.map((url, i) => (
-              <SwiperSlide key={i}>
-                <img
-                  src={url}
-                  alt={`Banner ${i + 1}`}
-                  className="object-cover w-full h-full"
-                  style={{ objectFit: 'cover', width: '100%', height: '100%' }}
-                />
-              </SwiperSlide>
-            ))
-          )}
+          <SwiperSlide>
+            <Image
+              src="/banner-franchisehub.PNG"
+              alt="Banner FranchiseHub 1"
+              fill
+              className="object-cover"
+            />
+          </SwiperSlide>
+          <SwiperSlide>
+            <Image
+              src="/banner-franchisehub1.PNG"
+              alt="Banner FranchiseHub 2"
+              fill
+              className="object-cover"
+            />
+          </SwiperSlide>
+          <SwiperSlide>
+            <Image
+              src="/banner-franchisehub2.PNG"
+              alt="Banner FranchiseHub 3"
+              fill
+              className="object-cover"
+            />
+          </SwiperSlide>
         </Swiper>
-        {/* Kotak Search */}
+
+        {/* Curve putih di pojok kiri bawah */}
+        <div className="absolute bottom-0 left-0 w-40 h-20 bg-white rounded-tl-full"></div>
+
+        {/* ======= KOTAK SEARCH ======= */}
         <div className="absolute left-1/2 transform -translate-x-1/2 bottom-0 w-full max-w-3xl px-4 sm:px-6 lg:px-8 z-20">
           <div className="bg-white rounded-xl shadow-lg p-4 relative">
             <form className="flex space-x-2">
@@ -222,7 +206,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ======= MENU FITUR ======= */}
+      {/* ======= BAR MENU FITUR ======= */}
       <section className="relative mt-14 mb-6 z-20">
         <div className="w-full flex justify-center">
           <div
@@ -265,17 +249,24 @@ export default function Home() {
       {/* ======= MODAL KALKULATOR ======= */}
       <CalculatorModal show={showCalculatorModal} setShow={setShowCalculatorModal} />
 
-      {/* ======= DAFTAR FRANCHISE ======= */}
+      {/* ======= DAFTAR FRANCHISE (HANYA 6, HORIZONTAL) ======= */}
       <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-4 pb-12">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">Daftar Franchise</h2>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-gray-800">Daftar Franchise</h2>
+          <Link href="/franchise-list" passHref>
+            <a className="text-blue-600 font-semibold hover:underline text-sm">
+              Lihat Semua &rarr;
+            </a>
+          </Link>
+        </div>
         {loading ? (
           <p className="text-center text-gray-500">Memuat daftar franchise...</p>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="flex gap-6 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-200">
             {franchises.map((fr) => (
               <Link key={fr.id} href={`/franchise/${fr.slug}`} passHref>
-                <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden cursor-pointer">
-                  <div className="relative h-48">
+                <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden cursor-pointer min-w-[250px] max-w-[270px] flex-shrink-0">
+                  <div className="relative h-44">
                     <img
                       src={fr.logo_url}
                       alt={fr.franchise_name}
