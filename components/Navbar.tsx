@@ -1,8 +1,5 @@
-// File: components/Navbar.tsx
-
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabaseClient';
 import BurgerMenu from './BurgerMenu';
@@ -19,16 +16,12 @@ export default function Navbar() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setNavbarSession(data.session);
-      if (data.session) {
-        fetchUserRole(data.session.user.id);
-      }
+      if (data.session) fetchUserRole(data.session.user.id);
     });
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setNavbarSession(session);
-      if (session) {
-        fetchUserRole(session.user.id);
-      }
+      if (session) fetchUserRole(session.user.id);
     });
 
     return () => {
@@ -42,7 +35,6 @@ export default function Navbar() {
       .select('role, is_admin')
       .eq('id', userId)
       .single();
-
     if (data) {
       setRole(data.role || 'Franchisee');
       setIsAdmin(!!data.is_admin || data.role === 'administrator');
@@ -56,21 +48,11 @@ export default function Navbar() {
   return (
     <>
       <nav className="w-full bg-white shadow-md px-4 py-3 flex items-center justify-between relative z-50">
-        {/* LOGO + TEKS DITUMPUK VERTIKAL DI POJOK KIRI */}
-        <div className="flex flex-col items-center flex-shrink-0 select-none" style={{minWidth: 56}}>
+        {/* Tulisan FranchiseHub saja */}
+        <div className="flex-shrink-0 select-none">
           <Link href="/" passHref>
-            <a className="flex flex-col items-center group">
-              <Image
-                src="/22C6DD46-5682-4FDD-998B-710D24A74856.png"
-                alt="FranchiseHub Logo"
-                width={44}
-                height={44}
-                className="object-contain"
-                priority
-              />
-              <span className="mt-1 font-bold text-blue-600 text-sm sm:text-base lg:text-xl group-hover:text-blue-700 transition tracking-tight text-center">
-                FranchiseHub
-              </span>
+            <a className="font-bold text-blue-600 text-xl sm:text-2xl tracking-tight hover:text-blue-700 transition">
+              FranchiseHub
             </a>
           </Link>
         </div>
