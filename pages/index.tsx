@@ -3,13 +3,13 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { supabase } from '../lib/supabaseClient';
-import { FaBullhorn, FaComments, FaBookOpen, FaLifeRing, FaFileAlt, FaShieldAlt, FaUserTie, FaCalculator } from 'react-icons/fa';
 
-// ==== IMPORT SWIPER ====
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Navigation } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
+
+import { FaBullhorn, FaComments, FaBookOpen, FaLifeRing, FaFileAlt, FaShieldAlt, FaUserTie, FaCalculator } from 'react-icons/fa';
 
 interface Franchise {
   id: string;
@@ -26,58 +26,58 @@ const MENU = [
   {
     label: 'Pengumuman',
     icon: <FaBullhorn size={28} />,
-    path: '/announcement',
     color: 'bg-yellow-400 text-white',
-    ring: 'ring-yellow-400',
+    ring: 'ring-yellow-200',
+    path: '/announcement'
   },
   {
     label: 'Forum Global',
     icon: <FaComments size={28} />,
-    path: '/forum-global',
     color: 'bg-green-400 text-white',
-    ring: 'ring-green-400',
+    ring: 'ring-green-200',
+    path: '/forum-global'
   },
   {
     label: 'Blog Global',
     icon: <FaBookOpen size={28} />,
-    path: '/blog-global',
-    color: 'bg-violet-400 text-white',
-    ring: 'ring-violet-400',
+    color: 'bg-purple-400 text-white',
+    ring: 'ring-purple-200',
+    path: '/blog-global'
   },
   {
     label: 'Pusat Bantuan',
     icon: <FaLifeRing size={28} />,
-    path: '/pusat-bantuan',
     color: 'bg-blue-400 text-white',
-    ring: 'ring-blue-400',
+    ring: 'ring-blue-200',
+    path: '/pusat-bantuan'
   },
   {
     label: 'S&K',
     icon: <FaFileAlt size={28} />,
-    path: '/syarat-ketentuan',
-    color: 'bg-gray-700 text-white',
-    ring: 'ring-gray-400',
+    color: 'bg-gray-800 text-white',
+    ring: 'ring-gray-300',
+    path: '/syarat-ketentuan'
   },
   {
     label: 'Kebijakan Privasi',
     icon: <FaShieldAlt size={28} />,
-    path: '/privacy',
     color: 'bg-green-600 text-white',
-    ring: 'ring-green-600',
+    ring: 'ring-green-200',
+    path: '/privacy'
   },
   {
     label: 'Jadi Franchisor',
     icon: <FaUserTie size={28} />,
-    path: '/franchisor',
     color: 'bg-teal-500 text-white',
-    ring: 'ring-teal-400',
+    ring: 'ring-teal-200',
+    path: '/franchisor'
   },
   {
     label: 'Kalkulator',
     icon: <FaCalculator size={28} />,
-    path: '#calculator',
     color: 'bg-pink-400 text-white',
-    ring: 'ring-pink-400',
+    ring: 'ring-pink-200',
+    path: '#calculator'
   },
 ];
 
@@ -93,10 +93,18 @@ export default function Home() {
         .select('id, franchise_name, description, category, investment_min, location, logo_url, slug')
         .order('created_at', { ascending: false });
 
-      if (!error && data) {
+      if (error) {
+        console.error('Error fetching franchises:', error);
+      } else if (data) {
         const franchisesWithImages = data.map((franchise) => ({
           ...franchise,
-          logo_url: supabase.storage.from('listing-images').getPublicUrl(franchise.logo_url).data.publicUrl!,
+          logo_url:
+            supabase
+              .storage
+              .from('listing-images')
+              .getPublicUrl(franchise.logo_url)
+              .data
+              .publicUrl!,
         }));
         setFranchises(franchisesWithImages);
       }
@@ -105,9 +113,10 @@ export default function Home() {
     fetchFranchises();
   }, []);
 
-  // Menu click handler
   const handleMenuClick = (menu: any) => {
-    if (menu.path === '#calculator') setShowCalculatorModal(true);
+    if (menu.path === '#calculator') {
+      setShowCalculatorModal(true);
+    }
   };
 
   return (
@@ -122,13 +131,28 @@ export default function Home() {
           className="w-full h-full"
         >
           <SwiperSlide>
-            <Image src="/banner-franchisehub.PNG" alt="Banner FranchiseHub 1" fill className="object-cover" />
+            <Image
+              src="/banner-franchisehub.PNG"
+              alt="Banner FranchiseHub 1"
+              fill
+              className="object-cover"
+            />
           </SwiperSlide>
           <SwiperSlide>
-            <Image src="/banner-franchisehub1.PNG" alt="Banner FranchiseHub 2" fill className="object-cover" />
+            <Image
+              src="/banner-franchisehub1.PNG"
+              alt="Banner FranchiseHub 2"
+              fill
+              className="object-cover"
+            />
           </SwiperSlide>
           <SwiperSlide>
-            <Image src="/banner-franchisehub2.PNG" alt="Banner FranchiseHub 3" fill className="object-cover" />
+            <Image
+              src="/banner-franchisehub2.PNG"
+              alt="Banner FranchiseHub 3"
+              fill
+              className="object-cover"
+            />
           </SwiperSlide>
         </Swiper>
         {/* Curve putih di pojok kiri bawah */}
@@ -157,16 +181,16 @@ export default function Home() {
               >
                 Cari
               </button>
-            </form>
-          </div>
-        </div>
+             </form>
+           </div>
+         </div>
       </div>
 
-      {/* ======= BAR IKON UTAMA: Always Center, Scroll Horizontal ======= */}
+      {/* ======= BAR IKON UTAMA - Center Desktop, Scrollable Mobile ======= */}
       <section className="relative mt-20 bg-white z-10 flex justify-center">
-        <div className="w-full max-w-5xl">
+        <div className="w-full max-w-4xl mx-auto">
           <div className="overflow-x-auto scrollbar-hide">
-            <div className="flex items-stretch justify-start gap-3 flex-nowrap min-w-[600px] pl-4 pb-2">
+            <div className="flex items-stretch justify-center gap-3 flex-nowrap min-w-[600px] px-2 md:px-0 pb-2">
               {MENU.map(menu => (
                 <div
                   key={menu.label}
@@ -207,7 +231,10 @@ export default function Home() {
       </section>
 
       {/* ======= MODAL KALKULATOR ======= */}
-      <CalculatorModal show={showCalculatorModal} setShow={setShowCalculatorModal} />
+      <CalculatorModal
+        show={showCalculatorModal}
+        setShow={setShowCalculatorModal}
+      />
 
       {/* ======= DAFTAR FRANCHISE ======= */}
       <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8 pb-12">
@@ -313,13 +340,14 @@ function CalculatorModal({ show, setShow }: CalculatorModalProps) {
   );
 }
 
-// ================== KOMONEN KALKULATOR ==================
+// ================== KALKULATOR ==================
 function Calculator() {
   const [display, setDisplay] = useState<string>('0');
 
   const handleButton = (val: string) => {
-    if (val === 'C') setDisplay('0');
-    else if (val === '=') {
+    if (val === 'C') {
+      setDisplay('0');
+    } else if (val === '=') {
       try {
         const sanitized = display.replace(/×/g, '*').replace(/÷/g, '/');
         // eslint-disable-next-line no-eval
@@ -329,7 +357,11 @@ function Calculator() {
         setDisplay('Error');
       }
     } else {
-      setDisplay(display === '0' ? val : display + val);
+      if (display === '0') {
+        setDisplay(val);
+      } else {
+        setDisplay(display + val);
+      }
     }
   };
 
@@ -343,10 +375,13 @@ function Calculator() {
 
   return (
     <div className="flex flex-col items-center">
-      <div className="w-full bg-gray-100 rounded-md p-3 text-right text-2xl font-mono mb-4">{display}</div>
+      <div className="w-full bg-gray-100 rounded-md p-3 text-right text-2xl font-mono mb-4">
+        {display}
+      </div>
       <div className="w-full grid grid-cols-4 gap-2">
-        {buttons.flat().map((btn, idx) =>
-          btn === '' ? <div key={idx} /> : (
+        {buttons.flat().map((btn, idx) => {
+          if (btn === '') return <div key={idx} />;
+          return (
             <button
               key={idx}
               onClick={() => handleButton(btn)}
@@ -354,8 +389,8 @@ function Calculator() {
             >
               {btn}
             </button>
-          )
-        )}
+          );
+        })}
       </div>
     </div>
   );
