@@ -17,25 +17,26 @@ interface Franchise {
   logo_url: string;
   slug: string;
 }
+
 interface Blog {
   id: string;
   title: string;
   slug: string;
-  cover_url?: string;
-  coverImg?: string; // signedUrl
-  category?: string;
+  cover_url: string;
+  category: string;
   created_at: string;
+  coverImg?: string;
 }
+
 interface Thread {
   id: string;
   title: string;
   slug: string;
-  category?: string;
   created_at: string;
+  category: string;
 }
 
 export default function Home() {
-  // State
   const [franchises, setFranchises] = useState<Franchise[]>([]);
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [threads, setThreads] = useState<Thread[]>([]);
@@ -43,98 +44,7 @@ export default function Home() {
   const [showCalculatorModal, setShowCalculatorModal] = useState(false);
   const [banners, setBanners] = useState<string[]>([]);
 
-  // === FETCH DATA
-  useEffect(() => {
-    // --- Franchise (LIMIT 6)
-    const fetchFranchises = async () => {
-      const { data, error } = await supabase
-        .from('franchise_listings')
-        .select('id, franchise_name, description, category, investment_min, location, logo_url, slug')
-        .order('created_at', { ascending: false })
-        .limit(6);
-
-      // Gunakan Signed URL
-      const franchisesWithImages = await Promise.all(
-        (data || []).map(async (franchise) => {
-          let img = '';
-          if (franchise.logo_url) {
-            const { data: signed } = await supabase
-              .storage
-              .from('listing-images')
-              .createSignedUrl(franchise.logo_url, 60 * 60);
-            img = signed?.signedUrl || '';
-          }
-          return { ...franchise, logo_url: img };
-        })
-      );
-      setFranchises(franchisesWithImages);
-    };
-
-    // --- Banners (private, Signed URL)
-    const fetchBanners = async () => {
-      const { data } = await supabase.storage
-        .from('homepage-banners')
-        .list('', { limit: 20, sortBy: { column: 'name', order: 'asc' } });
-
-      const urls = await Promise.all(
-        (data || [])
-          .filter(item => item.name.match(/\.(jpg|jpeg|png|webp)$/i))
-          .map(async item => {
-            const { data: signed } = await supabase
-              .storage
-              .from('homepage-banners')
-              .createSignedUrl(item.name, 60 * 60);
-            return signed?.signedUrl || '';
-          })
-      );
-      setBanners(urls.filter(Boolean));
-    };
-
-    // --- Blog (LIMIT 6, signed cover image)
-    const fetchBlogs = async () => {
-      const { data } = await supabase
-        .from('blogs')
-        .select('id, title, slug, cover_url, category, created_at')
-        .order('created_at', { ascending: false })
-        .limit(6);
-
-      const blogsWithImg = await Promise.all(
-        (data || []).map(async (blog) => {
-          let coverImg = '';
-          if (blog.cover_url) {
-            const { data: signed } = await supabase
-              .storage
-              .from('blog-assets')
-              .createSignedUrl(blog.cover_url, 60 * 60);
-            coverImg = signed?.signedUrl || '';
-          }
-          return { ...blog, coverImg };
-        })
-      );
-      setBlogs(blogsWithImg);
-    };
-
-    // --- Forum (LIMIT 6)
-    const fetchThreads = async () => {
-      const { data } = await supabase
-        .from('threads')
-        .select('id, title, slug, category, created_at')
-        .order('created_at', { ascending: false })
-        .limit(6);
-
-      setThreads(data || []);
-    };
-
-    setLoading(true);
-    Promise.all([
-      fetchBanners(),
-      fetchFranchises(),
-      fetchBlogs(),
-      fetchThreads(),
-    ]).finally(() => setLoading(false));
-  }, []);
-
-  // === MENU FITUR (copy versi terbaik sebelumnya)
+  // === Data Menu Fitur (copy dari versi terbaik sebelumnya)
   const featureMenus = [
     {
       label: 'Pengumuman',
@@ -225,7 +135,108 @@ export default function Home() {
     },
   ];
 
-  // === RENDER
+  useEffect(() => {
+    // Fetch franchise listing
+    const fetchFranchises = async () => {
+      const { data, error } = await supabase
+        .from('franchise_listings')
+        .select('id, franchise_name, description, category, investment_min, location, logo_url, slug')
+        .order('created_at', { ascending: false })
+        .limit(6);
+
+      if (error) {
+        console.error('Error fetching franchises:', error);
+      } else if (data) {
+        // Pakai signed url
+        const franchisesWithImages = await Promise.all(
+          data.map(async (franchise) => {
+            let imgUrl = '';
+            if (franchise.logo_url) {
+              const { data: signed } = await supabase
+                .storage
+                .from('listing-images')
+                .createSignedUrl(franchise.logo_url, 60 * 60);
+              imgUrl = signed?.signedUrl || '';
+            }
+            return { ...franchise, logo_url: imgUrl };
+          })
+        );
+        setFranchises(franchisesWithImages);
+      }
+      setLoading(false);
+    };
+
+    // Fetch banners from private bucket, signed URL
+    const fetchBanners = async () => {
+      const { data, error } = await supabase.storage
+        .from('homepage-banners')
+        .list('', { limit: 20, sortBy: { column: 'name', order: 'asc' } });
+
+      if (error || !data) {
+        setBanners([]);
+        return;
+      }
+
+      const promises = data
+        .filter(item => item.name.match(/\.(jpg|jpeg|png|webp)$/i))
+        .map(async (item) => {
+          const { data: signed } = await supabase
+            .storage
+            .from('homepage-banners')
+            .createSignedUrl(item.name, 60 * 60);
+          return signed?.signedUrl || '';
+        });
+
+      const urls = (await Promise.all(promises)).filter(Boolean);
+      setBanners(urls);
+    };
+
+    // Fetch blogs
+    const fetchBlogs = async () => {
+      const { data } = await supabase
+        .from('blogs')
+        .select('id, title, slug, cover_url, category, created_at')
+        .order('created_at', { ascending: false })
+        .limit(6);
+
+      const blogsWithImg = await Promise.all(
+        (data || []).map(async (blog) => {
+          let coverImg = '';
+          if (blog.cover_url) {
+            // Try signedUrl (private bucket)
+            const { data: signed } = await supabase
+              .storage
+              .from('blog-assets')
+              .createSignedUrl(blog.cover_url, 60 * 60);
+            if (signed?.signedUrl) {
+              coverImg = signed.signedUrl;
+            } else {
+              // fallback: try getPublicUrl (if file is public, still works)
+              coverImg = supabase.storage.from('blog-assets').getPublicUrl(blog.cover_url).data.publicUrl || '';
+            }
+          }
+          return { ...blog, coverImg };
+        })
+      );
+      setBlogs(blogsWithImg);
+    };
+
+    // Fetch threads (forum) terbaru
+    const fetchThreads = async () => {
+      const { data } = await supabase
+        .from('threads')
+        .select('id, title, slug, category, created_at')
+        .order('created_at', { ascending: false })
+        .limit(6);
+      setThreads(data || []);
+    };
+
+    fetchBanners();
+    fetchFranchises();
+    fetchBlogs();
+    fetchThreads();
+  }, []);
+
   return (
     <div className="relative min-h-screen bg-white">
       {/* ======= SWIPER BANNER DARI STORAGE ======= */}
@@ -233,7 +244,7 @@ export default function Home() {
         <Swiper
           modules={[Autoplay, Navigation]}
           autoplay={{ delay: 5000, disableOnInteraction: false }}
-          loop
+          loop={true}
           navigation
           className="w-full h-full"
         >
@@ -319,32 +330,34 @@ export default function Home() {
       {/* ======= MODAL KALKULATOR ======= */}
       <CalculatorModal show={showCalculatorModal} setShow={setShowCalculatorModal} />
 
-      {/* ======= DAFTAR FRANCHISE (SLIDER 6, Lihat Semua) ======= */}
-      <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+      {/* ======= DAFTAR FRANCHISE (SLIDER) ======= */}
+      <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-4 pb-4">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold text-gray-800">Daftar Franchise</h2>
-          <Link href="/listing" className="text-blue-600 text-sm font-medium hover:underline">Lihat Semua &rarr;</Link>
+          <Link href="/listing" className="text-blue-600 hover:underline text-sm font-semibold flex items-center gap-1">
+            Lihat Semua <span>→</span>
+          </Link>
         </div>
         {loading ? (
           <p className="text-center text-gray-500">Memuat daftar franchise...</p>
         ) : (
           <Swiper
             modules={[Autoplay, Navigation]}
-            slidesPerView={1.1}
-            spaceBetween={20}
-            breakpoints={{
-              640: { slidesPerView: 2.1 },
-              1024: { slidesPerView: 3.1 }
-            }}
             autoplay={{ delay: 5000, disableOnInteraction: false }}
             navigation
-            className="pb-8"
+            slidesPerView={2}
+            breakpoints={{
+              640: { slidesPerView: 2.3 },
+              900: { slidesPerView: 3.3 },
+            }}
+            spaceBetween={24}
+            className="w-full"
           >
-            {franchises.map(fr => (
-              <SwiperSlide key={fr.id}>
+            {franchises.map((fr) => (
+              <SwiperSlide key={fr.id} style={{ height: '100%' }}>
                 <Link href={`/franchise/${fr.slug}`} passHref>
-                  <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden cursor-pointer">
-                    <div className="relative h-56">
+                  <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden cursor-pointer h-full flex flex-col">
+                    <div className="relative h-48">
                       <img
                         src={fr.logo_url}
                         alt={fr.franchise_name}
@@ -354,7 +367,7 @@ export default function Home() {
                         {fr.category}
                       </span>
                     </div>
-                    <div className="p-4">
+                    <div className="p-4 flex-1">
                       <h3 className="text-lg font-semibold text-gray-800">
                         {fr.franchise_name}
                       </h3>
@@ -371,28 +384,30 @@ export default function Home() {
         )}
       </section>
 
-      {/* ======= BLOG BISNIS (SLIDER 6, Lihat Semua) ======= */}
-      <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-        <div className="flex justify-between items-center mb-4">
+      {/* ======= BLOG BISNIS SLIDER ======= */}
+      <section className="container mx-auto px-4 sm:px-6 lg:px-8 pb-4">
+        <div className="flex justify-between items-center mb-4 mt-8">
           <h2 className="text-2xl font-bold text-gray-800">Blog Bisnis</h2>
-          <Link href="/blog-global" className="text-blue-600 text-sm font-medium hover:underline">Lihat Semua &rarr;</Link>
+          <Link href="/blog-global" className="text-blue-600 hover:underline text-sm font-semibold flex items-center gap-1">
+            Lihat Semua <span>→</span>
+          </Link>
         </div>
         <Swiper
           modules={[Autoplay, Navigation]}
-          slidesPerView={1.1}
-          spaceBetween={20}
-          breakpoints={{
-            640: { slidesPerView: 2.1 },
-            1024: { slidesPerView: 3.1 }
-          }}
           autoplay={{ delay: 5000, disableOnInteraction: false }}
           navigation
-          className="pb-8"
+          slidesPerView={2}
+          breakpoints={{
+            640: { slidesPerView: 2.3 },
+            900: { slidesPerView: 3.3 },
+          }}
+          spaceBetween={24}
+          className="w-full"
         >
           {blogs.map(blog => (
             <SwiperSlide key={blog.id}>
               <Link href={`/detail/${blog.slug}`} passHref>
-                <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden cursor-pointer">
+                <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden cursor-pointer flex flex-col h-full">
                   <div className="relative h-44 bg-gray-100 flex items-center justify-center">
                     {blog.coverImg ? (
                       <img
@@ -405,7 +420,7 @@ export default function Home() {
                     )}
                     <span className="absolute top-3 left-3 bg-purple-400 text-xs font-semibold text-white px-2 py-1 rounded">{blog.category || 'Blog'}</span>
                   </div>
-                  <div className="p-4">
+                  <div className="p-4 flex-1">
                     <h3 className="text-base font-semibold text-gray-800">{blog.title}</h3>
                     <p className="mt-1 text-xs text-gray-400">{new Date(blog.created_at).toLocaleDateString('id-ID')}</p>
                   </div>
@@ -416,30 +431,37 @@ export default function Home() {
         </Swiper>
       </section>
 
-      {/* ======= FORUM GLOBAL (SLIDER 6, Lihat Semua) ======= */}
-      <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-6 pb-12">
-        <div className="flex justify-between items-center mb-4">
+      {/* ======= FORUM GLOBAL SLIDER ======= */}
+      <section className="container mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+        <div className="flex justify-between items-center mb-4 mt-8">
           <h2 className="text-2xl font-bold text-gray-800">Forum Global</h2>
-          <Link href="/forum-global" className="text-blue-600 text-sm font-medium hover:underline">Lihat Semua &rarr;</Link>
+          <Link href="/forum-global" className="text-blue-600 hover:underline text-sm font-semibold flex items-center gap-1">
+            Lihat Semua <span>→</span>
+          </Link>
         </div>
         <Swiper
           modules={[Autoplay, Navigation]}
-          slidesPerView={1.1}
-          spaceBetween={20}
-          breakpoints={{
-            640: { slidesPerView: 2.1 },
-            1024: { slidesPerView: 3.1 }
-          }}
           autoplay={{ delay: 5000, disableOnInteraction: false }}
           navigation
+          slidesPerView={2}
+          breakpoints={{
+            640: { slidesPerView: 2.3 },
+            900: { slidesPerView: 3.3 },
+          }}
+          spaceBetween={24}
+          className="w-full"
         >
           {threads.map(thread => (
             <SwiperSlide key={thread.id}>
-              <Link href={`/forum/${thread.slug}`} passHref>
-                <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden cursor-pointer p-4 h-36 flex flex-col justify-between">
-                  <span className="bg-green-400 text-xs text-white px-2 py-1 rounded mb-2 inline-block">{thread.category || 'Forum'}</span>
-                  <h3 className="text-base font-semibold text-gray-800 mb-1">{thread.title}</h3>
-                  <span className="text-xs text-gray-400">{new Date(thread.created_at).toLocaleDateString('id-ID')}</span>
+              <Link href={`/forum-global/${thread.slug}`} passHref>
+                <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden cursor-pointer flex flex-col h-full">
+                  <div className="relative h-28 bg-gray-50 flex items-center justify-center">
+                    <span className="text-lg font-bold text-blue-700 px-4 text-center">{thread.title}</span>
+                    <span className="absolute top-3 left-3 bg-green-400 text-xs font-semibold text-white px-2 py-1 rounded">{thread.category || 'Forum'}</span>
+                  </div>
+                  <div className="p-4 flex-1">
+                    <p className="mt-1 text-xs text-gray-400">{new Date(thread.created_at).toLocaleDateString('id-ID')}</p>
+                  </div>
                 </div>
               </Link>
             </SwiperSlide>
@@ -484,7 +506,7 @@ export default function Home() {
   );
 }
 
-// ============= MODAL KALKULATOR =============
+// ================== MODAL KALKULATOR ==================
 interface CalculatorModalProps {
   show: boolean;
   setShow: (val: boolean) => void;
@@ -509,7 +531,7 @@ function CalculatorModal({ show, setShow }: CalculatorModalProps) {
   );
 }
 
-// ============= KALKULATOR SEDERHANA =============
+// ================== KALKULATOR SEDERHANA ==================
 function Calculator() {
   const [display, setDisplay] = useState<string>('0');
   const handleButton = (val: string) => {
