@@ -56,18 +56,19 @@ export default function Navbar() {
   return (
     <>
       <nav className="w-full bg-white shadow-md px-4 py-3 flex items-center justify-between relative z-50">
-        {/* Kiri: Logo FranchiseHub & Nama */}
-        <div className="flex items-center flex-shrink-0">
+        {/* LOGO + TEKS DITUMPUK VERTIKAL DI POJOK KIRI */}
+        <div className="flex flex-col items-center flex-shrink-0 select-none" style={{minWidth: 56}}>
           <Link href="/" passHref>
-            <a className="flex items-center group">
+            <a className="flex flex-col items-center group">
               <Image
                 src="/22C6DD46-5682-4FDD-998B-710D24A74856.png"
                 alt="FranchiseHub Logo"
                 width={44}
                 height={44}
                 className="object-contain"
+                priority
               />
-              <span className="ml-2 font-bold text-blue-600 text-lg sm:text-xl lg:text-2xl group-hover:text-blue-700 transition select-none tracking-tight">
+              <span className="mt-1 font-bold text-blue-600 text-sm sm:text-base lg:text-xl group-hover:text-blue-700 transition tracking-tight text-center">
                 FranchiseHub
               </span>
             </a>
@@ -89,7 +90,7 @@ export default function Navbar() {
         <div className="flex items-center space-x-3">
           <p className="italic text-gray-500 text-sm max-w-[150px] truncate">Halo, {userGreeting}!</p>
 
-          {/* Dashboard Franchisor (🎩) hanya icon */}
+          {/* Dashboard Franchisor (🎩) */}
           {role === 'franchisor' && (
             <button
               className="flex items-center px-2 py-1 rounded-full bg-gray-100 hover:bg-blue-100 text-blue-700 font-medium text-2xl transition"
@@ -101,7 +102,7 @@ export default function Navbar() {
             </button>
           )}
 
-          {/* Dashboard Administrator (🃏) hanya icon */}
+          {/* Dashboard Administrator (🃏) */}
           {isAdmin && (
             <button
               className="flex items-center px-2 py-1 rounded-full bg-gray-100 hover:bg-pink-100 text-pink-700 font-medium text-2xl transition"
