@@ -24,7 +24,7 @@ export default function Pengembangan() {
           </div>
           <h1 className="text-3xl md:text-4xl font-extrabold text-center text-gray-800 mb-2">FranchiseHub — Pengembangan & Inovasi Masa Depan</h1>
           <p className="max-w-2xl text-center text-gray-600 text-lg">
-            FranchiseHub tidak sekadar marketplace waralaba—ini adalah kisah perjalanan kita bersama untuk membangun masa depan bisnis franchise yang lebih aman, transparan, dan kolaboratif di Indonesia. Inilah beberapa fitur futuristik yang sedang, dan akan kami kembangkan bersama komunitas!
+            FranchiseHub tidak sekadar situs franchise, ini adalah kisah perjalanan kita bersama untuk membangun masa depan bisnis franchise yang lebih aman, transparan, dan kolaboratif di Indonesia. Inilah beberapa fitur futuristik yang sedang, dan akan kami kembangkan bersama komunitas!
           </p>
         </div>
 
