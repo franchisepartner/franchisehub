@@ -56,10 +56,10 @@ export default function Navbar() {
   return (
     <>
       <nav className="w-full bg-white shadow-md px-4 py-3 flex items-center justify-between relative z-50">
-        {/* Logo FranchiseHub */}
-        <div className="flex-shrink-0">
+        {/* Kiri: Logo FranchiseHub & Nama */}
+        <div className="flex items-center flex-shrink-0">
           <Link href="/" passHref>
-            <a className="flex items-center">
+            <a className="flex items-center group">
               <Image
                 src="/22C6DD46-5682-4FDD-998B-710D24A74856.png"
                 alt="FranchiseHub Logo"
@@ -67,6 +67,9 @@ export default function Navbar() {
                 height={44}
                 className="object-contain"
               />
+              <span className="ml-2 font-bold text-blue-600 text-lg sm:text-xl lg:text-2xl group-hover:text-blue-700 transition select-none tracking-tight">
+                FranchiseHub
+              </span>
             </a>
           </Link>
         </div>
@@ -84,7 +87,7 @@ export default function Navbar() {
 
         {/* Kanan: Salam → Icon Dashboard → Menu Burger */}
         <div className="flex items-center space-x-3">
-          <p className="italic text-gray-500 text-sm">Halo, {userGreeting}!</p>
+          <p className="italic text-gray-500 text-sm max-w-[150px] truncate">Halo, {userGreeting}!</p>
 
           {/* Dashboard Franchisor (🎩) hanya icon */}
           {role === 'franchisor' && (
