@@ -46,7 +46,7 @@ export default function FranchiseList() {
             : '/logo192.png',
         }));
         setAllFranchises(allData);
-        setCategories([...new Set(allData.map((f) => f.category).filter(Boolean))]);
+        setCategories(Array.from(new Set(allData.map((f) => f.category).filter(Boolean))));
       }
       setLoading(false);
     };
