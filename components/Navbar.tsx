@@ -1,3 +1,5 @@
+// File: components/Navbar.tsx
+
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -68,9 +70,11 @@ export default function Navbar() {
           </div>
         )}
 
-        {/* Kanan: Salam → Icon Dashboard → Menu Burger */}
+        {/* Kanan: HANYA tampilkan sapaan di halaman utama */}
         <div className="flex items-center space-x-3">
-          <p className="italic text-gray-500 text-sm max-w-[150px] truncate">Halo, {userGreeting}!</p>
+          {isHomePage && (
+            <p className="italic text-gray-500 text-sm max-w-[150px] truncate">Halo, {userGreeting}!</p>
+          )}
 
           {/* Dashboard Franchisor (🎩) */}
           {role === 'franchisor' && (
