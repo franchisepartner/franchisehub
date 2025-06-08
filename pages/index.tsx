@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { supabase } from '../lib/supabaseClient';
-import { FaBullhorn, FaComments, FaBookOpen, FaLifeRing, FaFileContract, FaUserTie, FaCalculator, FaShieldAlt } from 'react-icons/fa';
-
+import {
+  FaBullhorn, FaComments, FaBookOpen, FaLifeRing, FaFileContract, FaUserTie, FaCalculator, FaShieldAlt
+} from 'react-icons/fa';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Navigation } from 'swiper/modules';
 import 'swiper/css';
@@ -22,15 +23,16 @@ interface Franchise {
   slug: string;
 }
 
+// Warna spesifik untuk tiap menu
 const MENU = [
-  { label: "Pengumuman", icon: <FaBullhorn size={22} />, path: "/announcement" },
-  { label: "Forum Global", icon: <FaComments size={22} />, path: "/forum-global" },
-  { label: "Blog Global", icon: <FaBookOpen size={22} />, path: "/blog-global" },
-  { label: "Pusat Bantuan", icon: <FaLifeRing size={22} />, path: "/pusat-bantuan" },
-  { label: "S&K", icon: <FaFileContract size={22} />, path: "/syarat-ketentuan" },
-  { label: "Kebijakan Privasi", icon: <FaShieldAlt size={22} />, path: "/privacy" },
-  { label: "Jadi Franchisor", icon: <FaUserTie size={22} />, path: "/franchisor" },
-  { label: "Kalkulator", icon: <FaCalculator size={22} />, path: "#calculator" }, // special action
+  { label: "Pengumuman", icon: <FaBullhorn size={22} />, path: "/announcement", color: "bg-yellow-400 text-white", ring: "ring-yellow-300" },
+  { label: "Forum Global", icon: <FaComments size={22} />, path: "/forum-global", color: "bg-green-500 text-white", ring: "ring-green-300" },
+  { label: "Blog Global", icon: <FaBookOpen size={22} />, path: "/blog-global", color: "bg-purple-500 text-white", ring: "ring-purple-300" },
+  { label: "Pusat Bantuan", icon: <FaLifeRing size={22} />, path: "/pusat-bantuan", color: "bg-blue-500 text-white", ring: "ring-blue-300" },
+  { label: "S&K", icon: <FaFileContract size={22} />, path: "/syarat-ketentuan", color: "bg-gray-800 text-white", ring: "ring-gray-400" },
+  { label: "Kebijakan Privasi", icon: <FaShieldAlt size={22} />, path: "/privacy", color: "bg-green-700 text-white", ring: "ring-green-400" },
+  { label: "Jadi Franchisor", icon: <FaUserTie size={22} />, path: "/franchisor", color: "bg-teal-600 text-white", ring: "ring-teal-300" },
+  { label: "Kalkulator", icon: <FaCalculator size={22} />, path: "#calculator", color: "bg-pink-500 text-white", ring: "ring-pink-300" },
 ];
 
 export default function Home() {
@@ -66,22 +68,15 @@ export default function Home() {
     fetchFranchises();
   }, []);
 
-  // Handler menu kalkulator
   const handleMenuClick = (menu: any) => {
     if (menu.path === '#calculator') setShowCalculatorModal(true);
   };
 
   return (
     <div className="relative min-h-screen bg-white">
-      {/* ======= BANNER + CAROUSEL ======= */}
+      {/* BANNER */}
       <div className="relative w-full h-[300px] sm:h-[340px] md:h-[420px] lg:h-[500px] overflow-visible pb-20 bg-white">
-        <Swiper
-          modules={[Autoplay, Navigation]}
-          autoplay={{ delay: 5000, disableOnInteraction: false }}
-          loop={true}
-          navigation
-          className="w-full h-full"
-        >
+        <Swiper modules={[Autoplay, Navigation]} autoplay={{ delay: 5000, disableOnInteraction: false }} loop navigation className="w-full h-full">
           <SwiperSlide>
             <Image src="/banner-franchisehub.PNG" alt="Banner FranchiseHub 1" fill className="object-cover" />
           </SwiperSlide>
@@ -92,14 +87,9 @@ export default function Home() {
             <Image src="/banner-franchisehub2.PNG" alt="Banner FranchiseHub 3" fill className="object-cover" />
           </SwiperSlide>
         </Swiper>
-
-        {/* Curve putih di pojok kiri bawah */}
         <div className="absolute bottom-0 left-0 w-40 h-20 bg-white rounded-tl-full"></div>
-
-        {/* ======= KOTAK SEARCH ======= */}
         <div className="absolute left-1/2 transform -translate-x-1/2 -bottom-10 w-full max-w-3xl px-4 sm:px-6 lg:px-8 z-20">
           <div className="bg-white rounded-xl shadow-lg p-4 relative">
-            {/* Logo kecil di kanan atas tombol pencarian */}
             <div className="absolute -top-12 right-6 bg-white rounded-t-full overflow-hidden shadow-md">
               <Image
                 src="/22C6DD46-5682-4FDD-998B-710D24A74856.png"
@@ -115,10 +105,7 @@ export default function Home() {
                 placeholder="Cari franchise untuk dijual..."
                 className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
-              <button
-                type="submit"
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
-              >
+              <button type="submit" className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">
                 Cari
               </button>
             </form>
@@ -126,10 +113,10 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ======= MENU ICON RESPONSIF (SELALU DI TENGAH) ======= */}
+      {/* MENU ICON WARNA */}
       <section className="relative mt-20 bg-white z-10">
         <div className="flex justify-center">
-          <div className="flex flex-wrap justify-center gap-x-6 gap-y-4 w-full max-w-2xl">
+          <div className="flex flex-wrap justify-center gap-x-6 gap-y-5 w-full max-w-2xl">
             {MENU.map(menu => (
               <div
                 key={menu.label}
@@ -146,10 +133,18 @@ export default function Home() {
                     }
                   }}
                 >
-                  <div className="bg-white rounded-full shadow p-3 flex items-center justify-center mb-1 hover:bg-blue-50 transition">
+                  <div
+                    className={`
+                      ${menu.color}
+                      rounded-full shadow-lg ring-2 ${menu.ring}
+                      flex items-center justify-center mb-1
+                      hover:scale-105 hover:shadow-xl transition
+                      w-14 h-14
+                    `}
+                  >
                     {menu.icon}
                   </div>
-                  <span className="text-xs text-gray-700 mt-0.5 text-center">{menu.label}</span>
+                  <span className="text-xs text-gray-700 mt-1 text-center font-medium">{menu.label}</span>
                 </Link>
               </div>
             ))}
@@ -157,10 +152,10 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ======= MODAL KALKULATOR ======= */}
+      {/* MODAL KALKULATOR */}
       <CalculatorModal show={showCalculatorModal} setShow={setShowCalculatorModal} />
 
-      {/* ======= DAFTAR FRANCHISE ======= */}
+      {/* DAFTAR FRANCHISE */}
       <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8 pb-12">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Daftar Franchise</h2>
         {loading ? (
@@ -181,7 +176,9 @@ export default function Home() {
                     </span>
                   </div>
                   <div className="p-4">
-                    <h3 className="text-lg font-semibold text-gray-800">{fr.franchise_name}</h3>
+                    <h3 className="text-lg font-semibold text-gray-800">
+                      {fr.franchise_name}
+                    </h3>
                     <p className="mt-1 text-sm text-gray-500">{fr.location}</p>
                     <p className="mt-2 text-sm text-gray-700">
                       Investasi Mulai: Rp {fr.investment_min.toLocaleString('id-ID')}
@@ -194,7 +191,7 @@ export default function Home() {
         )}
       </section>
 
-      {/* ======= FOOTER ======= */}
+      {/* FOOTER */}
       <footer className="bg-gray-800 text-white py-12">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
@@ -231,11 +228,8 @@ export default function Home() {
   );
 }
 
-// ================== KOMONEN CALCULATOR MODAL ==================
-interface CalculatorModalProps {
-  show: boolean;
-  setShow: (val: boolean) => void;
-}
+// ======= MODAL KALKULATOR =======
+interface CalculatorModalProps { show: boolean; setShow: (val: boolean) => void; }
 function CalculatorModal({ show, setShow }: CalculatorModalProps) {
   if (!show) return null;
   return (
@@ -256,10 +250,8 @@ function CalculatorModal({ show, setShow }: CalculatorModalProps) {
   );
 }
 
-// ================== KOMONEN CALCULATOR SEDERHANA ==================
 function Calculator() {
   const [display, setDisplay] = useState<string>('0');
-
   const handleButton = (val: string) => {
     if (val === 'C') setDisplay('0');
     else if (val === '=') {
@@ -275,7 +267,6 @@ function Calculator() {
       setDisplay(display === '0' ? val : display + val);
     }
   };
-
   const buttons: string[][] = [
     ['7', '8', '9', '÷'],
     ['4', '5', '6', '×'],
@@ -283,23 +274,20 @@ function Calculator() {
     ['0', '.', 'C', '+'],
     ['(', ')', '=', '']
   ];
-
   return (
     <div className="flex flex-col items-center">
-      <div className="w-full bg-gray-100 rounded-md p-3 text-right text-2xl font-mono mb-4">
-        {display}
-      </div>
+      <div className="w-full bg-gray-100 rounded-md p-3 text-right text-2xl font-mono mb-4">{display}</div>
       <div className="w-full grid grid-cols-4 gap-2">
-        {buttons.flat().map((btn, idx) => (
+        {buttons.flat().map((btn, idx) =>
           btn === '' ? <div key={idx} /> :
-          <button
-            key={idx}
-            onClick={() => handleButton(btn)}
-            className="bg-gray-200 hover:bg-gray-300 rounded-md py-2 text-lg font-medium"
-          >
-            {btn}
-          </button>
-        ))}
+            <button
+              key={idx}
+              onClick={() => handleButton(btn)}
+              className="bg-gray-200 hover:bg-gray-300 rounded-md py-2 text-lg font-medium"
+            >
+              {btn}
+            </button>
+        )}
       </div>
     </div>
   );
