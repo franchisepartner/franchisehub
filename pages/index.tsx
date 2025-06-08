@@ -3,9 +3,6 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { supabase } from '../lib/supabaseClient';
-import { FaBullhorn, FaComments, FaBookOpen, FaLifeRing, FaFileAlt, FaShieldAlt, FaUserTie, FaCalculator } from 'react-icons/fa';
-
-// ==== IMPORT SWIPER ====
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Navigation } from 'swiper/modules';
 import 'swiper/css';
@@ -18,69 +15,9 @@ interface Franchise {
   category: string;
   investment_min: number;
   location: string;
-  logo_url: string; // URL publik gambar logo dari Supabase Storage
-  slug: string;     // Digunakan untuk halaman detail franchise
+  logo_url: string;
+  slug: string;
 }
-
-// --- ICON MENU BAR ---
-const MENU = [
-  {
-    label: 'Pengumuman',
-    path: '/announcement',
-    icon: <FaBullhorn size={28} />,
-    color: 'bg-yellow-400 text-white',
-    ring: 'ring-yellow-300',
-  },
-  {
-    label: 'Forum Global',
-    path: '/forum-global',
-    icon: <FaComments size={28} />,
-    color: 'bg-green-400 text-white',
-    ring: 'ring-green-300',
-  },
-  {
-    label: 'Blog Global',
-    path: '/blog-global',
-    icon: <FaBookOpen size={28} />,
-    color: 'bg-purple-400 text-white',
-    ring: 'ring-purple-300',
-  },
-  {
-    label: 'Pusat Bantuan',
-    path: '/pusat-bantuan',
-    icon: <FaLifeRing size={28} />,
-    color: 'bg-blue-400 text-white',
-    ring: 'ring-blue-300',
-  },
-  {
-    label: 'S&K',
-    path: '/syarat-ketentuan',
-    icon: <FaFileAlt size={28} />,
-    color: 'bg-gray-800 text-white',
-    ring: 'ring-gray-400',
-  },
-  {
-    label: 'Kebijakan Privasi',
-    path: '/privacy',
-    icon: <FaShieldAlt size={28} />,
-    color: 'bg-green-600 text-white',
-    ring: 'ring-green-500',
-  },
-  {
-    label: 'Jadi Franchisor',
-    path: '/franchisor',
-    icon: <FaUserTie size={28} />,
-    color: 'bg-teal-500 text-white',
-    ring: 'ring-teal-300',
-  },
-  {
-    label: 'Kalkulator',
-    path: '#calculator',
-    icon: <FaCalculator size={28} />,
-    color: 'bg-pink-400 text-white',
-    ring: 'ring-pink-300',
-  },
-];
 
 export default function Home() {
   const [franchises, setFranchises] = useState<Franchise[]>([]);
@@ -115,14 +52,101 @@ export default function Home() {
     fetchFranchises();
   }, []);
 
-  const handleMenuClick = (menu: any) => {
-    if (menu.path === '#calculator') setShowCalculatorModal(true);
-  };
+  // === Data Menu Fitur
+  const featureMenus = [
+    {
+      label: 'Pengumuman',
+      href: '/announcement',
+      bg: 'bg-yellow-400',
+      icon: (
+        <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path d="M19 7v4.95a3 3 0 01-1.19 2.38l-2.54 2.03a1 1 0 00-.27.32l-1.37 2.44A1 1 0 0112 20h0a1 1 0 01-.87-.5l-1.36-2.43a1 1 0 00-.27-.32l-2.54-2.03A3 3 0 015 11.95V7m14 0V5a2 2 0 00-2-2H7a2 2 0 00-2 2v2m14 0H5" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      ),
+    },
+    {
+      label: 'Forum Global',
+      href: '/forum-global',
+      bg: 'bg-green-400',
+      icon: (
+        <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path d="M17 8h2a2 2 0 012 2v8a2 2 0 01-2 2H7a2 2 0 01-2-2v-2" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/>
+          <circle cx="9" cy="7" r="4" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      ),
+    },
+    {
+      label: 'Blog Global',
+      href: '/blog-global',
+      bg: 'bg-purple-400',
+      icon: (
+        <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path d="M12 20h9" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M19 20V4a2 2 0 00-2-2H7a2 2 0 00-2 2v16l5-2.18L15 20z" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      ),
+    },
+    {
+      label: 'Pusat Bantuan',
+      href: '/pusat-bantuan',
+      bg: 'bg-blue-400',
+      icon: (
+        <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <circle cx="12" cy="12" r="10" strokeWidth={2}/>
+          <path d="M12 16v.01M12 12a4 4 0 10-4-4" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      ),
+    },
+    {
+      label: 'S&K',
+      href: '/syarat-ketentuan',
+      bg: 'bg-gray-700',
+      icon: (
+        <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <rect x="4" y="4" width="16" height="16" rx="2" strokeWidth={2}/>
+          <path d="M8 8h8M8 12h8M8 16h4" strokeWidth={2} strokeLinecap="round"/>
+        </svg>
+      ),
+    },
+    {
+      label: 'Kebijakan Privasi',
+      href: '/privacy',
+      bg: 'bg-green-600',
+      icon: (
+        <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path d="M12 2L4 6v6c0 5.523 3.582 10 8 10s8-4.477 8-10V6l-8-4z" strokeWidth={2}/>
+        </svg>
+      ),
+    },
+    {
+      label: 'Jadi Franchisor',
+      href: '/franchisor',
+      bg: 'bg-teal-500',
+      icon: (
+        <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <circle cx="12" cy="7" r="4" strokeWidth={2}/>
+          <path d="M6 21v-2a4 4 0 018 0v2" strokeWidth={2}/>
+        </svg>
+      ),
+    },
+    {
+      label: 'Kalkulator',
+      href: '#',
+      bg: 'bg-pink-400',
+      icon: (
+        <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <rect x="3" y="3" width="18" height="18" rx="2" strokeWidth={2}/>
+          <path d="M8 6h8M8 10h8M8 14h8M8 18h4" strokeWidth={2}/>
+        </svg>
+      ),
+      action: () => setShowCalculatorModal(true),
+    },
+  ];
 
   return (
     <div className="relative min-h-screen bg-white">
       {/* ======= BANNER + CAROUSEL ======= */}
-      <div className="relative w-full h-[300px] sm:h-[340px] md:h-[420px] lg:h-[500px] overflow-visible pb-20 bg-white">
+      <div className="relative w-full h-[300px] sm:h-[340px] md:h-[420px] lg:h-[500px] overflow-visible pb-16 bg-white">
         <Swiper
           modules={[Autoplay, Navigation]}
           autoplay={{ delay: 5000, disableOnInteraction: false }}
@@ -160,18 +184,8 @@ export default function Home() {
         <div className="absolute bottom-0 left-0 w-40 h-20 bg-white rounded-tl-full"></div>
 
         {/* ======= KOTAK SEARCH ======= */}
-        <div className="absolute left-1/2 transform -translate-x-1/2 -bottom-10 w-full max-w-3xl px-4 sm:px-6 lg:px-8 z-20">
+        <div className="absolute left-1/2 transform -translate-x-1/2 bottom-0 w-full max-w-3xl px-4 sm:px-6 lg:px-8 z-20">
           <div className="bg-white rounded-xl shadow-lg p-4 relative">
-            {/* Logo kecil di kanan atas tombol pencarian */}
-            <div className="absolute -top-12 right-6 bg-white rounded-t-full overflow-hidden shadow-md">
-              <Image
-                src="/22C6DD46-5682-4FDD-998B-710D24A74856.png"
-                alt="Logo FranchiseHub"
-                width={60}
-                height={60}
-                className="rounded-t-full rounded-b-none object-cover shadow-md"
-              />
-            </div>
             <form className="flex space-x-2">
               <input
                 type="text"
@@ -184,54 +198,45 @@ export default function Home() {
               >
                 Cari
               </button>
-             </form>
-           </div>
-         </div>
+            </form>
+          </div>
+        </div>
       </div>
 
-      {/* ======= BAR IKON UTAMA ======= */}
-      <section className="relative mt-20 bg-white z-10 w-full">
-        <div className="overflow-x-auto scrollbar-hide w-full">
+      {/* ======= BAR MENU FITUR ======= */}
+      <section className="relative mt-14 mb-6 z-20">
+        <div className="w-full flex justify-center">
           <div
             className="
-              flex flex-nowrap items-stretch gap-3
-              px-2 sm:px-4 md:justify-center
-              w-full
+              flex gap-4 overflow-x-auto
+              px-2 pb-2 pt-1
+              max-w-full
+              sm:justify-center
+              scrollbar-thin scrollbar-thumb-gray-200
             "
             style={{ WebkitOverflowScrolling: 'touch' }}
           >
-            {MENU.map(menu => (
-              <div
-                key={menu.label}
-                className="flex flex-col items-center cursor-pointer select-none min-w-[90px] flex-shrink-0"
-                onClick={() => menu.path === '#calculator' ? handleMenuClick(menu) : undefined}
-              >
-                <Link
-                  href={menu.path === '#calculator' ? '#' : menu.path}
-                  passHref
-                  onClick={e => {
-                    if (menu.path === '#calculator') {
-                      e.preventDefault();
-                      setShowCalculatorModal(true);
-                    }
-                  }}
-                  className="flex flex-col items-center"
+            {featureMenus.map((menu, idx) => (
+              <div key={idx} className="flex flex-col items-center min-w-[90px] max-w-[100px]">
+                <button
+                  onClick={
+                    menu.action
+                      ? menu.action
+                      : () => window.location.href = menu.href
+                  }
+                  className={`
+                    ${menu.bg}
+                    rounded-full shadow-lg flex items-center justify-center
+                    w-16 h-16 md:w-16 md:h-16 mb-1 focus:outline-none
+                    transition hover:scale-105 active:scale-95
+                  `}
+                  aria-label={menu.label}
                 >
-                  <div
-                    className={`
-                      ${menu.color}
-                      rounded-full shadow-lg ring-2 ${menu.ring}
-                      flex items-center justify-center
-                      hover:scale-105 hover:shadow-xl transition
-                      w-14 h-14 sm:w-16 sm:h-16 mb-2
-                    `}
-                  >
-                    {menu.icon}
-                  </div>
-                  <span className="block w-20 sm:w-24 text-xs text-gray-700 text-center font-medium leading-tight truncate">
-                    {menu.label}
-                  </span>
-                </Link>
+                  {menu.icon}
+                </button>
+                <span className="block text-center text-xs font-medium text-gray-700 mt-1 truncate w-full">
+                  {menu.label}
+                </span>
               </div>
             ))}
           </div>
@@ -239,13 +244,10 @@ export default function Home() {
       </section>
 
       {/* ======= MODAL KALKULATOR ======= */}
-      <CalculatorModal
-        show={showCalculatorModal}
-        setShow={setShowCalculatorModal}
-      />
+      <CalculatorModal show={showCalculatorModal} setShow={setShowCalculatorModal} />
 
       {/* ======= DAFTAR FRANCHISE ======= */}
-      <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8 pb-12">
+      <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-4 pb-12">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Daftar Franchise</h2>
         {loading ? (
           <p className="text-center text-gray-500">Memuat daftar franchise...</p>
@@ -317,7 +319,7 @@ export default function Home() {
   );
 }
 
-// ================== KOMONEN CALCULATOR MODAL ==================
+// ================== MODAL KALKULATOR ==================
 interface CalculatorModalProps {
   show: boolean;
   setShow: (val: boolean) => void;
@@ -331,13 +333,7 @@ function CalculatorModal({ show, setShow }: CalculatorModalProps) {
           onClick={() => setShow(false)}
           className="absolute top-3 right-3 text-gray-600 hover:text-gray-900"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
@@ -348,31 +344,23 @@ function CalculatorModal({ show, setShow }: CalculatorModalProps) {
   );
 }
 
-// ================== KOMONEN CALCULATOR SEDERHANA ==================
+// ================== KALKULATOR SEDERHANA ==================
 function Calculator() {
   const [display, setDisplay] = useState<string>('0');
-
   const handleButton = (val: string) => {
-    if (val === 'C') {
-      setDisplay('0');
-    } else if (val === '=') {
+    if (val === 'C') setDisplay('0');
+    else if (val === '=') {
       try {
         const sanitized = display.replace(/×/g, '*').replace(/÷/g, '/');
         // eslint-disable-next-line no-eval
-        const result = eval(sanitized);
-        setDisplay(String(result));
+        setDisplay(String(eval(sanitized)));
       } catch {
         setDisplay('Error');
       }
     } else {
-      if (display === '0') {
-        setDisplay(val);
-      } else {
-        setDisplay(display + val);
-      }
+      setDisplay(display === '0' ? val : display + val);
     }
   };
-
   const buttons: string[][] = [
     ['7', '8', '9', '÷'],
     ['4', '5', '6', '×'],
@@ -380,25 +368,19 @@ function Calculator() {
     ['0', '.', 'C', '+'],
     ['(', ')', '=', '']
   ];
-
   return (
     <div className="flex flex-col items-center">
-      <div className="w-full bg-gray-100 rounded-md p-3 text-right text-2xl font-mono mb-4">
-        {display}
-      </div>
+      <div className="w-full bg-gray-100 rounded-md p-3 text-right text-2xl font-mono mb-4">{display}</div>
       <div className="w-full grid grid-cols-4 gap-2">
-        {buttons.flat().map((btn, idx) => {
-          if (btn === '') return <div key={idx} />;
-          return (
+        {buttons.flat().map((btn, idx) =>
+          btn === '' ? <div key={idx} /> : (
             <button
               key={idx}
               onClick={() => handleButton(btn)}
               className="bg-gray-200 hover:bg-gray-300 rounded-md py-2 text-lg font-medium"
-            >
-              {btn}
-            </button>
-          );
-        })}
+            >{btn}</button>
+          )
+        )}
       </div>
     </div>
   );
