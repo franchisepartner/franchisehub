@@ -1,4 +1,3 @@
-// pages/index.tsx
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -7,7 +6,6 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Navigation } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
-// Icon
 import { FaBullhorn, FaComments, FaBookOpen, FaLifeRing, FaFileAlt, FaShieldAlt, FaUserTie, FaCalculator } from 'react-icons/fa';
 
 interface Franchise {
@@ -21,7 +19,6 @@ interface Franchise {
   slug: string;
 }
 
-// ==== MENU ICON UTAMA ====
 const MENU = [
   {
     label: 'Pengumuman',
@@ -111,7 +108,6 @@ export default function Home() {
     fetchFranchises();
   }, []);
 
-  // ==== Handler Kalkulator ====
   const handleMenuClick = (menu: typeof MENU[number]) => {
     if (menu.path === '#calculator') setShowCalculatorModal(true);
   };
@@ -137,10 +133,7 @@ export default function Home() {
             <Image src="/banner-franchisehub2.PNG" alt="Banner FranchiseHub 3" fill className="object-cover" />
           </SwiperSlide>
         </Swiper>
-
         <div className="absolute bottom-0 left-0 w-40 h-20 bg-white rounded-tl-full"></div>
-
-        {/* SEARCH BOX */}
         <div className="absolute left-1/2 transform -translate-x-1/2 -bottom-10 w-full max-w-3xl px-4 sm:px-6 lg:px-8 z-20">
           <div className="bg-white rounded-xl shadow-lg p-4 relative">
             <div className="absolute -top-12 right-6 bg-white rounded-t-full overflow-hidden shadow-md">
@@ -169,45 +162,46 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ======= BAR IKON UTAMA CENTERED ======= */}
-      <section className="relative mt-20 bg-white z-10 flex justify-center">
-        <div className="w-full max-w-3xl mx-auto">
-          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-8 gap-y-6 gap-x-4 justify-center items-center">
-            {MENU.map(menu => (
-              <div
-                key={menu.label}
-                className="flex flex-col items-center cursor-pointer select-none"
-                style={{ minWidth: 90 }}
-                onClick={() => menu.path === '#calculator' ? handleMenuClick(menu) : undefined}
-              >
-                <Link
-                  href={menu.path === '#calculator' ? '#' : menu.path}
-                  passHref
-                  onClick={e => {
-                    if (menu.path === '#calculator') {
-                      e.preventDefault();
-                      setShowCalculatorModal(true);
-                    }
-                  }}
-                  className="flex flex-col items-center"
+      {/* ======= BAR IKON UTAMA HORIZONTAL SCROLL ======= */}
+      <section className="relative mt-20 bg-white z-10 w-full flex justify-center">
+        <div className="w-full max-w-5xl">
+          <div className="overflow-x-auto">
+            <div className="flex items-stretch justify-center gap-3 min-w-[600px] px-2 pb-2">
+              {MENU.map(menu => (
+                <div
+                  key={menu.label}
+                  className="flex flex-col items-center cursor-pointer select-none min-w-[90px]"
+                  onClick={() => menu.path === '#calculator' ? handleMenuClick(menu) : undefined}
                 >
-                  <div
-                    className={`
-                      ${menu.color}
-                      rounded-full shadow-lg ring-2 ${menu.ring}
-                      flex items-center justify-center
-                      hover:scale-105 hover:shadow-xl transition
-                      w-14 h-14 sm:w-16 sm:h-16 mb-2
-                    `}
+                  <Link
+                    href={menu.path === '#calculator' ? '#' : menu.path}
+                    passHref
+                    onClick={e => {
+                      if (menu.path === '#calculator') {
+                        e.preventDefault();
+                        setShowCalculatorModal(true);
+                      }
+                    }}
+                    className="flex flex-col items-center"
                   >
-                    {menu.icon}
-                  </div>
-                  <span className="block w-20 text-xs text-gray-700 text-center font-medium leading-tight truncate">
-                    {menu.label}
-                  </span>
-                </Link>
-              </div>
-            ))}
+                    <div
+                      className={`
+                        ${menu.color}
+                        rounded-full shadow-lg ring-2 ${menu.ring}
+                        flex items-center justify-center
+                        hover:scale-105 hover:shadow-xl transition
+                        w-14 h-14 sm:w-16 sm:h-16 mb-2
+                      `}
+                    >
+                      {menu.icon}
+                    </div>
+                    <span className="block w-20 text-xs text-gray-700 text-center font-medium leading-tight truncate">
+                      {menu.label}
+                    </span>
+                  </Link>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -291,7 +285,7 @@ export default function Home() {
   );
 }
 
-// ================== KOMONEN CALCULATOR MODAL ==================
+// ===== Kalkulator Modal & Kalkulator Komponen Tetap (sama) =====
 interface CalculatorModalProps {
   show: boolean;
   setShow: (val: boolean) => void;
@@ -321,8 +315,6 @@ function CalculatorModal({ show, setShow }: CalculatorModalProps) {
     </div>
   );
 }
-
-// ================== KOMONEN KALKULATOR ==================
 function Calculator() {
   const [display, setDisplay] = useState<string>('0');
   const handleButton = (val: string) => {
@@ -330,7 +322,6 @@ function Calculator() {
     else if (val === '=') {
       try {
         const sanitized = display.replace(/×/g, '*').replace(/÷/g, '/');
-        // eslint-disable-next-line no-eval
         setDisplay(String(eval(sanitized)));
       } catch { setDisplay('Error'); }
     } else {
