@@ -2,13 +2,18 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabaseClient';
 
-// ==== IMPORT SWIPER ====
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Navigation } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
+
+import {
+  FaBell, FaHeart, FaComments, FaBookOpen, FaLifeRing, FaFileContract, FaStar,
+  FaUserTie, FaUserShield, FaClipboardList, FaCalculator
+} from 'react-icons/fa';
 
 interface Franchise {
   id: string;
@@ -17,8 +22,8 @@ interface Franchise {
   category: string;
   investment_min: number;
   location: string;
-  logo_url: string; // URL publik gambar logo dari Supabase Storage
-  slug: string;     // Digunakan untuk halaman detail franchise
+  logo_url: string;
+  slug: string;
 }
 
 export default function Home() {
@@ -36,7 +41,6 @@ export default function Home() {
       if (error) {
         console.error('Error fetching franchises:', error);
       } else if (data) {
-        // Konversi setiap franchise.logo_url menjadi URL publik Supabase Storage
         const franchisesWithImages = data.map((franchise) => ({
           ...franchise,
           logo_url:
@@ -91,14 +95,10 @@ export default function Home() {
             />
           </SwiperSlide>
         </Swiper>
-
-        {/* Curve putih di pojok kiri bawah */}
         <div className="absolute bottom-0 left-0 w-40 h-20 bg-white rounded-tl-full"></div>
-
         {/* ======= KOTAK SEARCH ======= */}
         <div className="absolute left-1/2 transform -translate-x-1/2 -bottom-10 w-full max-w-3xl px-4 sm:px-6 lg:px-8 z-20">
           <div className="bg-white rounded-xl shadow-lg p-4 relative">
-            {/* Logo kecil di kanan atas tombol pencarian */}
             <div className="absolute -top-12 right-6 bg-white rounded-t-full overflow-hidden shadow-md">
               <Image
                 src="/22C6DD46-5682-4FDD-998B-710D24A74856.png"
@@ -120,159 +120,13 @@ export default function Home() {
               >
                 Cari
               </button>
-             </form>
-           </div>
-         </div>
-      </div>
-
-      {/* ======= BAR IKON UTAMA ======= */}
-      <section className="relative mt-20 bg-white z-10 drop-shadow-md">
-        <div className="overflow-x-auto whitespace-nowrap py-6 px-4 sm:px-6 lg:px-8">
-          <div className="inline-flex space-x-6 items-center">
-            {/* Notifikasiku */}
-            <div className="inline-flex flex-col items-center w-20 cursor-pointer">
-              <div className="bg-white rounded-full shadow p-3">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 text-blue-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path d="M12 22a2 2 0 002-2H10a2 2 0 002 2zm6-6V9a6 6 0 10-12 0v7l-2 2v1h16v-1l-2-2z" />
-                </svg>
-              </div>
-              <span className="text-xs text-gray-600 mt-1 text-center">Notifikasiku</span>
-            </div>
-
-            {/* Favoritku */}
-            <div className="inline-flex flex-col	items-center w-20 cursor-pointer">
-              <div className="bg-white rounded-full shadow p-3">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 text-red-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path d="M5 15l7 7 7-7V5a2 2 0 00-2-2h-10a2 2 0 00-2 2v10z" />
-                </svg>
-              </div>
-              <span className="text-xs text-gray-600 mt-1 text-center">Favoritku</span>
-            </div>
-
-            {/* Forum Global */}
-            <div className="inline-flex flex-col	items-center w-20 cursor-pointer">
-              <div className="bg-white rounded-full shadow p-3">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 text-green-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8s-9-3.582-9-8 4.03-8 9-8 9 3.582 9 8z" />
-                </svg>
-              </div>
-              <span className="text-xs text-gray-600 mt-1 text-center">Forum Global</span>
-            </div>
-
-            {/* Blog Global */}
-            <div className="inline-flex flex-col items-center w-20 cursor-pointer">
-              <div className="bg-white rounded-full shadow p-3">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </div>
-              <span className="text-xs text-gray-600 mt-1 text-center">Blog Global</span>
-            </div>
-
-            {/* Pusat Bantuan */}
-            <div className="inline-flex flex-col	items-center w-20 cursor-pointer">
-              <div className="bg-white rounded-full shadow p-3">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 text-indigo-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8s-9-3.582-9-8 4.03-8 9-8 9 3.582 9 8z" />
-                </svg>
-              </div>
-              <span className="text-xs text-gray-600 mt-1 text-center">Pusat Bantuan</span>
-            </div>
-
-            {/* Syarat & Ketentuan */}
-            <div className="inline-flex flex-col	items-center w-20 cursor-pointer">
-              <div className="bg-white rounded-full shadow p-3">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 text-gray-700"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path d="M5 5v14h14V5H5z" />
-                  <path d="M9 9h6v6H9z" />
-                </svg>
-              </div>
-              <span className="text-xs text-gray-600 mt-1 text-center">Syarat & Ketentuan</span>
-            </div>
-
-            {/* Kebijakan Privasi */}
-            <div className="inline-flex flex-col	items-center w-20 cursor-pointer">
-              <div className="bg-white rounded-full shadow p-3">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 text-green-700"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path d="M12 2L4 6v6c0 5.523 3.582 10 8 10s8-4.477 8-10V6l-8-4z" />
-                </svg>
-              </div>
-              <span className="text-xs text-gray-600 mt-1 text-center">Kebijakan Privasi</span>
-            </div>
-
-            {/* Jadi Franchisor */}
-            <div className="inline-flex flex-col	items-center w-20 cursor-pointer">
-              <div className="bg-white rounded-full shadow p-3">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 text-teal-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path d="M12 8c-1.657 0-3 1.343-3 3 0 3 3 7 3 7s3-4 3-7c0-1.657-1.343-3-3-3z" />
-                </svg>
-              </div>
-              <span className="text-xs text-gray-600 mt-1 text-center">Jadi Franchisor</span>
-            </div>
-
-            {/* Kalkulator */}
-            <div
-              className="inline-flex flex-col	items-center w-20 cursor-pointer"
-              onClick={() => setShowCalculatorModal(true)}
-            >
-              <div className="bg-white rounded-full shadow p-3">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 text-gray-800"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path d="M8 2h8a2 2 0 012 2v16a2 2 0 01-2 2H8a2 2 0 01-2-2V4a2 2 0 012-2zm2 4h4m-4 4h4m-4 4h4m-4 4h4" />
-                </svg>
-              </div>
-              <span className="text-xs text-gray-600 mt-1 text-center">Kalkulator</span>
-            </div>
+            </form>
           </div>
         </div>
-      </section>
+      </div>
+
+      {/* ======= BAR IKON UTAMA (DYNAMIC) ======= */}
+      <MenuBarFiturUtama setShowCalculatorModal={setShowCalculatorModal} />
 
       {/* ======= MODAL KALKULATOR ======= */}
       <CalculatorModal
@@ -353,7 +207,74 @@ export default function Home() {
   );
 }
 
-// ================== KOMONEN CALCULATOR MODAL ==================
+// ========== MENU BAR FITUR UTAMA (MODERN) ==========
+function MenuBarFiturUtama({ setShowCalculatorModal }: { setShowCalculatorModal: (v: boolean) => void }) {
+  const [role, setRole] = useState<string>('');
+  const [loggedIn, setLoggedIn] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setLoggedIn(!!data.session);
+      if (data.session) fetchRole(data.session.user.id);
+    });
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setLoggedIn(!!session?.user);
+      if (session?.user) fetchRole(session.user.id);
+      else setRole('');
+    });
+    return () => listener?.subscription.unsubscribe();
+  }, []);
+
+  const fetchRole = async (userId: string) => {
+    const { data } = await supabase.from('profiles').select('role').eq('id', userId).single();
+    setRole(data?.role || '');
+  };
+
+  // Semua tombol utama, cek show agar bisa menyesuaikan role
+  let menu = [
+    { icon: <FaBell className="text-blue-600" />, label: 'Notifikasiku', path: '/notifikasi', show: loggedIn },
+    { icon: <FaHeart className="text-red-500" />, label: 'Favoritku', path: '/favorit', show: loggedIn },
+    { icon: <FaComments className="text-green-600" />, label: 'Forum Global', path: '/forum-global', show: true },
+    { icon: <FaBookOpen className="text-purple-600" />, label: 'Blog Global', path: '/blog-global', show: true },
+    { icon: <FaLifeRing className="text-indigo-600" />, label: 'Pusat Bantuan', path: '/pusat-bantuan', show: true },
+    { icon: <FaFileContract className="text-gray-700" />, label: 'S&K', path: '/syarat-ketentuan', show: true },
+    { icon: <FaStar className="text-green-700" />, label: 'Kebijakan Privasi', path: '/privacy', show: true },
+    { icon: <FaClipboardList className="text-amber-600" />, label: 'Kelola Listing', path: '/franchisor/manage-listings', show: role === 'franchisor' },
+    { icon: <FaUserTie className="text-green-700" />, label: 'Dashboard', path: '/franchisor/dashboard', show: role === 'franchisor' },
+    { icon: <FaUserShield className="text-purple-700" />, label: 'Admin', path: '/admin', show: role === 'administrator' },
+    { icon: <FaUserTie className="text-teal-600" />, label: 'Jadi Franchisor', path: '/franchisor', show: !role || role === 'franchisee' },
+    { icon: <FaCalculator className="text-gray-800" />, label: 'Kalkulator', path: '#kalkulator', show: true }
+  ];
+
+  menu = menu.filter((m) => m.show);
+
+  return (
+    <section className="relative mt-20 bg-white z-10 drop-shadow-md">
+      <div className="overflow-x-auto whitespace-nowrap py-6 px-4 sm:px-6 lg:px-8">
+        <div className="inline-flex space-x-6 items-center">
+          {menu.map(({ icon, label, path }, idx) => (
+            <div
+              key={idx}
+              className="inline-flex flex-col items-center w-20 cursor-pointer group"
+              onClick={() => {
+                if (path === '#kalkulator') setShowCalculatorModal(true);
+                else router.push(path);
+              }}
+            >
+              <div className="bg-white rounded-full shadow p-3 group-hover:bg-blue-50 transition">
+                {icon}
+              </div>
+              <span className="text-xs text-gray-600 mt-1 text-center group-hover:text-blue-700">{label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ================== MODAL KALKULATOR ==================
 interface CalculatorModalProps {
   show: boolean;
   setShow: (val: boolean) => void;
@@ -367,13 +288,7 @@ function CalculatorModal({ show, setShow }: CalculatorModalProps) {
           onClick={() => setShow(false)}
           className="absolute top-3 right-3 text-gray-600 hover:text-gray-900"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
@@ -384,7 +299,7 @@ function CalculatorModal({ show, setShow }: CalculatorModalProps) {
   );
 }
 
-// ================== KOMONEN CALCULATOR SEDERHANA ==================
+// ============== Kalkulator Sederhana ==============
 function Calculator() {
   const [display, setDisplay] = useState<string>('0');
 
@@ -401,11 +316,8 @@ function Calculator() {
         setDisplay('Error');
       }
     } else {
-      if (display === '0') {
-        setDisplay(val);
-      } else {
-        setDisplay(display + val);
-      }
+      if (display === '0') setDisplay(val);
+      else setDisplay(display + val);
     }
   };
 
