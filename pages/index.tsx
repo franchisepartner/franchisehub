@@ -1,4 +1,3 @@
-// pages/index.tsx
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '../lib/supabaseClient';
@@ -22,12 +21,10 @@ export default function Home() {
   const [franchises, setFranchises] = useState<Franchise[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCalculatorModal, setShowCalculatorModal] = useState(false);
-
-  // Banner state (signedUrl)
   const [banners, setBanners] = useState<string[]>([]);
 
   useEffect(() => {
-    // Fetch franchise listing
+    // Fetch listing (dengan signed url logo)
     const fetchFranchises = async () => {
       const { data, error } = await supabase
         .from('franchise_listings')
@@ -37,26 +34,26 @@ export default function Home() {
       if (error) {
         console.error('Error fetching franchises:', error);
       } else if (data) {
-        const franchisesWithImages = await Promise.all(
+        const urls = await Promise.all(
           data.map(async (franchise) => {
-            // Dapatkan signed URL logo (bukan public)
-            if (!franchise.logo_url) return { ...franchise, logo_url: '' };
+            if (!franchise.logo_url) return '';
             const { data: signed } = await supabase
               .storage
               .from('listing-images')
               .createSignedUrl(franchise.logo_url, 60 * 60);
-            return {
-              ...franchise,
-              logo_url: signed?.signedUrl || '',
-            };
+            return signed?.signedUrl || '';
           })
         );
+        const franchisesWithImages = data.map((franchise, idx) => ({
+          ...franchise,
+          logo_url: urls[idx],
+        }));
         setFranchises(franchisesWithImages);
       }
       setLoading(false);
     };
 
-    // Fetch banners from private bucket, signed URL
+    // Fetch banner (dengan signed url)
     const fetchBanners = async () => {
       const { data, error } = await supabase.storage
         .from('homepage-banners')
@@ -67,25 +64,25 @@ export default function Home() {
         return;
       }
 
-      const promises = data
-        .filter(item => item.name.match(/\.(jpg|jpeg|png|webp)$/i))
-        .map(async (item) => {
-          const { data: signed } = await supabase
-            .storage
-            .from('homepage-banners')
-            .createSignedUrl(item.name, 60 * 60);
-          return signed?.signedUrl || '';
-        });
-
-      const urls = (await Promise.all(promises)).filter(Boolean);
-      setBanners(urls);
+      const urls = await Promise.all(
+        data
+          .filter(item => item.name.match(/\.(jpg|jpeg|png|webp)$/i))
+          .map(async (item) => {
+            const { data: signed } = await supabase
+              .storage
+              .from('homepage-banners')
+              .createSignedUrl(item.name, 60 * 60);
+            return signed?.signedUrl || '';
+          })
+      );
+      setBanners(urls.filter(Boolean));
     };
 
     fetchBanners();
     fetchFranchises();
   }, []);
 
-  // === Data Menu Fitur
+  // Menu fitur
   const featureMenus = [
     {
       label: 'Pengumuman',
@@ -269,46 +266,56 @@ export default function Home() {
       {/* ======= MODAL KALKULATOR ======= */}
       <CalculatorModal show={showCalculatorModal} setShow={setShowCalculatorModal} />
 
-      {/* ======= DAFTAR FRANCHISE (HANYA 6, DENGAN TOMBOL LIHAT SEMUA) ======= */}
+      {/* ======= DAFTAR FRANCHISE SLIDER (horizontal) ======= */}
       <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-4 pb-12">
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-gray-800">Daftar Franchise</h2>
           <Link href="/franchise-list">
-            <span className="text-blue-600 text-sm font-semibold hover:underline cursor-pointer">
-              Lihat Semua &rarr;
+            <span className="text-blue-600 text-sm font-medium hover:underline cursor-pointer flex items-center gap-1">
+              Lihat Semua <span aria-hidden="true">→</span>
             </span>
           </Link>
         </div>
         {loading ? (
           <p className="text-center text-gray-500">Memuat daftar franchise...</p>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <Swiper
+            modules={[Navigation]}
+            navigation
+            slidesPerView={1.1}
+            spaceBetween={16}
+            breakpoints={{
+              640: { slidesPerView: 2.2 },
+              1024: { slidesPerView: 3.2 },
+            }}
+            className="w-full"
+          >
             {franchises.slice(0, 6).map((fr) => (
-              <Link key={fr.id} href={`/franchise/${fr.slug}`} passHref>
-                <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden cursor-pointer">
-                  <div className="relative h-48">
-                    <img
-                      src={fr.logo_url}
-                      alt={fr.franchise_name}
-                      className="w-full h-full object-cover"
-                    />
-                    <span className="absolute top-3 left-3 bg-yellow-400 text-xs font-semibold text-black px-2 py-1 rounded">
-                      {fr.category}
-                    </span>
+              <SwiperSlide key={fr.id} style={{height: '320px'}}>
+                <Link href={`/franchise/${fr.slug}`} passHref>
+                  <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden cursor-pointer h-full flex flex-col">
+                    <div className="relative h-48">
+                      <img
+                        src={fr.logo_url}
+                        alt={fr.franchise_name}
+                        className="w-full h-full object-cover"
+                      />
+                      <span className="absolute top-3 left-3 bg-yellow-400 text-xs font-semibold text-black px-2 py-1 rounded">
+                        {fr.category}
+                      </span>
+                    </div>
+                    <div className="p-4 flex-1 flex flex-col">
+                      <h3 className="text-lg font-semibold text-gray-800">{fr.franchise_name}</h3>
+                      <p className="mt-1 text-sm text-gray-500">{fr.location}</p>
+                      <p className="mt-2 text-sm text-gray-700">
+                        Investasi Mulai: Rp {fr.investment_min.toLocaleString('id-ID')}
+                      </p>
+                    </div>
                   </div>
-                  <div className="p-4">
-                    <h3 className="text-lg font-semibold text-gray-800">
-                      {fr.franchise_name}
-                    </h3>
-                    <p className="mt-1 text-sm text-gray-500">{fr.location}</p>
-                    <p className="mt-2 text-sm text-gray-700">
-                      Investasi Mulai: Rp {fr.investment_min.toLocaleString('id-ID')}
-                    </p>
-                  </div>
-                </div>
-              </Link>
+                </Link>
+              </SwiperSlide>
             ))}
-          </div>
+          </Swiper>
         )}
       </section>
 
