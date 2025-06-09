@@ -87,6 +87,7 @@ export default function DetailPage() {
   async function fetchComments() {
     setLoading(true);
     setErrorMsg('');
+
     const { data, error } = await supabase
       .from('comments')
       .select('*')
@@ -160,12 +161,13 @@ export default function DetailPage() {
       <Head>
         <title>{blog?.title || "Memuat..."} - FranchiseHub</title>
       </Head>
-      <div className="max-w-2xl mx-auto px-3 sm:px-5 py-8 relative min-h-screen">
-        {/* Tombol share mengambang */}
-        {blog && (
+
+      <div className="max-w-2xl mx-auto px-4 py-8 relative">
+        {blog ? (
           <>
+            {/* Tombol share sticky di pojok kanan */}
             <button
-              className="fixed top-5 right-5 z-40 bg-white/80 hover:bg-blue-600 hover:text-white text-blue-600 rounded-full shadow-xl p-3 transition"
+              className="absolute top-3 right-4 z-30 bg-white/90 hover:bg-blue-600 hover:text-white text-blue-600 rounded-full shadow-lg p-2 transition"
               onClick={handleShare}
               aria-label="Bagikan"
               title="Bagikan blog"
@@ -174,95 +176,77 @@ export default function DetailPage() {
               <FaShareAlt size={22} />
             </button>
             {shareMsg && (
-              <div className="fixed top-20 right-5 z-50 bg-blue-700 text-white rounded-xl px-4 py-2 text-sm shadow-lg animate-fade-in">
+              <div className="absolute top-16 right-4 z-40 bg-blue-700 text-white rounded-lg px-4 py-2 text-sm shadow">
                 {shareMsg}
               </div>
             )}
+
+            <h1 className="text-2xl font-bold mb-2">{blog.title}</h1>
+            <div className="text-sm text-gray-500 mb-4 flex gap-x-3 flex-wrap">
+              <span>{blog.category}</span>
+              <span>|</span>
+              <span>{new Date(blog.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+              <span>|</span>
+              <span>{blog.author || blog.created_by}</span>
+            </div>
+            <hr className="border-black mb-6" />
+
+            {blog.cover_url && (
+              <div className="relative mb-6">
+                <img
+                  src={blog.cover_url}
+                  alt={blog.title}
+                  className="w-full rounded-lg object-cover max-h-[420px] mx-auto"
+                  style={{ boxShadow: "0 4px 12px 0 rgba(0,0,0,0.10)" }}
+                />
+              </div>
+            )}
+
+            <div className="text-gray-700 mb-4 whitespace-pre-wrap">
+              {blog.content}
+            </div>
           </>
+        ) : (
+          <p className="text-gray-500">Memuat konten...</p>
         )}
 
-        <div className="bg-white/95 rounded-2xl shadow-lg border border-blue-50 p-5 md:p-9 mb-7">
-          {blog ? (
-            <>
-              {/* Headline */}
-              <h1 className="text-2xl md:text-3xl font-extrabold mb-3 text-gray-900 leading-tight">{blog.title}</h1>
-              <div className="flex flex-wrap gap-3 items-center mb-4 text-sm">
-                {blog.category && (
-                  <span className="inline-block bg-blue-100 text-blue-700 font-bold px-3 py-1 rounded-full">{blog.category}</span>
-                )}
-                <span className="text-gray-400 select-none">•</span>
-                <span className="text-gray-600">
-                  {new Date(blog.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
-                </span>
-                <span className="text-gray-400 select-none">•</span>
-                <span className="text-gray-600">{blog.author || blog.created_by}</span>
-              </div>
-              {blog.cover_url && (
-                <div className="rounded-2xl overflow-hidden shadow mb-6 border border-blue-100">
-                  <img
-                    src={blog.cover_url}
-                    alt={blog.title}
-                    className="object-cover w-full max-h-[320px] min-h-[180px] transition"
-                    loading="lazy"
-                  />
-                </div>
-              )}
-              <div className="prose prose-lg max-w-none mb-6 text-gray-800" style={{ whiteSpace: "pre-line" }}>
-                {blog.content}
-              </div>
-            </>
-          ) : (
-            <div className="text-gray-500 py-10 text-center">Memuat konten...</div>
-          )}
-        </div>
-
         {/* Komentar */}
-        <div className="bg-white/90 border border-blue-100 rounded-2xl shadow px-4 md:px-7 py-7 mb-14">
-          <h2 className="text-lg font-bold mb-5 text-blue-700">Komentar</h2>
+        <div className="mt-8 border-t pt-6">
+          <h2 className="text-lg font-semibold mb-4">Komentar</h2>
           {user ? (
-            <div className="flex flex-col md:flex-row items-end gap-4 mb-5">
+            <>
               <textarea
-                className="w-full min-h-[44px] px-4 py-2 rounded-xl border border-blue-200 focus:ring-2 focus:ring-blue-400 outline-none bg-blue-50 text-base resize-none"
+                className="w-full border rounded p-2 mb-4"
                 placeholder="Tulis komentar Anda di sini..."
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
-                maxLength={500}
               />
               <button
-                className="bg-gradient-to-r from-blue-600 to-cyan-400 hover:from-blue-700 hover:to-cyan-500 px-6 py-2 rounded-xl text-white font-bold shadow-lg transition disabled:opacity-60"
+                className="bg-blue-600 text-white px-4 py-2 rounded"
                 onClick={handleSubmit}
-                disabled={loading}
               >
                 Kirim
               </button>
-            </div>
+            </>
           ) : (
-            <div className="mb-6 text-sm text-gray-500">Silakan login untuk berkomentar.</div>
+            <p className="text-sm text-gray-500">Silakan login untuk berkomentar.</p>
           )}
 
-          {loading && <p className="text-gray-400 text-center">Memuat komentar...</p>}
-          {errorMsg && <p className="text-red-500 text-center">{errorMsg}</p>}
+          {loading && <p>Memuat komentar...</p>}
+          {errorMsg && <p className="text-red-500">{errorMsg}</p>}
 
-          <div className="mt-2 space-y-4">
-            {comments.length === 0 && !loading && (
-              <div className="text-center text-gray-400 py-5">Belum ada komentar.</div>
-            )}
+          <div className="mt-6">
             {comments.map((comment) => (
-              <div
-                key={comment.id}
-                className="flex items-start gap-3 bg-blue-50 border border-blue-100 rounded-xl p-3 relative group"
-              >
-                <div className="flex-1">
-                  <p className="text-base text-gray-700 mb-1 break-words">{comment.content}</p>
-                  <div className="text-xs text-gray-500 flex items-center gap-2">
-                    <span className="font-semibold">{comment.created_by}</span>
-                    <span>•</span>
-                    <span>{new Date(comment.created_at).toLocaleString()}</span>
-                  </div>
+              <div key={comment.id} className="border-b py-2 flex justify-between items-center">
+                <div>
+                  <p>{comment.content}</p>
+                  <small className="text-gray-500">
+                    {comment.created_by} pada {new Date(comment.created_at).toLocaleString()}
+                  </small>
                 </div>
                 {userName === comment.created_by && (
                   <button
-                    className="absolute top-2 right-3 text-xs text-red-500 hover:underline opacity-0 group-hover:opacity-100 transition"
+                    className="text-red-500 hover:underline ml-4 text-xs"
                     onClick={() => handleDelete(comment.id)}
                   >
                     Hapus
