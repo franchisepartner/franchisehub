@@ -1,4 +1,5 @@
 // pages/admin/franchisor-approvals.tsx
+
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabaseClient';
@@ -15,7 +16,6 @@ interface Application {
   logo_url: string;
   ktp_url: string;
   status: string;
-  admin_message?: string;
 }
 
 export default function FranchisorApprovals() {
@@ -25,7 +25,6 @@ export default function FranchisorApprovals() {
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
-  const [messageDraft, setMessageDraft] = useState<Record<string, string>>({}); // Untuk edit pesan
 
   useEffect(() => {
     const fetchData = async () => {
@@ -64,18 +63,11 @@ export default function FranchisorApprovals() {
       }
       setApplications(appsData);
 
-      // Siapkan draft pesan
-      const draft: Record<string, string> = {};
-      appsData.forEach((app: Application) => {
-        draft[app.id] = app.admin_message || '';
-      });
-      setMessageDraft(draft);
-
-      // Buat signed URL
+      // Buat signed URL logo & ktp
       const paths = appsData.flatMap(item => [item.logo_url, item.ktp_url]);
       const { data: signedData } = await supabase.storage
         .from('franchisor-assets')
-        .createSignedUrls(paths, 60 * 60);  // 1 jam
+        .createSignedUrls(paths, 60 * 60);
       const urls: Record<string, string> = {};
       signedData?.forEach(obj => {
         if (obj.path && obj.signedUrl) {
@@ -88,7 +80,7 @@ export default function FranchisorApprovals() {
     fetchData();
   }, [router]);
 
-  // Handler Approve
+  // Approve (tidak diubah)
   const handleApprove = async (user_id: string, email: string) => {
     try {
       const res = await fetch('/api/admin/approve-franchisor', {
@@ -104,40 +96,22 @@ export default function FranchisorApprovals() {
         alert('Gagal approve: ' + result.message);
       }
     } catch (err) {
-      console.error(err);
       alert('Terjadi kesalahan saat menghubungi server.');
     }
   };
 
-  // Handler Reject (hapus data + file Storage)
+  // Hapus data & storage (REJECT)
   const handleReject = async (app: Application) => {
-    // Hapus file logo & KTP dari Storage (opsional, boleh hapus jika tidak mau)
     await supabase.storage.from('franchisor-assets').remove([app.logo_url, app.ktp_url]);
-    // Hapus data dari DB
-    const { error: rejectError } = await supabase
+    const { error: delError } = await supabase
       .from('franchisor_applications')
       .delete()
       .eq('user_id', app.user_id);
-    if (rejectError) {
+    if (delError) {
       alert('Gagal menghapus data.');
     } else {
       alert('Data pengajuan berhasil dihapus.');
       setApplications(applications.filter(a => a.user_id !== app.user_id));
-    }
-  };
-
-  // Simpan pesan admin
-  const handleSaveMessage = async (app: Application) => {
-    const msg = messageDraft[app.id]?.trim() || '';
-    const { error } = await supabase
-      .from('franchisor_applications')
-      .update({ admin_message: msg })
-      .eq('id', app.id);
-    if (!error) {
-      alert('Pesan disimpan.');
-      setApplications(applications.map(a => a.id === app.id ? { ...a, admin_message: msg } : a));
-    } else {
-      alert('Gagal menyimpan pesan.');
     }
   };
 
@@ -163,7 +137,6 @@ export default function FranchisorApprovals() {
                 <th className="p-2 border">Lokasi</th>
                 <th className="p-2 border">Logo</th>
                 <th className="p-2 border">KTP</th>
-                <th className="p-2 border">Pesan Admin</th>
                 <th className="p-2 border">Aksi</th>
               </tr>
             </thead>
@@ -202,21 +175,6 @@ export default function FranchisorApprovals() {
                       'Memuat...'
                     )}
                   </td>
-                  <td className="p-2 border">
-                    <textarea
-                      className="w-40 p-1 rounded border border-gray-200 text-xs"
-                      rows={2}
-                      value={messageDraft[app.id] ?? ''}
-                      onChange={e => setMessageDraft(m => ({ ...m, [app.id]: e.target.value }))}
-                      placeholder="Pesan untuk user (opsional)..."
-                    />
-                    <button
-                      onClick={() => handleSaveMessage(app)}
-                      className="block w-full mt-1 bg-blue-500 hover:bg-blue-700 text-white text-xs py-1 rounded"
-                    >
-                      Simpan Pesan
-                    </button>
-                  </td>
                   <td className="p-2 border space-x-1">
                     <button 
                       onClick={() => handleApprove(app.user_id, app.email)} 
@@ -228,7 +186,7 @@ export default function FranchisorApprovals() {
                       onClick={() => handleReject(app)} 
                       className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
                     >
-                      Reject
+                      Hapus Data
                     </button>
                   </td>
                 </tr>
