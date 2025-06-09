@@ -8,6 +8,7 @@ const socket = io('https://franchisehub-chat-backend-production.up.railway.app')
 export default function ChatPasarPopup({ onClose }: { onClose: () => void }) {
   const user = useUser();
   const popupRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null); // Tambahan penting
   const [message, setMessage] = useState('');
 
   interface Message {
@@ -24,7 +25,6 @@ export default function ChatPasarPopup({ onClose }: { onClose: () => void }) {
     socket.on('receive_message', (msg) => {
       setMessages((prev) => [...prev, msg]);
     });
-
     return () => {
       socket.off('receive_message');
     };
@@ -43,9 +43,15 @@ export default function ChatPasarPopup({ onClose }: { onClose: () => void }) {
         console.error('Gagal mengambil pesan awal:', error);
       }
     }
-
     fetchInitialMessages();
   }, []);
+
+  // 👇 SCROLL TO BOTTOM setiap messages berubah
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -63,7 +69,6 @@ export default function ChatPasarPopup({ onClose }: { onClose: () => void }) {
 
   const sendMessage = () => {
     if (!user || !message.trim()) return;
-
     const data = {
       sender_id: user.id,
       sender_name: fullName,
@@ -98,6 +103,8 @@ export default function ChatPasarPopup({ onClose }: { onClose: () => void }) {
             </div>
           </div>
         ))}
+        {/* <=== Tambahkan ini agar scroll otomatis ke bawah ===> */}
+        <div ref={messagesEndRef} />
       </div>
       <div className="p-2 border-t flex bg-white bg-opacity-90">
         <input
