@@ -1,5 +1,3 @@
-// pages/franchisor/index.tsx
-
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabaseClient'
 import { v4 as uuidv4 } from 'uuid'
@@ -71,10 +69,10 @@ export default function FranchisorForm() {
     else setStatus('idle')
   }
 
-  // Ambil pesan admin terakhir dari tabel admin_messages
+  // Ambil pesan admin terakhir dari tabel morgan_messages
   const fetchAdminMessage = async (userId: string) => {
     const { data, error } = await supabase
-      .from('admin_messages')
+      .from('morgan_messages')
       .select('message')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
