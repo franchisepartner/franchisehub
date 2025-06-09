@@ -120,10 +120,10 @@ export default function FranchisorApprovals() {
     }
   };
 
-  // Buka modal pesan admin, ambil pesan terakhir jika ada
+  // Buka modal pesan admin, ambil pesan terakhir jika ada (history)
   const openMessageModal = async (user_id: string) => {
     const { data } = await supabase
-      .from('admin_messages')
+      .from('morgan_messages')
       .select('message')
       .eq('user_id', user_id)
       .order('created_at', { ascending: false })
@@ -136,7 +136,7 @@ export default function FranchisorApprovals() {
     });
   };
 
-  // Kirim pesan admin (upsert by user_id)
+  // Kirim pesan admin ke tabel morgan_messages (NO onConflict!)
   const handleSaveMessage = async () => {
     const msg = messageModal.value.trim();
     if (!messageModal.user_id) return;
@@ -144,13 +144,11 @@ export default function FranchisorApprovals() {
       alert('Isi pesan tidak boleh kosong.');
       return;
     }
-    // Upsert pesan (user_id unik)
     const { error } = await supabase
-      .from('admin_messages')
-      .upsert(
-        [{ user_id: messageModal.user_id, message: msg }],
-        { onConflict: 'user_id' } // FIX: string, bukan array
-      );
+      .from('morgan_messages')
+      .insert([
+        { user_id: messageModal.user_id, message: msg }
+      ]);
     if (!error) {
       alert('Pesan berhasil dikirim.');
       setMessageModal({ show: false, user_id: '', value: '' });
