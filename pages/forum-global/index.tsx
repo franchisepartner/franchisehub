@@ -144,102 +144,153 @@ export default function ForumGlobal() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto p-6 relative">
-      <Image src="/pattern.jpg" alt="Decorative Corner" width={100} height={100} className="absolute top-0 left-0 -z-10 opacity-20" />
+    <div className="max-w-3xl mx-auto px-3 sm:px-6 py-8 min-h-screen relative">
+      <Image
+        src="/pattern.jpg"
+        alt="Decorative Corner"
+        width={100}
+        height={100}
+        className="absolute top-0 left-0 -z-10 opacity-10 pointer-events-none select-none"
+      />
+      <div className="flex justify-between items-end mb-6">
+        <h1 className="text-2xl md:text-3xl font-extrabold text-blue-900">Forum Global 🌐</h1>
+        {session && (
+          <button
+            className="bg-gradient-to-r from-blue-600 to-cyan-400 text-white font-bold px-5 py-2 rounded-full shadow-lg hover:scale-105 transition"
+            onClick={() => setShowThreadPopup(true)}
+          >
+            + Thread Baru
+          </button>
+        )}
+      </div>
 
-      <h1 className="text-2xl font-bold mb-6">Forum Global 🌐</h1>
-
-      {session && (
-        <button className="mb-4 px-4 py-2 bg-blue-500 text-white rounded" onClick={() => setShowThreadPopup(true)}>
-          Buat Thread Baru
-        </button>
+      {/* List Thread */}
+      {loading && <p className="text-center py-12 text-gray-400">Memuat diskusi...</p>}
+      {!loading && threads.length === 0 && (
+        <div className="text-center text-gray-400 py-12">Belum ada diskusi. Jadilah yang pertama!</div>
       )}
-
-      {loading && <p>Loading...</p>}
       {!loading && threads.map(thread => (
         <div
           key={thread.id}
-          className="border p-4 rounded hover:bg-gray-50 cursor-pointer"
+          className="group bg-white rounded-2xl border border-blue-100 shadow-md hover:shadow-xl hover:-translate-y-1 transition p-5 mb-4 cursor-pointer relative"
           onClick={() => { setSelectedThread(thread); fetchComments(thread.id); }}
         >
-          <h3 className="font-semibold text-lg">{thread.title}</h3>
-          <p className="text-sm text-gray-500">{new Date(thread.created_at).toLocaleString()} oleh {thread.user_name}</p>
+          <div className="flex items-center gap-3 mb-1">
+            <span className="text-lg font-semibold text-blue-700 group-hover:underline">{thread.title}</span>
+            <span className="bg-blue-50 text-blue-400 font-bold px-3 py-0.5 rounded-full text-xs">{thread.user_name}</span>
+          </div>
+          <div className="flex items-center text-xs text-gray-400 gap-2 mb-2">
+            <span>{new Date(thread.created_at).toLocaleString()}</span>
+            {thread.image_url && (
+              <span className="ml-1 px-2 py-0.5 rounded bg-gray-100 text-blue-500 text-[10px]">+ gambar</span>
+            )}
+          </div>
+          <p className="text-gray-700 text-sm line-clamp-2">{thread.content}</p>
         </div>
       ))}
 
+      {/* Thread Detail & Komentar */}
       {selectedThread && (
-        <div className="mt-6 border p-4 rounded">
-          <div className="flex justify-between items-center mb-2">
-            <h2 className="font-bold text-xl">{selectedThread.title}</h2>
-            {(session?.user?.id === selectedThread.created_by || role === 'administrator') && (
-              <button
-                onClick={() => handleDeleteThread(selectedThread.id)}
-                className="text-red-600 hover:underline text-sm"
-              >
-                Hapus
-              </button>
-            )}
-          </div>
-          {selectedThread.image_url && <img src={selectedThread.image_url} className="w-full rounded mb-2" />}
-          <p className="mb-4">{selectedThread.content}</p>
-
-          <div className="border-t pt-4">
-            <h3 className="font-semibold mb-2">Komentar:</h3>
-            {comments.map(comment => (
-              <div key={comment.id} className="border-b py-2">
-                <p><span className="font-semibold">{comment.user_name}</span>: {comment.content}</p>
-                <p className="text-xs text-gray-500">{new Date(comment.created_at).toLocaleString()}</p>
-              </div>
-            ))}
-
-            {session && (
-              <>
-                <textarea
-                  value={newComment}
-                  onChange={e => setNewComment(e.target.value)}
-                  className="w-full border rounded px-3 py-2"
-                  placeholder="Tambah komentar..."
-                />
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-3 py-8" onClick={() => setSelectedThread(null)}>
+          <div
+            className="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-auto p-6 relative animate-fade-in border border-blue-100"
+            onClick={e => e.stopPropagation()}
+          >
+            <button
+              className="absolute top-3 right-5 text-xl text-gray-400 hover:text-red-600"
+              onClick={() => setSelectedThread(null)}
+              aria-label="Tutup"
+            >&times;</button>
+            <div className="flex items-center gap-3 mb-1">
+              <h2 className="text-xl font-extrabold text-blue-900 flex-1">{selectedThread.title}</h2>
+              {(session?.user?.id === selectedThread.created_by || role === 'administrator') && (
                 <button
-                  className="mt-2 bg-blue-500 text-white px-4 py-2 rounded"
-                  onClick={handleCommentSubmit}
+                  onClick={() => handleDeleteThread(selectedThread.id)}
+                  className="text-red-600 hover:underline text-xs font-bold"
                 >
-                  Kirim
+                  Hapus
                 </button>
-              </>
+              )}
+            </div>
+            <div className="flex items-center text-xs text-gray-400 gap-2 mb-2">
+              <span>{selectedThread.user_name}</span>
+              <span>•</span>
+              <span>{new Date(selectedThread.created_at).toLocaleString()}</span>
+            </div>
+            {selectedThread.image_url && (
+              <img
+                src={selectedThread.image_url}
+                className="w-full rounded-xl mb-3 border"
+                alt="Thread Image"
+              />
             )}
+            <p className="mb-3 text-gray-800">{selectedThread.content}</p>
+            <div className="border-t pt-4">
+              <h3 className="font-bold text-blue-600 mb-3">Komentar</h3>
+              <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
+                {comments.map(comment => (
+                  <div key={comment.id} className="bg-blue-50 border border-blue-100 rounded-xl px-3 py-2">
+                    <div className="text-sm text-gray-700 mb-1">
+                      <span className="font-semibold text-blue-700">{comment.user_name}</span>: {comment.content}
+                    </div>
+                    <div className="text-[11px] text-gray-400">{new Date(comment.created_at).toLocaleString()}</div>
+                  </div>
+                ))}
+              </div>
+              {session && (
+                <div className="flex gap-2 mt-4">
+                  <textarea
+                    value={newComment}
+                    onChange={e => setNewComment(e.target.value)}
+                    className="w-full border border-blue-200 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none bg-blue-50 text-sm resize-none"
+                    placeholder="Tambah komentar..."
+                  />
+                  <button
+                    className="bg-gradient-to-r from-blue-600 to-cyan-400 text-white font-bold px-5 py-2 rounded-xl shadow-lg hover:scale-105 transition disabled:opacity-50"
+                    onClick={handleCommentSubmit}
+                  >
+                    Kirim
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
 
+      {/* Modal Buat Thread Baru */}
       {showThreadPopup && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" onClick={() => setShowThreadPopup(false)}>
-          <div className="bg-white p-6 rounded relative" onClick={e => e.stopPropagation()}>
-            <button className="absolute top-2 right-2 text-xl" onClick={() => setShowThreadPopup(false)}>&times;</button>
-            <h2 className="font-bold mb-2">Thread Baru</h2>
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center px-3 py-8" onClick={() => setShowThreadPopup(false)}>
+          <div
+            className="bg-white rounded-2xl shadow-2xl p-7 max-w-md w-full relative border border-blue-100 animate-fade-in"
+            onClick={e => e.stopPropagation()}
+          >
+            <button className="absolute top-2 right-3 text-xl text-gray-400 hover:text-red-600" onClick={() => setShowThreadPopup(false)}>&times;</button>
+            <h2 className="font-bold mb-3 text-blue-700 text-lg">Buat Thread Baru</h2>
             <input
               type="text"
               placeholder="Judul"
               value={newThread.title}
               onChange={e => setNewThread({ ...newThread, title: e.target.value })}
-              className="w-full border px-3 py-2 mb-2"
+              className="w-full border border-blue-200 rounded-xl px-4 py-2 mb-2 focus:ring-2 focus:ring-blue-400 outline-none font-semibold"
             />
             <textarea
               placeholder="Isi thread"
               value={newThread.content}
               onChange={e => setNewThread({ ...newThread, content: e.target.value })}
-              className="w-full border px-3 py-2 mb-2"
+              className="w-full border border-blue-200 rounded-xl px-4 py-2 mb-2 focus:ring-2 focus:ring-blue-400 outline-none"
+              rows={4}
             />
             <input
               type="file"
               accept="image/jpeg, image/png"
               onChange={e => setNewThread({ ...newThread, imageFile: e.target.files?.[0] || null })}
-              className="mb-1"
+              className="mb-2 text-sm"
             />
-            <p className="text-sm text-gray-500">Hanya file .jpg atau .png</p>
+            <p className="text-xs text-gray-400 mb-2">Hanya file .jpg atau .png, maksimal 5MB</p>
             <button
               onClick={handleCreateThread}
-              className="bg-blue-500 text-white px-4 py-2 rounded mt-4"
+              className="w-full bg-gradient-to-r from-blue-600 to-cyan-400 text-white font-bold py-2 rounded-xl mt-2 shadow-lg hover:scale-105 transition"
             >
               Kirim
             </button>
