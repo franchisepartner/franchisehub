@@ -48,7 +48,6 @@ export default function ChatPasarPopup({ onClose }: { onClose: () => void }) {
         .from('messages')
         .select('*')
         .order('created_at', { ascending: true });
-
       if (data) setMessages(data);
     }
     fetchInitialMessages();
@@ -117,11 +116,17 @@ export default function ChatPasarPopup({ onClose }: { onClose: () => void }) {
                   : '#22c55e',
             }}
           >
-            <div className="flex items-center gap-2 mb-1">
-              <span className="font-semibold text-gray-800 truncate">{msg.sender_name}</span>
+            <div className="flex items-center gap-2 mb-1 min-w-0">
+              <span
+                className="font-semibold text-gray-800 truncate max-w-[100px] md:max-w-[140px]"
+                title={msg.sender_name}
+                style={{ display: 'inline-block' }}
+              >
+                {msg.sender_name}
+              </span>
               <span
                 className={
-                  "px-2 py-0.5 rounded text-xs font-bold border " + roleColor(msg.sender_role)
+                  "px-2 py-0.5 rounded text-xs font-bold border flex-shrink-0 " + roleColor(msg.sender_role)
                 }
               >
                 {msg.sender_role === 'franchisor'
