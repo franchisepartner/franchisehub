@@ -191,9 +191,13 @@ export default function ForumGlobal() {
 
       {/* Thread Detail & Komentar */}
       {selectedThread && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-3 py-8" onClick={() => setSelectedThread(null)}>
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-3 py-8"
+          onClick={() => setSelectedThread(null)}
+        >
           <div
-            className="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-auto p-6 relative animate-fade-in border border-blue-100"
+            className="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-auto p-6 relative animate-fade-in border border-blue-100
+              max-h-[90vh] overflow-y-auto"
             onClick={e => e.stopPropagation()}
           >
             <button
@@ -260,9 +264,13 @@ export default function ForumGlobal() {
 
       {/* Modal Buat Thread Baru */}
       {showThreadPopup && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center px-3 py-8" onClick={() => setShowThreadPopup(false)}>
+        <div
+          className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center px-3 py-8"
+          onClick={() => setShowThreadPopup(false)}
+        >
           <div
-            className="bg-white rounded-2xl shadow-2xl p-7 max-w-md w-full relative border border-blue-100 animate-fade-in"
+            className="bg-white rounded-2xl shadow-2xl p-7 max-w-md w-full relative border border-blue-100 animate-fade-in
+              max-h-[90vh] overflow-y-auto"
             onClick={e => e.stopPropagation()}
           >
             <button className="absolute top-2 right-3 text-xl text-gray-400 hover:text-red-600" onClick={() => setShowThreadPopup(false)}>&times;</button>
