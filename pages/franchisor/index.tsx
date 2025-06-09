@@ -1,6 +1,6 @@
 // pages/franchisor/index.tsx
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabaseClient'
 import { v4 as uuidv4 } from 'uuid'
 import { useRouter } from 'next/router'
@@ -20,8 +20,6 @@ export default function FranchisorForm() {
   const [loading, setLoading] = useState(false)
   const [session, setSession] = useState<any>(null)
   const [adminMessage, setAdminMessage] = useState<string>('')
-  const [pendingDeleted, setPendingDeleted] = useState(false)
-  const deleteTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const router = useRouter()
 
   // Cek login & status pengajuan saat mount
@@ -73,31 +71,6 @@ export default function FranchisorForm() {
     else setStatus('idle')
     setAdminMessage(data?.admin_message || '')
   }
-
-  // Hapus otomatis pengajuan jika pending+ada pesan admin (dalam 60 detik)
-  useEffect(() => {
-    if (
-      session?.user &&
-      status === 'pending' &&
-      adminMessage &&
-      !pendingDeleted
-    ) {
-      // Jalankan timer hapus data setelah 60 detik
-      deleteTimeoutRef.current = setTimeout(async () => {
-        await supabase
-          .from('franchisor_applications')
-          .delete()
-          .eq('user_id', session.user.id)
-        setPendingDeleted(true)
-        setStatus('idle')
-        setAdminMessage('')
-      }, 60000)
-      return () => {
-        if (deleteTimeoutRef.current) clearTimeout(deleteTimeoutRef.current)
-      }
-    }
-    // eslint-disable-next-line
-  }, [session, status, adminMessage, pendingDeleted])
 
   // Submit pengajuan
   const handleSubmit = async () => {
@@ -157,7 +130,6 @@ export default function FranchisorForm() {
     } else {
       setStatus('pending')
       setAdminMessage('')
-      setPendingDeleted(false)
     }
 
     setLoading(false)
@@ -213,7 +185,7 @@ export default function FranchisorForm() {
             Login sebagai Franchisor
           </button>
         </div>
-      ) : status === 'pending' && !pendingDeleted ? (
+      ) : status === 'pending' ? (
         <>
           <button className="bg-gray-400 text-white w-full py-2 rounded cursor-not-allowed mb-4" disabled>
             Sedang Diperiksa Administrator
@@ -222,17 +194,9 @@ export default function FranchisorForm() {
             <div className="bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 p-4 rounded mb-4">
               <strong>Pesan Administrator:</strong>
               <div className="mt-1 whitespace-pre-line">{adminMessage}</div>
-              <div className="mt-2 text-xs text-gray-600 font-semibold">
-                Data pengajuan Anda akan dihapus otomatis dalam 60 detik.<br />
-                Silakan perbaiki data dan ajukan ulang.
-              </div>
             </div>
           )}
         </>
-      ) : status === 'pending' && pendingDeleted ? (
-        <div className="bg-yellow-100 border border-yellow-300 p-4 rounded mb-4 text-yellow-700">
-          Data pengajuan telah dihapus otomatis. Silakan mengajukan ulang.
-        </div>
       ) : (
         <>
           {adminMessage && (
