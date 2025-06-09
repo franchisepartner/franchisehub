@@ -24,7 +24,7 @@ export default function FranchisorApprovals() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
 
-  // Pesan Modal State
+  // Modal pesan admin
   const [messageModal, setMessageModal] = useState<{
     show: boolean;
     user_id: string;
@@ -120,9 +120,9 @@ export default function FranchisorApprovals() {
     }
   };
 
-  // Buka modal pesan
+  // Buka modal pesan, fetch pesan terakhir (optional)
   const openMessageModal = async (user_id: string) => {
-    // Ambil pesan terakhir jika ada
+    // Ambil pesan terakhir (kalau ada)
     const { data } = await supabase
       .from('admin_messages')
       .select('message')
@@ -137,7 +137,7 @@ export default function FranchisorApprovals() {
     });
   };
 
-  // Simpan pesan admin ke tabel admin_messages
+  // Kirim pesan admin (upsert by user_id)
   const handleSaveMessage = async () => {
     const msg = messageModal.value.trim();
     if (!messageModal.user_id) return;
@@ -145,18 +145,17 @@ export default function FranchisorApprovals() {
       alert('Isi pesan tidak boleh kosong.');
       return;
     }
-    // Upsert pesan (per user_id) - HANYA BISA JIKA sudah ada unique constraint di user_id!
+    // Upsert pesan (user_id unik)
     const { error } = await supabase
       .from('admin_messages')
-      .upsert(
-        [{ user_id: messageModal.user_id, message: msg }],
-        { onConflict: 'user_id' }
-      );
+      .upsert([
+        { user_id: messageModal.user_id, message: msg }
+      ], { onConflict: 'user_id' });
     if (!error) {
       alert('Pesan berhasil dikirim.');
       setMessageModal({ show: false, user_id: '', value: '' });
     } else {
-      alert('Gagal mengirim pesan.');
+      alert('Gagal mengirim pesan: ' + error.message);
     }
   };
 
