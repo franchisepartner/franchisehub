@@ -8,18 +8,25 @@ const socket = io('https://franchisehub-chat-backend-production.up.railway.app')
 export default function ChatPasarPopup({ onClose }: { onClose: () => void }) {
   const user = useUser();
   const popupRef = useRef<HTMLDivElement>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null); // Tambahan penting
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const [message, setMessage] = useState('');
+  const [role, setRole] = useState('franchisee'); // Default
+  const [messages, setMessages] = useState<any[]>([]);
 
-  interface Message {
-    sender_id: string;
-    sender_name: string;
-    sender_role: string;
-    content: string;
-    created_at?: Date;
-  }
-
-  const [messages, setMessages] = useState<Message[]>([]);
+  useEffect(() => {
+    // Ambil role dari Supabase
+    async function fetchRole() {
+      if (user) {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+        if (data?.role) setRole(data.role);
+      }
+    }
+    fetchRole();
+  }, [user]);
 
   useEffect(() => {
     socket.on('receive_message', (msg) => {
@@ -37,16 +44,12 @@ export default function ChatPasarPopup({ onClose }: { onClose: () => void }) {
         .select('*')
         .order('created_at', { ascending: true });
 
-      if (data) {
-        setMessages(data);
-      } else {
-        console.error('Gagal mengambil pesan awal:', error);
-      }
+      if (data) setMessages(data);
+      else console.error('Gagal mengambil pesan awal:', error);
     }
     fetchInitialMessages();
   }, []);
 
-  // 👇 SCROLL TO BOTTOM setiap messages berubah
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -72,7 +75,7 @@ export default function ChatPasarPopup({ onClose }: { onClose: () => void }) {
     const data = {
       sender_id: user.id,
       sender_name: fullName,
-      sender_role: user.user_metadata?.role || 'franchisee',
+      sender_role: role, // gunakan role dari Supabase
       content: message,
     };
     socket.emit('send_message', data);
@@ -82,7 +85,13 @@ export default function ChatPasarPopup({ onClose }: { onClose: () => void }) {
   return (
     <div
       className="fixed bottom-24 right-6 w-80 h-96 shadow-2xl rounded-lg flex flex-col z-50"
-      style={{ backgroundImage: 'url(/latar.jpg)', backgroundSize: 'cover', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', backgroundColor: 'rgba(255,255,255,4)' }}
+      style={{
+        backgroundImage: 'url(/latar.jpg)',
+        backgroundSize: 'cover',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'center',
+        backgroundColor: 'rgba(255,255,255,4)'
+      }}
       ref={popupRef}
     >
       <div className="p-2 border-b flex justify-between items-center bg-white bg-opacity-90">
@@ -93,17 +102,17 @@ export default function ChatPasarPopup({ onClose }: { onClose: () => void }) {
         {messages.map((msg, idx) => (
           <div key={idx} className="mb-3 p-2 rounded bg-white bg-opacity-90 text-sm shadow break-words whitespace-pre-wrap">
             <div className="font-bold text-blue-600">
-              {msg.sender_name}_{msg.sender_role}
+              {msg.sender_name}
+              <span className="ml-2 px-2 py-0.5 text-xs font-bold rounded bg-blue-100 text-blue-600">
+                {msg.sender_role}
+              </span>
             </div>
-            <div className="text-gray-800">
-              {msg.content}
-            </div>
+            <div className="text-gray-800">{msg.content}</div>
             <div className="text-right text-xs text-gray-400">
               {new Date(msg.created_at || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </div>
           </div>
         ))}
-        {/* <=== Tambahkan ini agar scroll otomatis ke bawah ===> */}
         <div ref={messagesEndRef} />
       </div>
       <div className="p-2 border-t flex bg-white bg-opacity-90">
