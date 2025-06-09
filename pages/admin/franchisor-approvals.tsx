@@ -109,32 +109,25 @@ export default function FranchisorApprovals() {
     }
   };
 
-  // Reject (update status)
-  const handleReject = async (user_id: string) => {
-    const { error: rejectError } = await supabase
-      .from('franchisor_applications')
-      .update({ status: 'rejected' })
-      .eq('user_id', user_id);
-    if (rejectError) {
-      alert('Gagal reject.');
-    } else {
-      alert('Berhasil reject.');
-      setApplications(applications.filter(app => app.user_id !== user_id));
+  // REJECT & DELETE SEKALIGUS
+  const handleRejectDelete = async (app: Application) => {
+    if (!confirm('Yakin ingin menolak dan menghapus pengajuan ini?')) return;
+    // Optionally, kamu bisa kirim admin_message sebelum hapus (opsional)
+    if (messageDraft[app.id]?.trim()) {
+      await supabase
+        .from('franchisor_applications')
+        .update({ admin_message: messageDraft[app.id].trim() })
+        .eq('id', app.id);
     }
-  };
-
-  // Hapus data pengajuan (delete dari DB)
-  const handleDelete = async (id: string) => {
-    if (!confirm('Yakin ingin menghapus data pengajuan ini?')) return;
     const { error } = await supabase
       .from('franchisor_applications')
       .delete()
-      .eq('id', id);
+      .eq('id', app.id);
     if (error) {
       alert('Gagal menghapus data.');
     } else {
-      alert('Data berhasil dihapus.');
-      setApplications(applications.filter(app => app.id !== id));
+      alert('Data pengajuan berhasil dihapus (rejected).');
+      setApplications(applications.filter(a => a.id !== app.id));
     }
   };
 
@@ -237,16 +230,10 @@ export default function FranchisorApprovals() {
                       Approve
                     </button>
                     <button 
-                      onClick={() => handleReject(app.user_id)} 
+                      onClick={() => handleRejectDelete(app)} 
                       className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
                     >
                       Reject
-                    </button>
-                    <button
-                      onClick={() => handleDelete(app.id)}
-                      className="bg-gray-500 hover:bg-gray-700 text-white px-3 py-1 rounded"
-                    >
-                      Hapus Data
                     </button>
                   </td>
                 </tr>
