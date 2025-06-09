@@ -73,16 +73,20 @@ export default function ChatPasarPopup({ onClose }: { onClose: () => void }) {
 
   const fullName = user?.user_metadata?.full_name || 'User';
 
-  const sendMessage = () => {
-    if (!user || !message.trim()) return;
-    const data = {
-      sender_id: user.id,
-      sender_name: fullName,
-      sender_role: role,
-      content: message,
-    };
-    socket.emit('send_message', data);
-    setMessage('');
+  // Handler report
+  const handleReport = async (msgId: string, reportedBy: string[] = []) => {
+    if (!user) return;
+    if (reportedBy.includes(user.id)) return; // Tidak bisa report 2x
+
+    // Update reported_by field di Supabase (asumsi array)
+    const { data, error } = await supabase
+      .from('messages')
+      .update({ reported_by: [...reportedBy, user.id] })
+      .eq('id', msgId)
+      .select();
+
+    // Bisa juga trigger event via socket jika ingin real-time
+    // socket.emit('report_message', { id: msgId, user_id: user.id });
   };
 
   return (
@@ -102,46 +106,84 @@ export default function ChatPasarPopup({ onClose }: { onClose: () => void }) {
         <button onClick={onClose} className="text-gray-400 hover:text-red-500 text-xl font-bold px-2">&times;</button>
       </div>
       <div className="flex-1 px-3 py-2 overflow-y-auto bg-white/80">
-        {messages.map((msg, idx) => (
-          <div
-            key={idx}
-            className={`mb-3 p-2 rounded-xl shadow border flex flex-col bg-white/95`}
-            style={{
-              borderLeftWidth: 5,
-              borderLeftColor:
-                msg.sender_role === 'franchisor'
-                  ? '#ef4444'
-                  : msg.sender_role === 'administrator'
-                  ? '#2563eb'
-                  : '#22c55e',
-            }}
-          >
-            <div className="flex items-center gap-2 mb-1 min-w-0">
-              <span
-                className="font-semibold text-gray-800 truncate max-w-[100px] md:max-w-[140px]"
-                title={msg.sender_name}
-                style={{ display: 'inline-block' }}
+        {messages.map((msg, idx) => {
+          // Hitung laporan, default: []
+          const reportedBy: string[] = msg.reported_by || [];
+          const alreadyReported = user && reportedBy.includes(user.id);
+          const reportCount = reportedBy.length;
+
+          // Jika sudah 3+ report, pesan disembunyikan
+          if (reportCount >= 3) {
+            return (
+              <div
+                key={idx}
+                className="mb-3 p-2 rounded-xl shadow border flex flex-col bg-gray-100 border-gray-300"
               >
-                {msg.sender_name}
-              </span>
-              <span
-                className={
-                  "px-2 py-0.5 rounded text-xs font-bold border flex-shrink-0 " + roleColor(msg.sender_role)
-                }
-              >
-                {msg.sender_role === 'franchisor'
-                  ? 'Franchisor'
-                  : msg.sender_role === 'administrator'
-                  ? 'Administrator'
-                  : 'Franchisee'}
-              </span>
+                <div className="text-red-600 italic text-sm text-center">Pesan telah disembunyikan oleh sistem.</div>
+              </div>
+            );
+          }
+
+          return (
+            <div
+              key={idx}
+              className={`mb-3 p-2 rounded-xl shadow border flex flex-col bg-white/95`}
+              style={{
+                borderLeftWidth: 5,
+                borderLeftColor:
+                  msg.sender_role === 'franchisor'
+                    ? '#ef4444'
+                    : msg.sender_role === 'administrator'
+                    ? '#2563eb'
+                    : '#22c55e',
+              }}
+            >
+              <div className="flex items-center gap-2 mb-1 min-w-0">
+                <span
+                  className="font-semibold text-gray-800 truncate max-w-[100px] md:max-w-[140px]"
+                  title={msg.sender_name}
+                  style={{ display: 'inline-block' }}
+                >
+                  {msg.sender_name}
+                </span>
+                <span
+                  className={
+                    "px-2 py-0.5 rounded text-xs font-bold border flex-shrink-0 " + roleColor(msg.sender_role)
+                  }
+                >
+                  {msg.sender_role === 'franchisor'
+                    ? 'Franchisor'
+                    : msg.sender_role === 'administrator'
+                    ? 'Administrator'
+                    : 'Franchisee'}
+                </span>
+                {/* Icon Report */}
+                {user && (
+                  <button
+                    title={
+                      alreadyReported
+                        ? "Anda sudah melaporkan"
+                        : "Laporkan pesan ini"
+                    }
+                    disabled={alreadyReported}
+                    onClick={() => handleReport(msg.id, reportedBy)}
+                    className={`ml-2 text-gray-400 hover:text-red-500 transition text-lg ${
+                      alreadyReported ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110'
+                    }`}
+                    style={{padding: 0, background: 'none', border: 'none'}}
+                  >
+                    {/* Pakai icon 🚩 atau ganti svg */}
+                    <span role="img" aria-label="Laporkan">🚩</span>
+                  </button>
+                )}
+              </div>
+              <div className="text-gray-800 break-words">{msg.content}</div>
+              <div className="text-right text-xs text-gray-400 mt-1">
+                {new Date(msg.created_at || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </div>
             </div>
-            <div className="text-gray-800 break-words">{msg.content}</div>
-            <div className="text-right text-xs text-gray-400 mt-1">
-              {new Date(msg.created_at || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </div>
-          </div>
-        ))}
+          );
+        })}
         <div ref={messagesEndRef} />
       </div>
       <div className="p-3 border-t flex bg-white/95 rounded-b-2xl">
