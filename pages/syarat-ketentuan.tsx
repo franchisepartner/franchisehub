@@ -19,7 +19,7 @@ export default function SyaratKetentuan() {
 
       <div className="bg-white/80 rounded-2xl shadow-lg border border-blue-100 p-6 md:p-10 space-y-9">
         <div className="text-gray-700 text-base md:text-lg mb-4">
-          Dengan menggunakan layanan FranchiseHub di situs <a href="https://franchisehub.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline hover:text-blue-800">https://franchisehubcom.vercel.app</a>, Anda menyetujui syarat dan ketentuan berikut ini:
+          Dengan menggunakan layanan FranchiseHub di situs <a href="https://franchisehub.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline hover:text-blue-800">https://franchisehub.com</a>, Anda menyetujui syarat dan ketentuan berikut ini:
         </div>
         {/* Isi S&K */}
         {[
