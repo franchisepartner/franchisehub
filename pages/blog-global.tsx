@@ -17,6 +17,8 @@ interface Blog {
 export default function BlogGlobal() {
   const [session, setSession] = useState<any>(null);
   const [role, setRole] = useState<string>('');
+  const [blogs, setBlogs] = useState<Blog[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -40,8 +42,6 @@ export default function BlogGlobal() {
     }
     fetchRole();
   }, [session]);
-  const [blogs, setBlogs] = useState<Blog[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchBlogs = async () => {
@@ -68,52 +68,66 @@ export default function BlogGlobal() {
         />
         <link rel="canonical" href="https://franchisehubcom.vercel.app/blog-global" />
       </Head>
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl md:text-3xl font-bold">Blog FranchiseHub</h1>
+      <div className="max-w-5xl mx-auto px-3 sm:px-6 py-10 min-h-screen relative">
+        {/* Header */}
+        <div className="flex justify-between items-end mb-9">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-extrabold mb-1 tracking-tight text-blue-900">Blog FranchiseHub</h1>
+            <p className="text-gray-500 text-sm md:text-base">
+              Inspirasi bisnis, wawasan franchise, dan tips sukses terkini dari para pelaku dan ahli.
+            </p>
+          </div>
           {(role === 'franchisor' || role === 'administrator') && (
-            <div className="flex flex-col items-center">
+            <div>
               <Link
                 href="/blog/manage"
-                className="flex items-center justify-center w-12 h-12 rounded-full bg-blue-600 text-white text-2xl shadow-lg hover:bg-blue-700 transition"
+                className="flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-tr from-blue-600 to-cyan-400 text-white text-3xl shadow-lg hover:scale-110 hover:shadow-2xl transition ring-2 ring-white border-4 border-white"
                 title="Buat Blog Baru"
               >
+                <span className="sr-only">Buat Blog Baru</span>
                 📝
               </Link>
-              <span className="text-xs mt-2 text-blue-700 font-semibold">Ayo buat blog</span>
+              <span className="block text-xs text-blue-600 font-semibold text-center mt-1">Buat blog</span>
             </div>
           )}
         </div>
+        {/* List Blog */}
         {loading ? (
-          <p>Memuat blog...</p>
+          <div className="text-center py-16 text-gray-400 animate-pulse">Memuat blog...</div>
         ) : blogs.length === 0 ? (
-          <p>Belum ada blog.</p>
+          <div className="text-center py-16 text-gray-400">Belum ada blog.</div>
         ) : (
-          <div className="grid sm:grid-cols-2 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-7">
             {blogs.map(blog => {
               // Buat ringkasan 110 karakter dari konten (tanpa tag HTML)
               const excerpt = blog.content.replace(/<[^>]+>/g, '').slice(0, 110) + (blog.content.length > 110 ? '...' : '');
               return (
-                <Link key={blog.id} href={`/detail/${blog.slug}`} className="block border rounded-lg hover:shadow-md transition bg-white">
-                  <div>
+                <Link
+                  key={blog.id}
+                  href={`/detail/${blog.slug}`}
+                  className="group flex flex-col bg-white rounded-2xl border border-blue-50 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition overflow-hidden"
+                >
+                  <div className="relative">
                     {blog.cover_url && (
                       <img
                         src={blog.cover_url}
                         alt={blog.title}
-                        className="w-full h-48 object-cover rounded-t-lg"
+                        className="w-full h-44 object-cover bg-gray-100 group-hover:scale-[1.03] transition rounded-t-2xl"
                         loading="lazy"
                       />
                     )}
-                    <div className="p-4">
-                      <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
-                        <span className="font-medium">{blog.category}</span>
-                        <span>•</span>
-                        <span>{new Date(blog.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-                      </div>
-                      <h2 className="text-lg font-semibold mb-1 line-clamp-2">{blog.title}</h2>
-                      <p className="text-sm text-gray-600 mb-2 line-clamp-2">{excerpt}</p>
-                      <div className="text-xs text-gray-400 italic">Oleh {blog.author}</div>
+                    <span className="absolute top-3 left-3 bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full shadow-md">
+                      {blog.category}
+                    </span>
+                  </div>
+                  <div className="flex-1 flex flex-col p-4">
+                    <h2 className="text-lg font-semibold mb-1 line-clamp-2 text-gray-900 group-hover:text-blue-700">{blog.title}</h2>
+                    <div className="text-xs text-gray-500 flex items-center gap-2 mb-2">
+                      <span>{new Date(blog.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                      <span>•</span>
+                      <span>Oleh {blog.author}</span>
                     </div>
+                    <p className="text-sm text-gray-600 line-clamp-2 flex-1">{excerpt}</p>
                   </div>
                 </Link>
               );
