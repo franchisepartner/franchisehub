@@ -1,5 +1,3 @@
-// File: components/Navbar.tsx
-
 import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -18,7 +16,9 @@ export default function Navbar() {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedIdx, setSelectedIdx] = useState(-1);
+  const [showSearchPopup, setShowSearchPopup] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const popupInputRef = useRef<HTMLInputElement>(null);
 
   const isHomePage = router.pathname === '/';
 
@@ -52,7 +52,6 @@ export default function Navbar() {
     ? `${navbarSession.user?.user_metadata?.full_name || 'User'}_${role}`
     : 'Calon Franchisee';
 
-  // UNIVERSAL SEARCH dengan out-of-the-box links
   useEffect(() => {
     if (!searchTerm) {
       setSearchResults([]);
@@ -163,11 +162,20 @@ export default function Navbar() {
     return () => window.removeEventListener('keydown', handleKey);
   }, [showDropdown, searchResults, selectedIdx]);
 
+  useEffect(() => {
+    if (showSearchPopup && popupInputRef.current) {
+      setTimeout(() => {
+        popupInputRef.current?.focus();
+      }, 100);
+    }
+  }, [showSearchPopup]);
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.push('/');
   };
 
+  // --- Bagian utama UI ---
   return (
     <>
       <nav className="w-full bg-white shadow-md px-4 py-3 flex items-center justify-between relative z-50">
@@ -180,7 +188,7 @@ export default function Navbar() {
           </Link>
         </div>
 
-        {/* Search Bar */}
+        {/* Search Bar (normal mode, mobile pendek) */}
         {!isHomePage && (
           <div className="flex-1 mx-2 sm:mx-4 relative flex justify-center">
             <form
@@ -188,24 +196,17 @@ export default function Navbar() {
               autoComplete="off"
               onSubmit={e => {
                 e.preventDefault();
-                if (searchResults[0]) {
-                  if (searchResults[0].url === '#calculator') {
-                    document.getElementById('openCalculator')?.click();
-                  } else {
-                    window.location.href = searchResults[0].url;
-                  }
-                }
+                setShowSearchPopup(true);
               }}
             >
               <input
                 ref={inputRef}
                 type="text"
                 placeholder="Cari franchise, blog, forum, fitur, kontak, dsb..."
-                className="w-full px-4 py-2 border border-blue-200 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-400 text-base bg-white font-semibold transition"
+                className="w-full px-4 py-2 border border-blue-200 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-400 text-base bg-white font-semibold transition cursor-pointer"
                 value={searchTerm}
-                onFocus={() => setShowDropdown(true)}
-                onBlur={() => setTimeout(() => setShowDropdown(false), 180)}
-                onChange={e => setSearchTerm(e.target.value)}
+                readOnly
+                onClick={() => setShowSearchPopup(true)}
                 style={{ fontWeight: 500, minWidth: 0 }}
               />
               <button
@@ -217,7 +218,7 @@ export default function Navbar() {
                 }}
               />
               <button
-                type="submit"
+                type="button"
                 className="px-4 py-2 bg-blue-600 text-white rounded-r-lg font-bold shadow hover:bg-blue-700 transition flex items-center"
                 tabIndex={-1}
                 style={{
@@ -227,6 +228,7 @@ export default function Navbar() {
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
+                onClick={() => setShowSearchPopup(true)}
               >
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <circle cx="11" cy="11" r="8" strokeWidth={2} />
@@ -234,22 +236,109 @@ export default function Navbar() {
                 </svg>
               </button>
             </form>
-            {showDropdown && searchTerm && (
-              <div className="absolute left-0 w-full bg-white rounded-b-lg shadow-2xl z-40 border-x border-b border-blue-100 max-h-80 overflow-y-auto animate-fade-in">
-                {searchResults.length === 0 ? (
-                  <div className="p-4 text-gray-400 text-center">Tidak ditemukan.</div>
-                ) : (
-                  searchResults.map((item, idx) => (
+          </div>
+        )}
+
+        {/* Kanan: Sapaan hanya di homepage */}
+        <div className="flex items-center space-x-3">
+          {isHomePage && (
+            <p className="italic text-gray-500 text-sm max-w-[150px] truncate">Halo, {userGreeting}!</p>
+          )}
+          {role === 'franchisor' && (
+            <button
+              className="flex items-center px-2 py-1 rounded-full bg-gray-100 hover:bg-blue-100 text-blue-700 font-medium text-2xl transition"
+              onClick={() => router.push('/franchisor/dashboard')}
+              title="Dashboard Franchisor"
+              style={{ minWidth: 44, minHeight: 44, justifyContent: 'center' }}
+            >
+              🎩
+            </button>
+          )}
+          {isAdmin && (
+            <button
+              className="flex items-center px-2 py-1 rounded-full bg-gray-100 hover:bg-pink-100 text-pink-700 font-medium text-2xl transition"
+              onClick={() => router.push('/admin')}
+              title="Dashboard Administrator"
+              style={{ minWidth: 44, minHeight: 44, justifyContent: 'center' }}
+            >
+              🃏
+            </button>
+          )}
+          <button
+            onClick={() => setMenuOpen(true)}
+            className="text-2xl"
+            aria-label="Buka menu"
+          >
+            ☰
+          </button>
+        </div>
+      </nav>
+      <BurgerMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
+
+      {/* Search Popup Mode */}
+      {showSearchPopup && (
+        <div
+          className="fixed inset-0 z-[9999] bg-black/40 flex items-start justify-center px-2 py-10"
+          onClick={() => setShowSearchPopup(false)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-auto p-6 relative animate-fade-in"
+            onClick={e => e.stopPropagation()}
+          >
+            <form
+              className="flex items-center mb-3"
+              autoComplete="off"
+              onSubmit={e => {
+                e.preventDefault();
+                if (searchResults[0]) {
+                  setShowSearchPopup(false);
+                  if (searchResults[0].url === '#calculator') {
+                    document.getElementById('openCalculator')?.click();
+                  } else {
+                    window.location.href = searchResults[0].url;
+                  }
+                }
+              }}
+            >
+              <input
+                ref={popupInputRef}
+                autoFocus
+                type="text"
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                placeholder="Cari franchise, blog, forum, fitur, kontak, dsb..."
+                className="w-full px-6 py-4 border-2 border-blue-400 rounded-xl focus:ring-2 focus:ring-blue-500 text-lg font-semibold shadow"
+                style={{ fontWeight: 600, minWidth: 0 }}
+                onKeyDown={e => {
+                  if (e.key === 'Escape') setShowSearchPopup(false);
+                }}
+              />
+              <button
+                type="submit"
+                className="ml-2 px-6 py-4 bg-blue-600 text-white rounded-xl font-bold shadow-lg hover:bg-blue-700 transition text-lg"
+              >
+                Cari
+              </button>
+            </form>
+            {/* Search Results in Popup */}
+            <div className="w-full">
+              {searchResults.length === 0 && (
+                <div className="p-6 text-gray-400 text-center">Tidak ditemukan.</div>
+              )}
+              {searchResults.length > 0 && (
+                <div className="divide-y border rounded-xl bg-white/90 max-h-[350px] overflow-y-auto">
+                  {searchResults.map((item, idx) => (
                     <a
                       key={item.url + idx}
                       href={item.url === '#calculator' ? '#' : item.url}
                       className={`
-                        flex items-center px-4 py-3 gap-3 border-b last:border-0 transition
-                        ${selectedIdx === idx ? 'bg-blue-100/70' : 'hover:bg-blue-50'}
+                        flex items-center px-5 py-4 gap-3 hover:bg-blue-50 cursor-pointer transition
+                        ${selectedIdx === idx ? 'bg-blue-100/70' : ''}
                       `}
                       tabIndex={-1}
                       onMouseDown={e => {
                         e.preventDefault();
+                        setShowSearchPopup(false);
                         if (item.url === '#calculator') {
                           document.getElementById('openCalculator')?.click();
                         } else if (item.type === 'auth' && item.label === 'Logout') {
@@ -290,48 +379,19 @@ export default function Navbar() {
                         )}
                       </div>
                     </a>
-                  ))
-                )}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
+            </div>
+            {/* Close button for popup */}
+            <button
+              onClick={() => setShowSearchPopup(false)}
+              className="absolute top-3 right-4 text-gray-400 hover:text-red-500 text-2xl font-bold"
+              tabIndex={-1}
+            >&times;</button>
           </div>
-        )}
-
-        {/* Kanan: Sapaan hanya di homepage */}
-        <div className="flex items-center space-x-3">
-          {isHomePage && (
-            <p className="italic text-gray-500 text-sm max-w-[150px] truncate">Halo, {userGreeting}!</p>
-          )}
-          {role === 'franchisor' && (
-            <button
-              className="flex items-center px-2 py-1 rounded-full bg-gray-100 hover:bg-blue-100 text-blue-700 font-medium text-2xl transition"
-              onClick={() => router.push('/franchisor/dashboard')}
-              title="Dashboard Franchisor"
-              style={{ minWidth: 44, minHeight: 44, justifyContent: 'center' }}
-            >
-              🎩
-            </button>
-          )}
-          {isAdmin && (
-            <button
-              className="flex items-center px-2 py-1 rounded-full bg-gray-100 hover:bg-pink-100 text-pink-700 font-medium text-2xl transition"
-              onClick={() => router.push('/admin')}
-              title="Dashboard Administrator"
-              style={{ minWidth: 44, minHeight: 44, justifyContent: 'center' }}
-            >
-              🃏
-            </button>
-          )}
-          <button
-            onClick={() => setMenuOpen(true)}
-            className="text-2xl"
-            aria-label="Buka menu"
-          >
-            ☰
-          </button>
         </div>
-      </nav>
-      <BurgerMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
+      )}
     </>
   );
 }
