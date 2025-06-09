@@ -22,7 +22,6 @@ export default function FranchisorForm() {
   const [adminMessage, setAdminMessage] = useState<string>('')
   const router = useRouter()
 
-  // Cek login & status pengajuan saat mount
   useEffect(() => {
     const init = async () => {
       const { data: { session } } = await supabase.auth.getSession()
@@ -32,7 +31,6 @@ export default function FranchisorForm() {
       }
     }
     init()
-    // Listen auth state
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
       if (session?.user) checkStatus(session.user)
@@ -60,7 +58,7 @@ export default function FranchisorForm() {
         role: 'franchisee'
       })
     }
-    // Cek status pengajuan
+    // Cek status pengajuan & pesan admin
     const { data } = await supabase
       .from('franchisor_applications')
       .select('status, admin_message')
@@ -157,6 +155,14 @@ export default function FranchisorForm() {
     <div className="max-w-xl mx-auto p-6">
       <h1 className="text-2xl font-semibold mb-4">Form Pengajuan Jadi Franchisor</h1>
 
+      {/* Kolom pesan admin: selalu tampil jika ada */}
+      {adminMessage && (
+        <div className="bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 p-4 rounded mb-4">
+          <strong>Pesan Administrator:</strong>
+          <div className="mt-1 whitespace-pre-line">{adminMessage}</div>
+        </div>
+      )}
+
       {/* Belum login */}
       {!session ? (
         <div className="flex flex-col items-center justify-center py-12">
@@ -186,25 +192,11 @@ export default function FranchisorForm() {
           </button>
         </div>
       ) : status === 'pending' ? (
-        <>
-          <button className="bg-gray-400 text-white w-full py-2 rounded cursor-not-allowed mb-4" disabled>
-            Sedang Diperiksa Administrator
-          </button>
-          {adminMessage && (
-            <div className="bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 p-4 rounded mb-4">
-              <strong>Pesan Administrator:</strong>
-              <div className="mt-1 whitespace-pre-line">{adminMessage}</div>
-            </div>
-          )}
-        </>
+        <button className="bg-gray-400 text-white w-full py-2 rounded cursor-not-allowed mb-4" disabled>
+          Sedang Diperiksa Administrator
+        </button>
       ) : (
         <>
-          {adminMessage && (
-            <div className="bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 p-4 rounded mb-4">
-              <strong>Pesan Administrator:</strong>
-              <div className="mt-1 whitespace-pre-line">{adminMessage}</div>
-            </div>
-          )}
           <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Nama Brand" value={brand_name} onChange={(e) => setBrandName(e.target.value)} />
           <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Deskripsi Usaha" value={description} onChange={(e) => setDescription(e.target.value)} />
           <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Email Aktif" value={email} onChange={(e) => setEmail(e.target.value)} />
