@@ -1,5 +1,4 @@
 // pages/franchisor/index.tsx
-
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabaseClient'
 import { v4 as uuidv4 } from 'uuid'
@@ -16,10 +15,10 @@ export default function FranchisorForm() {
   const [location, setLocation] = useState('')
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [ktpFile, setKtpFile] = useState<File | null>(null)
-  const [status, setStatus] = useState<'idle' | 'pending' | 'approved'>('idle')
+  const [status, setStatus] = useState<'idle' | 'pending' | 'approved' | 'rejected'>('idle')
+  const [adminMessage, setAdminMessage] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [session, setSession] = useState<any>(null)
-  const [adminMessage, setAdminMessage] = useState<string>('')
   const router = useRouter()
 
   // Cek login & status pengajuan saat mount
@@ -38,14 +37,14 @@ export default function FranchisorForm() {
       if (session?.user) checkStatus(session.user)
       else {
         setStatus('idle')
-        setAdminMessage('')
+        setAdminMessage(null)
       }
     })
     return () => listener?.subscription.unsubscribe()
     // eslint-disable-next-line
   }, [])
 
-  // Cek status pengajuan franchisor + admin message
+  // Cek status pengajuan franchisor
   const checkStatus = async (user: any) => {
     // Cek & buat profil jika belum ada
     const { data: profile, error: profileError } = await supabase
@@ -60,7 +59,7 @@ export default function FranchisorForm() {
         role: 'franchisee'
       })
     }
-    // Cek status pengajuan
+    // Cek status pengajuan & admin_message
     const { data } = await supabase
       .from('franchisor_applications')
       .select('status, admin_message')
@@ -68,8 +67,9 @@ export default function FranchisorForm() {
       .single()
     if (data?.status === 'pending') setStatus('pending')
     else if (data?.status === 'approved') setStatus('approved')
+    else if (data?.status === 'rejected') setStatus('rejected')
     else setStatus('idle')
-    setAdminMessage(data?.admin_message || '')
+    setAdminMessage(data?.admin_message ?? null)
   }
 
   // Submit pengajuan
@@ -84,7 +84,10 @@ export default function FranchisorForm() {
 
     setLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    if (!user) {
+      setLoading(false)
+      return
+    }
 
     const logoPath = `logos/${uuidv4()}_${logoFile.name}`
     const ktpPath = `ktps/${uuidv4()}_${ktpFile.name}`
@@ -103,7 +106,7 @@ export default function FranchisorForm() {
       return
     }
 
-    // Hapus pengajuan lama jika ada
+    // Hapus pengajuan lama (supaya bisa daftar ulang, meskipun email/nomor sama)
     await supabase
       .from('franchisor_applications')
       .delete()
@@ -122,14 +125,14 @@ export default function FranchisorForm() {
       ktp_url: ktpPath,
       submitted_at: new Date(),
       status: 'pending',
-      admin_message: null // reset message setiap submit
+      admin_message: null, // Clear message on new submit
     })
 
     if (error) {
       alert('Gagal mengirim pengajuan.')
     } else {
       setStatus('pending')
-      setAdminMessage('')
+      setAdminMessage(null)
     }
 
     setLoading(false)
@@ -174,8 +177,7 @@ export default function FranchisorForm() {
       ) : status === 'approved' ? (
         <div className="bg-green-100 border border-green-300 p-4 rounded mb-4">
           <p className="text-green-700 font-medium mb-2">
-            ✅ Pendaftaran anda telah disetujui Administrator FranchiseHub.
-            <br />
+            ✅ Pendaftaran anda telah disetujui Administrator FranchiseHub.<br />
             Silahkan lakukan pembayaran paket pilihan anda untuk mendapatkan akses role Franchisor.
           </p>
           <button
@@ -191,47 +193,66 @@ export default function FranchisorForm() {
             Sedang Diperiksa Administrator
           </button>
           {adminMessage && (
-            <div className="bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 p-4 rounded mb-4">
-              <strong>Pesan Administrator:</strong>
-              <div className="mt-1 whitespace-pre-line">{adminMessage}</div>
+            <div className="mt-2 p-3 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-700 rounded">
+              <strong>Catatan Administrator:</strong><br />
+              {adminMessage}
             </div>
           )}
+        </>
+      ) : status === 'rejected' ? (
+        <>
+          <button className="bg-red-400 text-white w-full py-2 rounded cursor-not-allowed mb-4" disabled>
+            Pengajuan Ditolak
+          </button>
+          {adminMessage && (
+            <div className="mt-2 p-3 bg-red-50 border-l-4 border-red-400 text-red-700 rounded">
+              <strong>Pengajuan Ditolak:</strong><br />
+              {adminMessage}
+            </div>
+          )}
+          {/* Form tetap bisa submit ulang */}
+          <FormInputs />
         </>
       ) : (
-        <>
-          {adminMessage && (
-            <div className="bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 p-4 rounded mb-4">
-              <strong>Pesan Administrator:</strong>
-              <div className="mt-1 whitespace-pre-line">{adminMessage}</div>
-            </div>
-          )}
-          <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Nama Brand" value={brand_name} onChange={(e) => setBrandName(e.target.value)} />
-          <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Deskripsi Usaha" value={description} onChange={(e) => setDescription(e.target.value)} />
-          <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Email Aktif" value={email} onChange={(e) => setEmail(e.target.value)} />
-          <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Nomor WhatsApp" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} />
-          <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Link Website" value={website} onChange={(e) => setWebsite(e.target.value)} />
-          <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Kategori Usaha" value={category} onChange={(e) => setCategory(e.target.value)} />
-          <input className="w-full border rounded px-3 py-2 mb-4" placeholder="Lokasi Usaha" value={location} onChange={(e) => setLocation(e.target.value)} />
-
-          <div className="mb-4">
-            <label>Upload Logo Usaha</label>
-            <input type="file" onChange={(e) => setLogoFile(e.target.files?.[0] || null)} />
-          </div>
-
-          <div className="mb-6">
-            <label>Upload Foto KTP</label>
-            <input type="file" onChange={(e) => setKtpFile(e.target.files?.[0] || null)} />
-          </div>
-
-          <button
-            onClick={handleSubmit}
-            className={`w-full py-2 text-white rounded ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-700 hover:bg-green-800'}`}
-            disabled={loading}
-          >
-            {loading ? 'Mengirim...' : 'Kirim Pengajuan'}
-          </button>
-        </>
+        <FormInputs />
       )}
+
+      {/* Component untuk form utama */}
+      {/* Hanya render form jika belum approved/pending */}
+      {/* Fungsi agar kode DRY */}
+      {/* Bisa juga extract ke luar komponen utama jika suka */}
+      {/** Form komponen */}
+      {/* --- */}
     </div>
   )
+
+  function FormInputs() {
+    return (
+      <>
+        <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Nama Brand" value={brand_name} onChange={(e) => setBrandName(e.target.value)} />
+        <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Deskripsi Usaha" value={description} onChange={(e) => setDescription(e.target.value)} />
+        <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Email Aktif" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Nomor WhatsApp" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} />
+        <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Link Website" value={website} onChange={(e) => setWebsite(e.target.value)} />
+        <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Kategori Usaha" value={category} onChange={(e) => setCategory(e.target.value)} />
+        <input className="w-full border rounded px-3 py-2 mb-4" placeholder="Lokasi Usaha" value={location} onChange={(e) => setLocation(e.target.value)} />
+
+        <div className="mb-4">
+          <label>Upload Logo Usaha</label>
+          <input type="file" onChange={(e) => setLogoFile(e.target.files?.[0] || null)} />
+        </div>
+        <div className="mb-6">
+          <label>Upload Foto KTP</label>
+          <input type="file" onChange={(e) => setKtpFile(e.target.files?.[0] || null)} />
+        </div>
+        <button
+          onClick={handleSubmit}
+          className={`w-full py-2 text-white rounded ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-700 hover:bg-green-800'}`}
+          disabled={loading}
+        >
+          {loading ? 'Mengirim...' : 'Kirim Pengajuan'}
+        </button>
+      </>
+    )
+  }
 }
