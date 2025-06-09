@@ -192,8 +192,7 @@ export default function Navbar() {
         <div className="flex-shrink-0 select-none">
           <Link href="/" passHref>
             <a className="font-extrabold text-blue-600 text-xl sm:text-2xl tracking-tight hover:text-blue-800 transition flex items-center gap-2">
-              <img src="/logo192.png" alt="FranchiseHub" className="w-8 h-8 mr-1 sm:mr-2" />
-              FranchiseHub
+             FranchiseHub
             </a>
           </Link>
         </div>
