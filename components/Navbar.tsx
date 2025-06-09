@@ -17,6 +17,7 @@ export default function Navbar() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedIdx, setSelectedIdx] = useState(-1);
   const [showSearchPopup, setShowSearchPopup] = useState(false);
+  const [popupAnim, setPopupAnim] = useState<'in' | 'out'>('in');
   const inputRef = useRef<HTMLInputElement>(null);
   const popupInputRef = useRef<HTMLInputElement>(null);
 
@@ -170,33 +171,41 @@ export default function Navbar() {
     }
   }, [showSearchPopup]);
 
+  const openPopup = () => {
+    setShowSearchPopup(true);
+    setPopupAnim('in');
+  };
+  const closePopup = () => {
+    setPopupAnim('out');
+    setTimeout(() => setShowSearchPopup(false), 230);
+  };
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.push('/');
   };
 
-  // --- Bagian utama UI ---
   return (
     <>
-      <nav className="w-full bg-white shadow-md px-4 py-3 flex items-center justify-between relative z-50">
-        {/* Tulisan FranchiseHub */}
+      <nav className="w-full bg-white shadow-lg px-3 sm:px-8 py-2 sm:py-3 flex items-center justify-between rounded-b-2xl relative z-50">
+        {/* Logo */}
         <div className="flex-shrink-0 select-none">
           <Link href="/" passHref>
-            <a className="font-bold text-blue-600 text-xl sm:text-2xl tracking-tight hover:text-blue-700 transition">
+            <a className="font-extrabold text-blue-600 text-xl sm:text-2xl tracking-tight hover:text-blue-800 transition flex items-center gap-2">
+              <img src="/logo192.png" alt="FranchiseHub" className="w-8 h-8 mr-1 sm:mr-2" />
               FranchiseHub
             </a>
           </Link>
         </div>
-
-        {/* Search Bar (normal mode, mobile pendek) */}
+        {/* Search Bar */}
         {!isHomePage && (
-          <div className="flex-1 mx-2 sm:mx-4 relative flex justify-center">
+          <div className="flex-1 mx-2 sm:mx-6 relative flex justify-center">
             <form
               className="flex items-center relative w-full max-w-[150px] sm:max-w-xs md:max-w-md"
               autoComplete="off"
               onSubmit={e => {
                 e.preventDefault();
-                setShowSearchPopup(true);
+                openPopup();
               }}
             >
               <input
@@ -206,7 +215,7 @@ export default function Navbar() {
                 className="w-full px-4 py-2 border border-blue-200 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-400 text-base bg-white font-semibold transition cursor-pointer"
                 value={searchTerm}
                 readOnly
-                onClick={() => setShowSearchPopup(true)}
+                onClick={openPopup}
                 style={{ fontWeight: 500, minWidth: 0 }}
               />
               <button
@@ -228,7 +237,7 @@ export default function Navbar() {
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
-                onClick={() => setShowSearchPopup(true)}
+                onClick={openPopup}
               >
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <circle cx="11" cy="11" r="8" strokeWidth={2} />
@@ -238,8 +247,7 @@ export default function Navbar() {
             </form>
           </div>
         )}
-
-        {/* Kanan: Sapaan hanya di homepage */}
+        {/* Kanan */}
         <div className="flex items-center space-x-3">
           {isHomePage && (
             <p className="italic text-gray-500 text-sm max-w-[150px] truncate">Halo, {userGreeting}!</p>
@@ -275,14 +283,19 @@ export default function Navbar() {
       </nav>
       <BurgerMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
 
-      {/* Search Popup Mode */}
+      {/* Popup search mode + animasi */}
       {showSearchPopup && (
         <div
-          className="fixed inset-0 z-[9999] bg-black/40 flex items-start justify-center px-2 py-10"
-          onClick={() => setShowSearchPopup(false)}
+          className={`fixed inset-0 z-[9999] bg-black/40 flex items-start justify-center px-2 py-10 transition-all duration-200
+            ${popupAnim === 'in' ? 'animate-fade-in animate-scale-up' : 'animate-fade-out animate-scale-down'}
+          `}
+          onClick={closePopup}
         >
           <div
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-auto p-6 relative animate-fade-in"
+            className={`bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-auto p-6 relative transition-all duration-200
+              ${popupAnim === 'in' ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}
+            `}
+            style={{ transformOrigin: 'center top' }}
             onClick={e => e.stopPropagation()}
           >
             <form
@@ -291,7 +304,7 @@ export default function Navbar() {
               onSubmit={e => {
                 e.preventDefault();
                 if (searchResults[0]) {
-                  setShowSearchPopup(false);
+                  closePopup();
                   if (searchResults[0].url === '#calculator') {
                     document.getElementById('openCalculator')?.click();
                   } else {
@@ -310,7 +323,7 @@ export default function Navbar() {
                 className="w-full px-6 py-4 border-2 border-blue-400 rounded-xl focus:ring-2 focus:ring-blue-500 text-lg font-semibold shadow"
                 style={{ fontWeight: 600, minWidth: 0 }}
                 onKeyDown={e => {
-                  if (e.key === 'Escape') setShowSearchPopup(false);
+                  if (e.key === 'Escape') closePopup();
                 }}
               />
               <button
@@ -320,7 +333,6 @@ export default function Navbar() {
                 Cari
               </button>
             </form>
-            {/* Search Results in Popup */}
             <div className="w-full">
               {searchResults.length === 0 && (
                 <div className="p-6 text-gray-400 text-center">Tidak ditemukan.</div>
@@ -338,7 +350,7 @@ export default function Navbar() {
                       tabIndex={-1}
                       onMouseDown={e => {
                         e.preventDefault();
-                        setShowSearchPopup(false);
+                        closePopup();
                         if (item.url === '#calculator') {
                           document.getElementById('openCalculator')?.click();
                         } else if (item.type === 'auth' && item.label === 'Logout') {
@@ -385,13 +397,43 @@ export default function Navbar() {
             </div>
             {/* Close button for popup */}
             <button
-              onClick={() => setShowSearchPopup(false)}
+              onClick={closePopup}
               className="absolute top-3 right-4 text-gray-400 hover:text-red-500 text-2xl font-bold"
               tabIndex={-1}
             >&times;</button>
           </div>
         </div>
       )}
+      <style jsx global>{`
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes fade-out {
+          from { opacity: 1; }
+          to { opacity: 0; }
+        }
+        @keyframes scale-up {
+          from { transform: scale(0.95); }
+          to { transform: scale(1); }
+        }
+        @keyframes scale-down {
+          from { transform: scale(1); }
+          to { transform: scale(0.95); }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.18s ease both;
+        }
+        .animate-fade-out {
+          animation: fade-out 0.18s ease both;
+        }
+        .animate-scale-up {
+          animation: scale-up 0.2s cubic-bezier(.48,1.6,.59,.99) both;
+        }
+        .animate-scale-down {
+          animation: scale-down 0.18s cubic-bezier(.48,1.6,.59,.99) both;
+        }
+      `}</style>
     </>
   );
 }
