@@ -24,7 +24,7 @@ export default function FranchisorApprovals() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
 
-  // Modal pesan admin
+  // Modal Pesan
   const [messageModal, setMessageModal] = useState<{
     show: boolean;
     user_id: string;
@@ -120,9 +120,8 @@ export default function FranchisorApprovals() {
     }
   };
 
-  // Buka modal pesan, fetch pesan terakhir (optional)
+  // Buka modal pesan admin, ambil pesan terakhir jika ada
   const openMessageModal = async (user_id: string) => {
-    // Ambil pesan terakhir (kalau ada)
     const { data } = await supabase
       .from('admin_messages')
       .select('message')
@@ -148,9 +147,10 @@ export default function FranchisorApprovals() {
     // Upsert pesan (user_id unik)
     const { error } = await supabase
       .from('admin_messages')
-      .upsert([
-        { user_id: messageModal.user_id, message: msg }
-      ], { onConflict: ['user_id'] }); // Fix: onConflict as array
+      .upsert(
+        [{ user_id: messageModal.user_id, message: msg }],
+        { onConflict: 'user_id' } // FIX: string, bukan array
+      );
     if (!error) {
       alert('Pesan berhasil dikirim.');
       setMessageModal({ show: false, user_id: '', value: '' });
