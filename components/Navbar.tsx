@@ -61,45 +61,36 @@ export default function Navbar() {
     }
     const fetchAll = async () => {
       const term = searchTerm.toLowerCase();
-      // Franchise
       const { data: franchiseData } = await supabase
         .from('franchise_listings')
         .select('id, franchise_name, category, slug, logo_url, tags')
         .limit(7);
-      // Blog
       const { data: blogData } = await supabase
         .from('blogs')
         .select('id, title, slug, cover_url, category')
         .limit(7);
-      // Forum
       const { data: threadData } = await supabase
         .from('threads')
         .select('id, title, image_url')
         .limit(7);
 
-      // Static + Out of the box menus
       const staticMenus = [
-        // Platform
         { type: 'auth', label: 'Login', url: '/login', icon: '🔑', desc: 'Masuk ke FranchiseHub', match: ['login', 'masuk', 'signin'] },
         { type: 'auth', label: 'Logout', url: '/logout', icon: '🚪', desc: 'Keluar', match: ['logout', 'keluar', 'signout'] },
         { type: 'auth', label: 'Daftar', url: '/register', icon: '📝', desc: 'Daftar sebagai user baru', match: ['daftar', 'register', 'signup'] },
-        // Out of the box
         { type: 'fitur', label: 'Pengembangan', url: '/pengembangan', icon: '🛠️', desc: 'Fitur & roadmap baru', match: ['pengembangan', 'roadmap', 'dev'] },
         { type: 'kontak', label: 'Kontak Administrator', url: 'mailto:support@franchisehub.co.id', icon: '📧', desc: 'Hubungi admin FranchiseHub', match: ['admin', 'kontak', 'hubungi'] },
         { type: 'fitur', label: 'Donasi', url: '/donate', icon: '💸', desc: 'Bantu FranchiseHub berkembang', match: ['donasi', 'donate'] },
         { type: 'fitur', label: 'Kontributor', url: '/contributors', icon: '🤝', desc: 'Lihat kontributor', match: ['kontributor', 'contributors'] },
-        // Bantuan & info
         { type: 'bantuan', label: 'Pusat Bantuan', url: '/pusat-bantuan', icon: '❓', desc: 'Bantuan & FAQ', match: ['bantuan', 'faq', 'help'] },
         { type: 'bantuan', label: 'Syarat & Ketentuan', url: '/syarat-ketentuan', icon: '📄', desc: 'Syarat Layanan', match: ['syarat', 'terms'] },
         { type: 'bantuan', label: 'Kebijakan Privasi', url: '/privacy', icon: '🔒', desc: 'Kebijakan data', match: ['privasi', 'privacy'] },
-        // Fitur utama
         { type: 'fitur', label: 'Forum Global', url: '/forum-global', icon: '🌐', desc: 'Diskusi umum', match: ['forum', 'diskusi'] },
         { type: 'fitur', label: 'Blog Global', url: '/blog-global', icon: '📝', desc: 'Blog bisnis & franchise', match: ['blog', 'artikel', 'jurnal'] },
         { type: 'fitur', label: 'Pengumuman', url: '/announcement', icon: '📢', desc: 'Info resmi', match: ['pengumuman', 'info'] },
         { type: 'fitur', label: 'Kalkulator', url: '#calculator', icon: '🧮', desc: 'Kalkulator bisnis', match: ['kalkulator', 'calculator'] },
       ];
 
-      // Gabung dan cari cocok
       const results: any[] = [
         ...(franchiseData || []).map((fr) => ({
           type: 'franchise',
@@ -152,7 +143,6 @@ export default function Navbar() {
     fetchAll();
   }, [searchTerm]);
 
-  // Keyboard nav
   useEffect(() => {
     if (!showDropdown) return;
     function handleKey(e: KeyboardEvent) {
@@ -173,7 +163,6 @@ export default function Navbar() {
     return () => window.removeEventListener('keydown', handleKey);
   }, [showDropdown, searchResults, selectedIdx]);
 
-  // (Optional) Logout
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.push('/');
@@ -193,9 +182,9 @@ export default function Navbar() {
 
         {/* Search Bar */}
         {!isHomePage && (
-          <div className="flex-1 mx-4 lg:mx-12 relative max-w-xl">
+          <div className="flex-1 mx-2 sm:mx-4 relative flex justify-center">
             <form
-              className="flex items-center relative"
+              className="flex items-center relative w-full max-w-[150px] sm:max-w-xs md:max-w-md"
               autoComplete="off"
               onSubmit={e => {
                 e.preventDefault();
@@ -212,7 +201,7 @@ export default function Navbar() {
                 ref={inputRef}
                 type="text"
                 placeholder="Cari franchise, blog, forum, fitur, kontak, dsb..."
-                className="flex-1 px-5 py-2 border border-blue-200 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-400 text-base bg-white font-semibold"
+                className="w-full px-4 py-2 border border-blue-200 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-400 text-base bg-white font-semibold transition"
                 value={searchTerm}
                 onFocus={() => setShowDropdown(true)}
                 onBlur={() => setTimeout(() => setShowDropdown(false), 180)}
