@@ -1,3 +1,5 @@
+// pages/franchisor/index.tsx
+
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabaseClient'
 import { v4 as uuidv4 } from 'uuid'
@@ -17,6 +19,7 @@ export default function FranchisorForm() {
   const [status, setStatus] = useState<'idle' | 'pending' | 'approved'>('idle')
   const [loading, setLoading] = useState(false)
   const [session, setSession] = useState<any>(null)
+  const [adminMessage, setAdminMessage] = useState<string>('')
   const router = useRouter()
 
   // Cek login & status pengajuan saat mount
@@ -33,13 +36,16 @@ export default function FranchisorForm() {
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
       if (session?.user) checkStatus(session.user)
-      else setStatus('idle')
+      else {
+        setStatus('idle')
+        setAdminMessage('')
+      }
     })
     return () => listener?.subscription.unsubscribe()
     // eslint-disable-next-line
   }, [])
 
-  // Cek status pengajuan franchisor
+  // Cek status pengajuan franchisor + admin message
   const checkStatus = async (user: any) => {
     // Cek & buat profil jika belum ada
     const { data: profile, error: profileError } = await supabase
@@ -57,12 +63,13 @@ export default function FranchisorForm() {
     // Cek status pengajuan
     const { data } = await supabase
       .from('franchisor_applications')
-      .select('status')
+      .select('status, admin_message')
       .eq('user_id', user.id)
       .single()
     if (data?.status === 'pending') setStatus('pending')
     else if (data?.status === 'approved') setStatus('approved')
     else setStatus('idle')
+    setAdminMessage(data?.admin_message || '')
   }
 
   // Submit pengajuan
@@ -115,12 +122,14 @@ export default function FranchisorForm() {
       ktp_url: ktpPath,
       submitted_at: new Date(),
       status: 'pending',
+      admin_message: null // reset message setiap submit
     })
 
     if (error) {
       alert('Gagal mengirim pengajuan.')
     } else {
       setStatus('pending')
+      setAdminMessage('')
     }
 
     setLoading(false)
@@ -177,11 +186,25 @@ export default function FranchisorForm() {
           </button>
         </div>
       ) : status === 'pending' ? (
-        <button className="bg-gray-400 text-white w-full py-2 rounded cursor-not-allowed" disabled>
-          Sedang Diperiksa Administrator
-        </button>
+        <>
+          <button className="bg-gray-400 text-white w-full py-2 rounded cursor-not-allowed mb-4" disabled>
+            Sedang Diperiksa Administrator
+          </button>
+          {adminMessage && (
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 p-4 rounded mb-4">
+              <strong>Pesan Administrator:</strong>
+              <div className="mt-1 whitespace-pre-line">{adminMessage}</div>
+            </div>
+          )}
+        </>
       ) : (
         <>
+          {adminMessage && (
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 p-4 rounded mb-4">
+              <strong>Pesan Administrator:</strong>
+              <div className="mt-1 whitespace-pre-line">{adminMessage}</div>
+            </div>
+          )}
           <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Nama Brand" value={brand_name} onChange={(e) => setBrandName(e.target.value)} />
           <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Deskripsi Usaha" value={description} onChange={(e) => setDescription(e.target.value)} />
           <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Email Aktif" value={email} onChange={(e) => setEmail(e.target.value)} />
