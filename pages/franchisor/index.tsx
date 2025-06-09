@@ -28,13 +28,16 @@ export default function FranchisorForm() {
       setSession(session)
       if (session?.user) {
         await checkStatus(session.user)
+        await fetchAdminMessage(session.user.id)
       }
     }
     init()
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
-      if (session?.user) checkStatus(session.user)
-      else {
+      if (session?.user) {
+        checkStatus(session.user)
+        fetchAdminMessage(session.user.id)
+      } else {
         setStatus('idle')
         setAdminMessage('')
       }
@@ -43,7 +46,7 @@ export default function FranchisorForm() {
     // eslint-disable-next-line
   }, [])
 
-  // Cek status pengajuan franchisor + admin message
+  // Cek status pengajuan franchisor
   const checkStatus = async (user: any) => {
     // Cek & buat profil jika belum ada
     const { data: profile, error: profileError } = await supabase
@@ -51,23 +54,33 @@ export default function FranchisorForm() {
       .select('id, role')
       .eq('id', user.id)
       .single()
-
     if (!profile && !profileError) {
       await supabase.from('profiles').insert({
         id: user.id,
         role: 'franchisee'
       })
     }
-    // Cek status pengajuan & pesan admin
+    // Cek status pengajuan
     const { data } = await supabase
       .from('franchisor_applications')
-      .select('status, admin_message')
+      .select('status')
       .eq('user_id', user.id)
       .single()
     if (data?.status === 'pending') setStatus('pending')
     else if (data?.status === 'approved') setStatus('approved')
     else setStatus('idle')
-    setAdminMessage(data?.admin_message || '')
+  }
+
+  // Ambil pesan admin terakhir dari tabel admin_messages
+  const fetchAdminMessage = async (userId: string) => {
+    const { data, error } = await supabase
+      .from('admin_messages')
+      .select('message')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single()
+    setAdminMessage(data?.message || '')
   }
 
   // Submit pengajuan
@@ -90,7 +103,6 @@ export default function FranchisorForm() {
     const { error: logoError } = await supabase.storage
       .from('franchisor-assets')
       .upload(logoPath, logoFile)
-
     const { error: ktpError } = await supabase.storage
       .from('franchisor-assets')
       .upload(ktpPath, ktpFile)
@@ -119,15 +131,14 @@ export default function FranchisorForm() {
       logo_url: logoPath,
       ktp_url: ktpPath,
       submitted_at: new Date(),
-      status: 'pending',
-      admin_message: null // reset message setiap submit
+      status: 'pending'
     })
 
     if (error) {
       alert('Gagal mengirim pengajuan.')
     } else {
       setStatus('pending')
-      setAdminMessage('')
+      await fetchAdminMessage(user.id) // refresh pesan admin juga
     }
 
     setLoading(false)
@@ -137,12 +148,10 @@ export default function FranchisorForm() {
   const handlePaymentComplete = async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-
     const { error } = await supabase
       .from('profiles')
       .update({ role: 'franchisor' })
       .eq('id', user.id)
-
     if (error) {
       alert(`Gagal mengubah role: ${error.message}`)
     } else {
