@@ -1,258 +1,239 @@
-// pages/franchisor/index.tsx
-import { useState, useEffect } from 'react'
-import { supabase } from '../../lib/supabaseClient'
-import { v4 as uuidv4 } from 'uuid'
-import { useRouter } from 'next/router'
-import { FiLock } from 'react-icons/fi'
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
+import { supabase } from '../../lib/supabaseClient';
 
-export default function FranchisorForm() {
-  const [brand_name, setBrandName] = useState('')
-  const [description, setDescription] = useState('')
-  const [email, setEmail] = useState('')
-  const [whatsapp, setWhatsapp] = useState('')
-  const [website, setWebsite] = useState('')
-  const [category, setCategory] = useState('')
-  const [location, setLocation] = useState('')
-  const [logoFile, setLogoFile] = useState<File | null>(null)
-  const [ktpFile, setKtpFile] = useState<File | null>(null)
-  const [status, setStatus] = useState<'idle' | 'pending' | 'approved' | 'rejected'>('idle')
-  const [adminMessage, setAdminMessage] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [session, setSession] = useState<any>(null)
-  const router = useRouter()
+interface Application {
+  id: string;
+  user_id: string;
+  email: string;
+  brand_name: string;
+  description: string;
+  category: string;
+  location: string;
+  whatsapp_number: string;
+  logo_url: string;
+  ktp_url: string;
+  status: string;
+  admin_message?: string;
+}
 
-  // Cek login & status pengajuan saat mount
+export default function FranchisorApprovals() {
+  const router = useRouter();
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
+  const [messageDraft, setMessageDraft] = useState<Record<string, string>>({}); // Untuk edit pesan
+
   useEffect(() => {
-    const init = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      setSession(session)
-      if (session?.user) {
-        await checkStatus(session.user)
+    const fetchData = async () => {
+      // Cek status login pengguna
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      const user = userData?.user;
+      if (userError || !user) {
+        setErrorMessage('Gagal mengambil data pengguna.');
+        setIsAuthorized(false);
+        setLoading(false);
+        router.push('/');
+        return;
       }
-    }
-    init()
-    // Listen auth state
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
-      if (session?.user) checkStatus(session.user)
-      else {
-        setStatus('idle')
-        setAdminMessage(null)
+      // Validasi admin
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('is_admin')
+        .eq('id', user.id)
+        .single();
+      if (profileError || !profileData?.is_admin) {
+        setIsAuthorized(false);
+        setLoading(false);
+        router.push('/');
+        return;
       }
-    })
-    return () => listener?.subscription.unsubscribe()
-    // eslint-disable-next-line
-  }, [])
+      setIsAuthorized(true);
 
-  // Cek status pengajuan franchisor
-  const checkStatus = async (user: any) => {
-    // Cek & buat profil jika belum ada
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('id, role')
-      .eq('id', user.id)
-      .single()
+      // Ambil semua pengajuan pending
+      const { data: appsData, error: appsError } = await supabase
+        .from('franchisor_applications')
+        .select('*')
+        .eq('status', 'pending');
+      if (appsError || !appsData) {
+        setErrorMessage('Gagal memuat data pengajuan.');
+        setLoading(false);
+        return;
+      }
+      setApplications(appsData);
 
-    if (!profile && !profileError) {
-      await supabase.from('profiles').insert({
-        id: user.id,
-        role: 'franchisee'
-      })
+      // Siapkan draft pesan
+      const draft: Record<string, string> = {};
+      appsData.forEach((app: Application) => {
+        draft[app.id] = app.admin_message || '';
+      });
+      setMessageDraft(draft);
+
+      // Buat signed URL
+      const paths = appsData.flatMap(item => [item.logo_url, item.ktp_url]);
+      const { data: signedData } = await supabase.storage
+        .from('franchisor-assets')
+        .createSignedUrls(paths, 60 * 60);  // 1 jam
+      const urls: Record<string, string> = {};
+      signedData?.forEach(obj => {
+        if (obj.path && obj.signedUrl) {
+          urls[obj.path] = obj.signedUrl;
+        }
+      });
+      setImageUrls(urls);
+      setLoading(false);
+    };
+    fetchData();
+  }, [router]);
+
+  // Handler Approve
+  const handleApprove = async (user_id: string, email: string) => {
+    try {
+      const res = await fetch('/api/admin/approve-franchisor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id, email }),
+      });
+      const result = await res.json();
+      if (result.success) {
+        alert('Berhasil approve.');
+        router.reload();
+      } else {
+        alert('Gagal approve: ' + result.message);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Terjadi kesalahan saat menghubungi server.');
     }
-    // Cek status pengajuan & admin_message
-    const { data } = await supabase
+  };
+
+  // Handler Reject
+  const handleReject = async (user_id: string) => {
+    const { error: rejectError } = await supabase
       .from('franchisor_applications')
-      .select('status, admin_message')
-      .eq('user_id', user.id)
-      .single()
-    if (data?.status === 'pending') setStatus('pending')
-    else if (data?.status === 'approved') setStatus('approved')
-    else if (data?.status === 'rejected') setStatus('rejected')
-    else setStatus('idle')
-    setAdminMessage(data?.admin_message ?? null)
-  }
-
-  // Submit pengajuan
-  const handleSubmit = async () => {
-    if (
-      !brand_name || !description || !email || !whatsapp || !website ||
-      !category || !location || !logoFile || !ktpFile
-    ) {
-      alert('Harap isi semua kolom!')
-      return
-    }
-
-    setLoading(true)
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      setLoading(false)
-      return
-    }
-
-    const logoPath = `logos/${uuidv4()}_${logoFile.name}`
-    const ktpPath = `ktps/${uuidv4()}_${ktpFile.name}`
-
-    const { error: logoError } = await supabase.storage
-      .from('franchisor-assets')
-      .upload(logoPath, logoFile)
-
-    const { error: ktpError } = await supabase.storage
-      .from('franchisor-assets')
-      .upload(ktpPath, ktpFile)
-
-    if (logoError || ktpError) {
-      alert('Gagal mengunggah gambar.')
-      setLoading(false)
-      return
-    }
-
-    // Hapus pengajuan lama (supaya bisa daftar ulang, meskipun email/nomor sama)
-    await supabase
-      .from('franchisor_applications')
-      .delete()
-      .eq('user_id', user.id)
-
-    const { error } = await supabase.from('franchisor_applications').insert({
-      user_id: user.id,
-      email,
-      brand_name,
-      description,
-      category,
-      location,
-      website,
-      whatsapp_number: whatsapp,
-      logo_url: logoPath,
-      ktp_url: ktpPath,
-      submitted_at: new Date(),
-      status: 'pending',
-      admin_message: null, // Clear message on new submit
-    })
-
-    if (error) {
-      alert('Gagal mengirim pengajuan.')
+      .update({ status: 'rejected' })
+      .eq('user_id', user_id);
+    if (rejectError) {
+      alert('Gagal reject.');
     } else {
-      setStatus('pending')
-      setAdminMessage(null)
+      alert('Berhasil reject.');
+      setApplications(applications.filter(app => app.user_id !== user_id));
     }
+  };
 
-    setLoading(false)
-  }
-
-  // Ubah role jadi franchisor setelah payment
-  const handlePaymentComplete = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-
+  // Simpan pesan admin
+  const handleSaveMessage = async (app: Application) => {
+    const msg = messageDraft[app.id]?.trim() || '';
     const { error } = await supabase
-      .from('profiles')
-      .update({ role: 'franchisor' })
-      .eq('id', user.id)
-
-    if (error) {
-      alert(`Gagal mengubah role: ${error.message}`)
+      .from('franchisor_applications')
+      .update({ admin_message: msg })
+      .eq('id', app.id);
+    if (!error) {
+      alert('Pesan disimpan.');
+      setApplications(applications.map(a => a.id === app.id ? { ...a, admin_message: msg } : a));
     } else {
-      router.push('/')
+      alert('Gagal menyimpan pesan.');
     }
-  }
+  };
 
-  // ==== UI ====
+  if (loading) return <p>Memuat...</p>;
+  if (!isAuthorized) return <p className="text-red-500">Tidak memiliki akses.</p>;
+  if (errorMessage) return <p className="text-red-500">{errorMessage}</p>;
+
   return (
-    <div className="max-w-xl mx-auto p-6">
-      <h1 className="text-2xl font-semibold mb-4">Form Pengajuan Jadi Franchisor</h1>
-
-      {/* Belum login */}
-      {!session ? (
-        <div className="flex flex-col items-center justify-center py-12">
-          <FiLock size={56} className="text-blue-500 mb-4" />
-          <p className="text-lg text-gray-700 mb-4 text-center font-medium">
-            Anda harus login untuk mengajukan menjadi Franchisor.
-          </p>
-          <button
-            onClick={() => router.push('/login')}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full shadow font-bold text-lg flex items-center gap-2"
-          >
-            <FiLock className="inline mr-1" /> Login untuk Melanjutkan
-          </button>
-        </div>
-      ) : status === 'approved' ? (
-        <div className="bg-green-100 border border-green-300 p-4 rounded mb-4">
-          <p className="text-green-700 font-medium mb-2">
-            ✅ Pendaftaran anda telah disetujui Administrator FranchiseHub.<br />
-            Silahkan lakukan pembayaran paket pilihan anda untuk mendapatkan akses role Franchisor.
-          </p>
-          <button
-            onClick={handlePaymentComplete}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow"
-          >
-            Login sebagai Franchisor
-          </button>
-        </div>
-      ) : status === 'pending' ? (
-        <>
-          <button className="bg-gray-400 text-white w-full py-2 rounded cursor-not-allowed mb-4" disabled>
-            Sedang Diperiksa Administrator
-          </button>
-          {adminMessage && (
-            <div className="mt-2 p-3 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-700 rounded">
-              <strong>Catatan Administrator:</strong><br />
-              {adminMessage}
-            </div>
-          )}
-        </>
-      ) : status === 'rejected' ? (
-        <>
-          <button className="bg-red-400 text-white w-full py-2 rounded cursor-not-allowed mb-4" disabled>
-            Pengajuan Ditolak
-          </button>
-          {adminMessage && (
-            <div className="mt-2 p-3 bg-red-50 border-l-4 border-red-400 text-red-700 rounded">
-              <strong>Pengajuan Ditolak:</strong><br />
-              {adminMessage}
-            </div>
-          )}
-          {/* Form tetap bisa submit ulang */}
-          <FormInputs />
-        </>
+    <div className="p-4">
+      <h1 className="text-2xl font-bold mb-4">Dashboard Administrator: Persetujuan Franchisor</h1>
+      {applications.length === 0 ? (
+        <p>Tidak ada pengajuan franchisor yang pending.</p>
       ) : (
-        <FormInputs />
+        <div className="overflow-x-auto">
+          <table className="min-w-full border border-gray-300">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="p-2 border">Brand</th>
+                <th className="p-2 border">Deskripsi</th>
+                <th className="p-2 border">Email</th>
+                <th className="p-2 border">WhatsApp</th>
+                <th className="p-2 border">Kategori</th>
+                <th className="p-2 border">Lokasi</th>
+                <th className="p-2 border">Logo</th>
+                <th className="p-2 border">KTP</th>
+                <th className="p-2 border">Pesan Admin</th>
+                <th className="p-2 border">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {applications.map(app => (
+                <tr key={app.id} className="text-center">
+                  <td className="p-2 border">{app.brand_name}</td>
+                  <td className="p-2 border">{app.description}</td>
+                  <td className="p-2 border">{app.email}</td>
+                  <td className="p-2 border">{app.whatsapp_number}</td>
+                  <td className="p-2 border">{app.category}</td>
+                  <td className="p-2 border">{app.location}</td>
+                  <td className="p-2 border">
+                    {imageUrls[app.logo_url] ? (
+                      <a href={imageUrls[app.logo_url]} target="_blank" rel="noopener noreferrer">
+                        <img 
+                          src={imageUrls[app.logo_url]} 
+                          alt="Logo" 
+                          className="w-10 h-10 object-cover mx-auto rounded" 
+                        />
+                      </a>
+                    ) : (
+                      'Memuat...'
+                    )}
+                  </td>
+                  <td className="p-2 border">
+                    {imageUrls[app.ktp_url] ? (
+                      <a href={imageUrls[app.ktp_url]} target="_blank" rel="noopener noreferrer">
+                        <img 
+                          src={imageUrls[app.ktp_url]} 
+                          alt="KTP" 
+                          className="w-10 h-10 object-cover mx-auto rounded" 
+                        />
+                      </a>
+                    ) : (
+                      'Memuat...'
+                    )}
+                  </td>
+                  <td className="p-2 border">
+                    <textarea
+                      className="w-40 p-1 rounded border border-gray-200 text-xs"
+                      rows={2}
+                      value={messageDraft[app.id] ?? ''}
+                      onChange={e => setMessageDraft(m => ({ ...m, [app.id]: e.target.value }))}
+                      placeholder="Pesan untuk user (opsional)..."
+                    />
+                    <button
+                      onClick={() => handleSaveMessage(app)}
+                      className="block w-full mt-1 bg-blue-500 hover:bg-blue-700 text-white text-xs py-1 rounded"
+                    >
+                      Simpan Pesan
+                    </button>
+                  </td>
+                  <td className="p-2 border space-x-1">
+                    <button 
+                      onClick={() => handleApprove(app.user_id, app.email)} 
+                      className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded mr-1"
+                    >
+                      Approve
+                    </button>
+                    <button 
+                      onClick={() => handleReject(app.user_id)} 
+                      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
+                    >
+                      Reject
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
-
-      {/* Component untuk form utama */}
-      {/* Hanya render form jika belum approved/pending */}
-      {/* Fungsi agar kode DRY */}
-      {/* Bisa juga extract ke luar komponen utama jika suka */}
-      {/** Form komponen */}
-      {/* --- */}
     </div>
-  )
-
-  function FormInputs() {
-    return (
-      <>
-        <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Nama Brand" value={brand_name} onChange={(e) => setBrandName(e.target.value)} />
-        <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Deskripsi Usaha" value={description} onChange={(e) => setDescription(e.target.value)} />
-        <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Email Aktif" value={email} onChange={(e) => setEmail(e.target.value)} />
-        <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Nomor WhatsApp" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} />
-        <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Link Website" value={website} onChange={(e) => setWebsite(e.target.value)} />
-        <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Kategori Usaha" value={category} onChange={(e) => setCategory(e.target.value)} />
-        <input className="w-full border rounded px-3 py-2 mb-4" placeholder="Lokasi Usaha" value={location} onChange={(e) => setLocation(e.target.value)} />
-
-        <div className="mb-4">
-          <label>Upload Logo Usaha</label>
-          <input type="file" onChange={(e) => setLogoFile(e.target.files?.[0] || null)} />
-        </div>
-        <div className="mb-6">
-          <label>Upload Foto KTP</label>
-          <input type="file" onChange={(e) => setKtpFile(e.target.files?.[0] || null)} />
-        </div>
-        <button
-          onClick={handleSubmit}
-          className={`w-full py-2 text-white rounded ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-700 hover:bg-green-800'}`}
-          disabled={loading}
-        >
-          {loading ? 'Mengirim...' : 'Kirim Pengajuan'}
-        </button>
-      </>
-    )
-  }
+  );
 }
