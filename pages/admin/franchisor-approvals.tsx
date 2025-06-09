@@ -1,3 +1,4 @@
+// pages/admin/franchisor-approvals.tsx
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabaseClient';
@@ -14,7 +15,6 @@ interface Application {
   logo_url: string;
   ktp_url: string;
   status: string;
-  admin_message?: string;
 }
 
 export default function FranchisorApprovals() {
@@ -25,10 +25,12 @@ export default function FranchisorApprovals() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
 
-  // Modal Pesan Admin
-  const [showMessageModal, setShowMessageModal] = useState(false);
-  const [messageValue, setMessageValue] = useState('');
-  const [messageTargetId, setMessageTargetId] = useState<string | null>(null);
+  // Pesan Modal State
+  const [messageModal, setMessageModal] = useState<{
+    show: boolean;
+    user_id: string;
+    value: string;
+  }>({ show: false, user_id: '', value: '' });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -67,7 +69,7 @@ export default function FranchisorApprovals() {
       }
       setApplications(appsData);
 
-      // Buat signed URL logo & ktp
+      // Signed URL logo & ktp
       const paths = appsData.flatMap(item => [item.logo_url, item.ktp_url]);
       const { data: signedData } = await supabase.storage
         .from('franchisor-assets')
@@ -84,7 +86,7 @@ export default function FranchisorApprovals() {
     fetchData();
   }, [router]);
 
-  // Approve (tidak diubah)
+  // Approve
   const handleApprove = async (user_id: string, email: string) => {
     try {
       const res = await fetch('/api/admin/approve-franchisor', {
@@ -104,7 +106,7 @@ export default function FranchisorApprovals() {
     }
   };
 
-  // Hapus data & storage (REJECT)
+  // Hapus data & file Storage
   const handleReject = async (app: Application) => {
     await supabase.storage.from('franchisor-assets').remove([app.logo_url, app.ktp_url]);
     const { error: delError } = await supabase
@@ -119,32 +121,43 @@ export default function FranchisorApprovals() {
     }
   };
 
-  // Simpan pesan admin
-  const handleSaveMessage = async () => {
-    if (!messageTargetId) return;
-    const msg = messageValue.trim();
-    const { error } = await supabase
-      .from('franchisor_applications')
-      .update({ admin_message: msg })
-      .eq('id', messageTargetId);
-    if (!error) {
-      alert('Pesan disimpan.');
-      setApplications(apps => apps.map(a =>
-        a.id === messageTargetId ? { ...a, admin_message: msg } : a
-      ));
-      setShowMessageModal(false);
-      setMessageTargetId(null);
-      setMessageValue('');
-    } else {
-      alert('Gagal menyimpan pesan.');
-    }
+  // Buka modal pesan
+  const openMessageModal = async (user_id: string) => {
+    // Ambil pesan terakhir jika ada
+    const { data } = await supabase
+      .from('admin_messages')
+      .select('message')
+      .eq('user_id', user_id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+    setMessageModal({
+      show: true,
+      user_id,
+      value: data?.message || '',
+    });
   };
 
-  // Buka modal pesan
-  const openMessageModal = (app: Application) => {
-    setMessageTargetId(app.id);
-    setMessageValue(app.admin_message || '');
-    setShowMessageModal(true);
+  // Simpan pesan admin ke tabel admin_messages
+  const handleSaveMessage = async () => {
+    const msg = messageModal.value.trim();
+    if (!messageModal.user_id) return;
+    if (!msg) {
+      alert('Isi pesan tidak boleh kosong.');
+      return;
+    }
+    // Upsert pesan (per user_id)
+    const { error } = await supabase
+      .from('admin_messages')
+      .upsert([
+        { user_id: messageModal.user_id, message: msg }
+      ], { onConflict: 'user_id' });
+    if (!error) {
+      alert('Pesan berhasil dikirim.');
+      setMessageModal({ show: false, user_id: '', value: '' });
+    } else {
+      alert('Gagal mengirim pesan.');
+    }
   };
 
   if (loading) return <p>Memuat...</p>;
@@ -207,24 +220,24 @@ export default function FranchisorApprovals() {
                       'Memuat...'
                     )}
                   </td>
-                  <td className="p-2 border space-x-1">
+                  <td className="p-2 border space-y-1">
                     <button 
                       onClick={() => handleApprove(app.user_id, app.email)} 
-                      className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded mr-1"
+                      className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded w-full"
                     >
                       Approve
                     </button>
                     <button 
                       onClick={() => handleReject(app)} 
-                      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded mr-1"
+                      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded w-full mt-1"
                     >
                       Hapus Data
                     </button>
-                    <button
-                      onClick={() => openMessageModal(app)}
-                      className="bg-yellow-400 hover:bg-yellow-500 text-black px-3 py-1 rounded"
+                    <button 
+                      onClick={() => openMessageModal(app.user_id)}
+                      className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded w-full mt-1"
                     >
-                      Pesan
+                      Kirim Pesan
                     </button>
                   </td>
                 </tr>
@@ -235,26 +248,27 @@ export default function FranchisorApprovals() {
       )}
 
       {/* Modal Pesan Admin */}
-      {showMessageModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
-          <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-6 relative">
+      {messageModal.show && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl p-6 max-w-xs w-full relative">
             <button
-              onClick={() => setShowMessageModal(false)}
-              className="absolute top-2 right-3 text-lg text-gray-400 hover:text-red-500 font-bold"
-            >×</button>
-            <h2 className="text-lg font-semibold mb-3 text-yellow-600">Kirim Pesan untuk Franchisee</h2>
+              onClick={() => setMessageModal({ show: false, user_id: '', value: '' })}
+              className="absolute top-3 right-3 text-xl text-gray-500 hover:text-red-500"
+            >
+              ×
+            </button>
+            <h2 className="text-lg font-semibold mb-2">Pesan untuk User</h2>
             <textarea
-              className="w-full border border-yellow-300 rounded p-2 mb-3"
-              rows={4}
-              placeholder="Pesan administrator untuk user ini..."
-              value={messageValue}
-              onChange={e => setMessageValue(e.target.value)}
+              className="w-full p-2 border rounded min-h-[80px] mb-3"
+              value={messageModal.value}
+              onChange={e => setMessageModal(v => ({ ...v, value: e.target.value }))}
+              placeholder="Tulis pesan admin di sini..."
             />
             <button
-              className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 rounded"
+              className="w-full py-2 rounded bg-blue-600 text-white font-bold hover:bg-blue-700 transition"
               onClick={handleSaveMessage}
             >
-              Simpan Pesan
+              Kirim Pesan
             </button>
           </div>
         </div>
