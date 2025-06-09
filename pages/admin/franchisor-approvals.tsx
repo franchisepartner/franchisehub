@@ -1,5 +1,3 @@
-// pages/admin/franchisor-approvals.tsx
-
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabaseClient';
@@ -139,7 +137,7 @@ export default function FranchisorApprovals() {
     });
   };
 
-  // Kirim pesan admin (insert ke admin_messages)
+  // Kirim pesan admin (upsert by user_id)
   const handleSaveMessage = async () => {
     const msg = messageModal.value.trim();
     if (!messageModal.user_id) return;
@@ -147,12 +145,12 @@ export default function FranchisorApprovals() {
       alert('Isi pesan tidak boleh kosong.');
       return;
     }
-    // Insert pesan (tidak usah upsert, biarkan satu pesan terakhir saja)
+    // Upsert pesan (user_id unik)
     const { error } = await supabase
       .from('admin_messages')
-      .insert([
+      .upsert([
         { user_id: messageModal.user_id, message: msg }
-      ]);
+      ], { onConflict: ['user_id'] }); // Fix: onConflict as array
     if (!error) {
       alert('Pesan berhasil dikirim.');
       setMessageModal({ show: false, user_id: '', value: '' });
