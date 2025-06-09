@@ -1,3 +1,4 @@
+// pages/admin/franchisor-approvals.tsx
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabaseClient';
@@ -24,11 +25,10 @@ export default function FranchisorApprovals() {
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
-  const [messageDraft, setMessageDraft] = useState<Record<string, string>>({});
+  const [messageDraft, setMessageDraft] = useState<Record<string, string>>({}); // Untuk edit pesan
 
   useEffect(() => {
     const fetchData = async () => {
-      // Cek status login pengguna
       const { data: userData, error: userError } = await supabase.auth.getUser();
       const user = userData?.user;
       if (userError || !user) {
@@ -88,7 +88,7 @@ export default function FranchisorApprovals() {
     fetchData();
   }, [router]);
 
-  // Approve
+  // Handler Approve
   const handleApprove = async (user_id: string, email: string) => {
     try {
       const res = await fetch('/api/admin/approve-franchisor', {
@@ -109,25 +109,20 @@ export default function FranchisorApprovals() {
     }
   };
 
-  // REJECT & DELETE SEKALIGUS
-  const handleRejectDelete = async (app: Application) => {
-    if (!confirm('Yakin ingin menolak dan menghapus pengajuan ini?')) return;
-    // Optionally, kamu bisa kirim admin_message sebelum hapus (opsional)
-    if (messageDraft[app.id]?.trim()) {
-      await supabase
-        .from('franchisor_applications')
-        .update({ admin_message: messageDraft[app.id].trim() })
-        .eq('id', app.id);
-    }
-    const { error } = await supabase
+  // Handler Reject (hapus data + file Storage)
+  const handleReject = async (app: Application) => {
+    // Hapus file logo & KTP dari Storage (opsional, boleh hapus jika tidak mau)
+    await supabase.storage.from('franchisor-assets').remove([app.logo_url, app.ktp_url]);
+    // Hapus data dari DB
+    const { error: rejectError } = await supabase
       .from('franchisor_applications')
       .delete()
-      .eq('id', app.id);
-    if (error) {
+      .eq('user_id', app.user_id);
+    if (rejectError) {
       alert('Gagal menghapus data.');
     } else {
-      alert('Data pengajuan berhasil dihapus (rejected).');
-      setApplications(applications.filter(a => a.id !== app.id));
+      alert('Data pengajuan berhasil dihapus.');
+      setApplications(applications.filter(a => a.user_id !== app.user_id));
     }
   };
 
@@ -222,15 +217,15 @@ export default function FranchisorApprovals() {
                       Simpan Pesan
                     </button>
                   </td>
-                  <td className="p-2 border space-y-1 flex flex-col gap-1">
+                  <td className="p-2 border space-x-1">
                     <button 
                       onClick={() => handleApprove(app.user_id, app.email)} 
-                      className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded"
+                      className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded mr-1"
                     >
                       Approve
                     </button>
                     <button 
-                      onClick={() => handleRejectDelete(app)} 
+                      onClick={() => handleReject(app)} 
                       className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
                     >
                       Reject
