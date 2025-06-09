@@ -124,7 +124,7 @@ export default function FranchisorApprovals() {
   // Buka modal pesan
   const openMessageModal = async (user_id: string) => {
     // Ambil pesan terakhir jika ada
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('admin_messages')
       .select('message')
       .eq('user_id', user_id)
@@ -146,17 +146,27 @@ export default function FranchisorApprovals() {
       alert('Isi pesan tidak boleh kosong.');
       return;
     }
+    // --- LOG: debug user_id, msg, session admin
+    const { data: sessionAdmin } = await supabase.auth.getUser();
+    console.log('Kirim pesan admin:', {
+      admin_id: sessionAdmin?.user?.id,
+      target_user_id: messageModal.user_id,
+      msg,
+    });
+
     // Upsert pesan (per user_id)
     const { error } = await supabase
       .from('admin_messages')
       .upsert([
         { user_id: messageModal.user_id, message: msg }
       ], { onConflict: 'user_id' });
+
     if (!error) {
       alert('Pesan berhasil dikirim.');
       setMessageModal({ show: false, user_id: '', value: '' });
     } else {
-      alert('Gagal mengirim pesan.');
+      alert('Gagal mengirim pesan: ' + error.message);
+      console.error('Supabase error:', error);
     }
   };
 
