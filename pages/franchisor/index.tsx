@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabaseClient'
 import { v4 as uuidv4 } from 'uuid'
 import { useRouter } from 'next/router'
-import { FiLock } from 'react-icons/fi'
+import { FiLock, FiLoader } from 'react-icons/fi'
 
 export default function FranchisorForm() {
   const [brand_name, setBrandName] = useState('')
@@ -46,7 +46,6 @@ export default function FranchisorForm() {
 
   // Cek status pengajuan franchisor
   const checkStatus = async (user: any) => {
-    // Cek & buat profil jika belum ada
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('id, role')
@@ -58,7 +57,6 @@ export default function FranchisorForm() {
         role: 'franchisee'
       })
     }
-    // Cek status pengajuan
     const { data } = await supabase
       .from('franchisor_applications')
       .select('status')
@@ -71,7 +69,7 @@ export default function FranchisorForm() {
 
   // Ambil pesan admin terakhir dari tabel morgan_messages
   const fetchAdminMessage = async (userId: string) => {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('morgan_messages')
       .select('message')
       .eq('user_id', userId)
@@ -90,7 +88,6 @@ export default function FranchisorForm() {
       alert('Harap isi semua kolom!')
       return
     }
-
     setLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
@@ -136,9 +133,8 @@ export default function FranchisorForm() {
       alert('Gagal mengirim pengajuan.')
     } else {
       setStatus('pending')
-      await fetchAdminMessage(user.id) // refresh pesan admin juga
+      await fetchAdminMessage(user.id)
     }
-
     setLoading(false)
   }
 
@@ -157,80 +153,97 @@ export default function FranchisorForm() {
     }
   }
 
-  // ==== UI ====
   return (
-    <div className="max-w-xl mx-auto p-6">
-      <h1 className="text-2xl font-semibold mb-4">Form Pengajuan Jadi Franchisor</h1>
+    <div className="min-h-screen bg-gradient-to-tr from-blue-50 to-cyan-50 flex items-center justify-center py-8">
+      <div className="w-full max-w-2xl mx-auto bg-white/90 backdrop-blur rounded-2xl shadow-xl px-8 py-10 border border-blue-100">
+        <h1 className="text-3xl font-bold text-blue-700 mb-2 tracking-tight text-center">
+          Form Pengajuan <span className="text-cyan-600">Franchisor</span>
+        </h1>
+        <p className="text-center text-gray-500 mb-8">Daftarkan usahamu & tingkatkan peluang sukses!</p>
 
-      {/* Kolom pesan admin: selalu tampil jika ada */}
-      {adminMessage && (
-        <div className="bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 p-4 rounded mb-4">
-          <strong>Pesan Administrator:</strong>
-          <div className="mt-1 whitespace-pre-line">{adminMessage}</div>
-        </div>
-      )}
-
-      {/* Belum login */}
-      {!session ? (
-        <div className="flex flex-col items-center justify-center py-12">
-          <FiLock size={56} className="text-blue-500 mb-4" />
-          <p className="text-lg text-gray-700 mb-4 text-center font-medium">
-            Anda harus login untuk mengajukan menjadi Franchisor.
-          </p>
-          <button
-            onClick={() => router.push('/login')}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full shadow font-bold text-lg flex items-center gap-2"
-          >
-            <FiLock className="inline mr-1" /> Login untuk Melanjutkan
-          </button>
-        </div>
-      ) : status === 'approved' ? (
-        <div className="bg-green-100 border border-green-300 p-4 rounded mb-4">
-          <p className="text-green-700 font-medium mb-2">
-            ✅ Pendaftaran anda telah disetujui Administrator FranchiseHub.
-            <br />
-            Silahkan lakukan pembayaran paket pilihan anda untuk mendapatkan akses role Franchisor.
-          </p>
-          <button
-            onClick={handlePaymentComplete}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow"
-          >
-            Login sebagai Franchisor
-          </button>
-        </div>
-      ) : status === 'pending' ? (
-        <button className="bg-gray-400 text-white w-full py-2 rounded cursor-not-allowed mb-4" disabled>
-          Sedang Diperiksa Administrator
-        </button>
-      ) : (
-        <>
-          <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Nama Brand" value={brand_name} onChange={(e) => setBrandName(e.target.value)} />
-          <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Deskripsi Usaha" value={description} onChange={(e) => setDescription(e.target.value)} />
-          <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Email Aktif" value={email} onChange={(e) => setEmail(e.target.value)} />
-          <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Nomor WhatsApp" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} />
-          <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Link Website" value={website} onChange={(e) => setWebsite(e.target.value)} />
-          <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Kategori Usaha" value={category} onChange={(e) => setCategory(e.target.value)} />
-          <input className="w-full border rounded px-3 py-2 mb-4" placeholder="Lokasi Usaha" value={location} onChange={(e) => setLocation(e.target.value)} />
-
-          <div className="mb-4">
-            <label>Upload Logo Usaha</label>
-            <input type="file" onChange={(e) => setLogoFile(e.target.files?.[0] || null)} />
+        {/* Kolom pesan admin */}
+        {adminMessage && (
+          <div className="bg-gradient-to-r from-yellow-100 to-yellow-50 border-l-4 border-yellow-400 text-yellow-800 p-4 rounded-xl mb-6 shadow-sm">
+            <strong>Pesan Administrator:</strong>
+            <div className="mt-1 whitespace-pre-line">{adminMessage}</div>
           </div>
+        )}
 
-          <div className="mb-6">
-            <label>Upload Foto KTP</label>
-            <input type="file" onChange={(e) => setKtpFile(e.target.files?.[0] || null)} />
+        {/* Belum login */}
+        {!session ? (
+          <div className="flex flex-col items-center justify-center py-14">
+            <FiLock size={56} className="text-blue-400 mb-4" />
+            <p className="text-lg text-gray-700 mb-4 text-center font-semibold">
+              Anda harus login untuk mengajukan menjadi Franchisor.
+            </p>
+            <button
+              onClick={() => router.push('/login')}
+              className="bg-gradient-to-tr from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white px-7 py-3 rounded-full shadow-xl font-bold text-lg flex items-center gap-2 transition"
+            >
+              <FiLock className="inline mr-1" /> Login untuk Melanjutkan
+            </button>
           </div>
-
-          <button
-            onClick={handleSubmit}
-            className={`w-full py-2 text-white rounded ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-700 hover:bg-green-800'}`}
-            disabled={loading}
+        ) : status === 'approved' ? (
+          <div className="bg-green-50 border border-green-400 p-5 rounded-xl mb-6 shadow">
+            <p className="text-green-700 font-semibold mb-3 text-center">
+              ✅ Pendaftaran anda telah <span className="font-bold">disetujui Administrator</span> FranchiseHub.<br />
+              Silahkan lakukan pembayaran paket pilihan anda untuk mendapatkan akses role Franchisor.
+            </p>
+            <button
+              onClick={handlePaymentComplete}
+              className="block mx-auto bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white px-7 py-2.5 rounded-full font-bold shadow-lg transition"
+            >
+              Login sebagai Franchisor
+            </button>
+          </div>
+        ) : status === 'pending' ? (
+          <div className="mb-6 flex flex-col items-center gap-2">
+            <button className="bg-gray-400 text-white w-full py-3 rounded-lg font-bold cursor-not-allowed" disabled>
+              <FiLoader className="inline mr-2 animate-spin" /> Sedang Diperiksa Administrator
+            </button>
+            <span className="text-sm text-gray-400">Mohon tunggu, pengajuan anda sedang diproses.</span>
+          </div>
+        ) : (
+          <form
+            className="space-y-4"
+            onSubmit={e => {
+              e.preventDefault();
+              handleSubmit();
+            }}
+            autoComplete="off"
           >
-            {loading ? 'Mengirim...' : 'Kirim Pengajuan'}
-          </button>
-        </>
-      )}
+            <div className="grid md:grid-cols-2 gap-4">
+              <input className="w-full border px-4 py-3 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-200 text-base font-semibold" placeholder="Nama Brand" value={brand_name} onChange={(e) => setBrandName(e.target.value)} />
+              <input className="w-full border px-4 py-3 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-200 text-base" placeholder="Kategori Usaha" value={category} onChange={(e) => setCategory(e.target.value)} />
+              <input className="w-full border px-4 py-3 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-200 text-base" placeholder="Lokasi Usaha" value={location} onChange={(e) => setLocation(e.target.value)} />
+              <input className="w-full border px-4 py-3 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-200 text-base" placeholder="Email Aktif" value={email} onChange={(e) => setEmail(e.target.value)} />
+              <input className="w-full border px-4 py-3 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-200 text-base" placeholder="Nomor WhatsApp" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} />
+              <input className="w-full border px-4 py-3 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-200 text-base" placeholder="Link Website" value={website} onChange={(e) => setWebsite(e.target.value)} />
+            </div>
+            <textarea className="w-full border px-4 py-3 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-200 text-base" rows={3} placeholder="Deskripsi Usaha" value={description} onChange={(e) => setDescription(e.target.value)} />
+
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-600 mb-1">Upload Logo Usaha</label>
+                <input type="file" onChange={(e) => setLogoFile(e.target.files?.[0] || null)} className="w-full border px-2 py-2 rounded bg-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold" />
+              </div>
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-600 mb-1">Upload Foto KTP</label>
+                <input type="file" onChange={(e) => setKtpFile(e.target.files?.[0] || null)} className="w-full border px-2 py-2 rounded bg-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold" />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className={`w-full py-3 text-lg font-bold rounded-full transition shadow-lg 
+                ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-green-600 to-green-400 hover:from-green-700 hover:to-green-500 text-white'}`}
+              disabled={loading}
+            >
+              {loading ? <span className="flex items-center justify-center"><FiLoader className="animate-spin mr-2" /> Mengirim...</span> : 'Kirim Pengajuan'}
+            </button>
+          </form>
+        )}
+      </div>
     </div>
   )
 }
