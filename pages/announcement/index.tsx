@@ -81,59 +81,82 @@ export default function AnnouncementPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Pengumuman Administrator 📣</h1>
+    <div className="max-w-3xl mx-auto px-2 sm:px-4 py-6 min-h-screen">
+      <div className="mb-8 flex items-center gap-3">
+        <span className="text-3xl">📣</span>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Pengumuman FranchiseHub</h1>
+      </div>
 
       {isAdmin && (
-        <form onSubmit={handleSubmit} className="space-y-4 border p-4 mb-8">
-          <h2 className="text-lg font-semibold">Tambah Pengumuman</h2>
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white/90 rounded-2xl shadow-xl border border-blue-100 p-6 mb-10 space-y-4"
+        >
+          <h2 className="text-lg font-semibold mb-2">Tambah Pengumuman</h2>
           <input
             type="text"
-            placeholder="Judul"
+            placeholder="Judul pengumuman"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full border px-3 py-2"
+            className="w-full px-4 py-3 rounded-xl border border-blue-200 focus:ring-2 focus:ring-blue-400 outline-none text-lg bg-blue-50 font-semibold"
             required
           />
           <textarea
             placeholder="Isi pengumuman"
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            className="w-full border px-3 py-2"
+            rows={4}
+            className="w-full px-4 py-3 rounded-xl border border-blue-200 focus:ring-2 focus:ring-blue-400 outline-none text-base resize-none bg-blue-50"
             required
-          ></textarea>
+          />
           <input
             type="file"
             accept="image/*"
             onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+            className="w-full text-sm"
           />
           <button
             type="submit"
             disabled={loading}
-            className="bg-blue-600 text-white px-4 py-2 rounded"
+            className="bg-gradient-to-r from-blue-600 to-cyan-400 hover:from-blue-700 hover:to-cyan-500 px-6 py-3 rounded-xl text-white font-bold shadow-lg transition disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {loading ? 'Mengirim...' : 'Kirim Pengumuman'}
           </button>
         </form>
       )}
 
-      <div className="space-y-4">
+      <div className="space-y-5">
+        {announcements.length === 0 && (
+          <div className="text-center text-gray-400 py-8">
+            Tidak ada pengumuman.
+          </div>
+        )}
         {announcements.map((item) => (
           <div
             key={item.id}
-            className="border p-3 rounded cursor-pointer hover:shadow-lg relative"
+            className="group bg-white rounded-2xl shadow-md border border-blue-50 p-4 cursor-pointer hover:shadow-2xl transition relative overflow-hidden flex gap-4"
             onClick={() => setSelectedAnnouncement(item)}
           >
-            <h3 className="font-bold pr-16">{item.title}</h3>
-            <p className="text-gray-500 text-sm">
-              {new Date(item.created_at).toLocaleString()}
-            </p>
-            <p className="text-gray-700 text-sm truncate">
-              {item.content.substring(0, 20)}...
-            </p>
+            {item.image_url && (
+              <img
+                src={item.image_url}
+                alt="Gambar Pengumuman"
+                className="w-20 h-20 object-cover rounded-xl border bg-gray-50 shrink-0"
+              />
+            )}
+            <div className="flex-1 min-w-0">
+              <h3 className="font-bold text-lg pr-14 group-hover:text-blue-700 truncate">{item.title}</h3>
+              <div className="flex items-center text-xs text-gray-400 mt-0.5 gap-2">
+                <span>{new Date(item.created_at).toLocaleString()}</span>
+                {item.created_by === session?.user?.id && (
+                  <span className="bg-blue-50 text-blue-400 px-2 py-0.5 rounded font-semibold ml-2">Admin</span>
+                )}
+              </div>
+              <p className="text-gray-700 text-sm mt-1 truncate">{item.content.substring(0, 60)}{item.content.length > 60 && '...'}</p>
+            </div>
             {isAdmin && (
               <button
-                className="absolute top-2 right-2 text-red-500"
+                className="absolute top-3 right-4 text-red-500 font-semibold text-xs opacity-0 group-hover:opacity-100 transition"
                 onClick={(e) => {
                   e.stopPropagation();
                   deleteAnnouncement(item.id);
@@ -152,27 +175,25 @@ export default function AnnouncementPage() {
           onClick={() => setSelectedAnnouncement(null)}
         >
           <div
-            className="bg-white p-4 rounded max-w-full md:max-w-lg w-full shadow-lg overflow-auto max-h-screen relative"
+            className="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-auto p-6 relative animate-fade-in"
             onClick={(e) => e.stopPropagation()}
           >
             <button
-              className="absolute top-2 right-2 text-red-500 text-xl"
+              className="absolute top-3 right-4 text-gray-400 hover:text-red-500 text-2xl"
               onClick={() => setSelectedAnnouncement(null)}
             >
               &times;
             </button>
-            <h2 className="font-bold text-xl mb-2 pt-4">{selectedAnnouncement.title}</h2>
-            <p className="text-sm text-gray-500 mb-2">
-              {new Date(selectedAnnouncement.created_at).toLocaleString()}
-            </p>
+            <h2 className="font-bold text-2xl mb-2 pt-2">{selectedAnnouncement.title}</h2>
+            <div className="text-xs text-gray-400 mb-2">{new Date(selectedAnnouncement.created_at).toLocaleString()}</div>
             {selectedAnnouncement.image_url && (
               <img
                 src={selectedAnnouncement.image_url}
                 alt="Gambar Pengumuman"
-                className="w-full max-h-80 object-cover mb-4 rounded"
+                className="w-full max-h-80 object-cover mb-4 rounded-xl"
               />
             )}
-            <p className="break-words whitespace-pre-wrap">{selectedAnnouncement.content}</p>
+            <p className="text-gray-700 text-base whitespace-pre-line">{selectedAnnouncement.content}</p>
           </div>
         </div>
       )}
