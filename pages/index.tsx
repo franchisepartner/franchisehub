@@ -5,12 +5,12 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Navigation } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
-
 import {
   Megaphone, Globe, BookOpenText, LifeBuoy, FileSignature,
   ShieldCheck, UserPlus, Calculator as CalculatorIcon,
 } from 'lucide-react';
 
+// --- Interface tetap ---
 interface Franchise {
   id: string;
   franchise_name: string;
@@ -49,6 +49,7 @@ export default function Home() {
   const [selectedIdx, setSelectedIdx] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // --- Fetch Data ---
   useEffect(() => {
     const fetchFranchises = async () => {
       const { data } = await supabase
@@ -134,7 +135,7 @@ export default function Home() {
     { label: 'Kalkulator', href: '#', bg: 'from-pink-500 to-pink-400', icon: <CalculatorIcon className="h-7 w-7" />, action: () => setShowCalculatorModal(true) },
   ];
 
-  // UNIVERSAL SEARCH (autocomplete)
+  // --- Universal Search (auto-complete) ---
   useEffect(() => {
     if (!searchTerm) {
       setSearchResults([]);
@@ -195,9 +196,20 @@ export default function Home() {
   }, [showSearchDropdown, searchResults, selectedIdx]);
 
   return (
-    <div className="relative min-h-screen bg-white">
+    <div className="relative min-h-screen bg-gradient-to-tr from-[#e9f3fc] to-[#e7eafe]">
+      {/* HEADER BRANDING & CTA */}
+      <div className="z-40 left-0 right-0 top-0 px-3 pt-6 flex items-center justify-between max-w-7xl mx-auto">
+        <div className="flex items-center gap-3">
+          <img src="/logo192.png" alt="FranchiseHub" className="w-12 h-12 rounded-2xl border shadow-lg" />
+          <span className="font-black text-xl sm:text-2xl tracking-tight text-blue-900 drop-shadow-lg">FranchiseHub</span>
+        </div>
+        <Link href="/franchisor" className="hidden sm:inline-flex px-5 py-2 rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 text-white font-bold shadow-xl hover:scale-105 transition">
+          Gabung Jadi Franchisor
+        </Link>
+      </div>
+
       {/* ==== BANNER SWIPER ==== */}
-      <div className="relative w-full h-[300px] sm:h-[340px] md:h-[420px] lg:h-[500px] overflow-visible pb-16 bg-white">
+      <div className="relative w-full h-[300px] sm:h-[340px] md:h-[420px] lg:h-[500px] overflow-visible pb-24 bg-transparent">
         <Swiper
           modules={[Autoplay, Navigation]}
           autoplay={{ delay: 5000, disableOnInteraction: false }}
@@ -207,7 +219,7 @@ export default function Home() {
         >
           {banners.length === 0 ? (
             <SwiperSlide>
-              <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400 text-lg">
+              <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400 text-lg rounded-3xl shadow-lg">
                 Tidak ada banner
               </div>
             </SwiperSlide>
@@ -217,7 +229,7 @@ export default function Home() {
                 <img
                   src={url}
                   alt={`Banner ${i + 1}`}
-                  className="object-cover w-full h-full"
+                  className="object-cover w-full h-full rounded-3xl shadow-2xl transition-all duration-500"
                   style={{ objectFit: 'cover', width: '100%', height: '100%' }}
                 />
               </SwiperSlide>
@@ -225,8 +237,8 @@ export default function Home() {
           )}
         </Swiper>
         {/* ==== SEARCH BAR ==== */}
-        <div className="absolute left-1/2 transform -translate-x-1/2 bottom-0 w-full max-w-3xl px-2 sm:px-4 md:px-6 lg:px-8 z-30">
-          <div className="bg-white/90 rounded-xl shadow-xl p-4 relative border-2 border-blue-100 backdrop-blur-md transition-all ring-1 ring-blue-200 focus-within:ring-2 focus-within:ring-blue-400">
+        <div className="absolute left-1/2 transform -translate-x-1/2 bottom-[-42px] w-full max-w-3xl px-2 sm:px-4 md:px-6 lg:px-8 z-30">
+          <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl p-4 border-2 border-blue-100 ring-1 ring-blue-200 focus-within:ring-2 focus-within:ring-blue-400 transition-all">
             <form
               className="flex space-x-2 items-center"
               autoComplete="off"
@@ -299,8 +311,21 @@ export default function Home() {
         </div>
       </div>
 
+      {/* ===== QUICK ACTION PROMO ===== */}
+      <div className="w-full max-w-4xl mx-auto -mt-10 mb-4 px-3 z-20">
+        <div className="rounded-2xl bg-gradient-to-r from-blue-200 via-white/70 to-cyan-100/60 shadow-xl flex flex-col md:flex-row items-center justify-between py-4 px-6 gap-3 border border-blue-100">
+          <div>
+            <div className="font-bold text-xl text-blue-900 mb-1 drop-shadow-sm">Temukan & Kembangkan Franchise Impianmu 🚀</div>
+            <div className="text-sm text-blue-800">FranchiseHub memudahkan kamu mencari, memulai, dan membangun bisnis waralaba dengan modal fleksibel dan komunitas aktif.</div>
+          </div>
+          <Link href="/franchise-list" className="mt-3 md:mt-0 px-6 py-2 rounded-full font-bold bg-gradient-to-br from-blue-500 to-cyan-400 text-white shadow-lg hover:scale-105 transition whitespace-nowrap">
+            Lihat Franchise
+          </Link>
+        </div>
+      </div>
+
       {/* ===== MENU FITUR ===== */}
-      <section className="relative mt-8 mb-6 z-20">
+      <section className="relative mt-4 mb-7 z-20">
         <div className="w-full flex justify-center">
           <div className="flex gap-4 overflow-x-auto px-2 pb-2 pt-1 max-w-full sm:justify-center scrollbar-thin scrollbar-thumb-gray-200"
             style={{ WebkitOverflowScrolling: 'touch' }}
@@ -359,7 +384,7 @@ export default function Home() {
           {franchises.map((fr) => (
             <SwiperSlide key={fr.id}>
               <Link href={`/franchise/${fr.slug}`}>
-                <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden cursor-pointer flex flex-col h-full border-2 border-blue-50">
+                <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition overflow-hidden cursor-pointer flex flex-col h-full border-2 border-blue-50">
                   <div className="relative h-40">
                     <img
                       src={fr.logo_url}
