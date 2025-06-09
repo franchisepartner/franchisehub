@@ -18,6 +18,7 @@ export default function ChatPasarPopup({ onClose }: { onClose: () => void }) {
   const [message, setMessage] = useState('');
   const [role, setRole] = useState('franchisee');
   const [messages, setMessages] = useState<any[]>([]);
+  const [reportStatus, setReportStatus] = useState<{ [msgId: string]: string }>({});
 
   useEffect(() => {
     async function fetchRole() {
@@ -73,19 +74,45 @@ export default function ChatPasarPopup({ onClose }: { onClose: () => void }) {
 
   const fullName = user?.user_metadata?.full_name || 'User';
 
-  // Handler report (fix: boolean only)
+  // Handler report (dengan feedback)
   const handleReport = async (msgId: string, reportedBy: string[] = []) => {
     if (!user) return;
-    if (reportedBy.includes(user.id)) return; // Tidak bisa report 2x
+    if (reportedBy.includes(user.id)) {
+      setReportStatus((prev) => ({
+        ...prev,
+        [msgId]: 'Anda sudah melaporkan pesan ini.'
+      }));
+      return;
+    }
+
+    setReportStatus((prev) => ({
+      ...prev,
+      [msgId]: 'Melaporkan...'
+    }));
 
     // Update reported_by field di Supabase (asumsi array)
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('messages')
       .update({ reported_by: [...reportedBy, user.id] })
-      .eq('id', msgId)
-      .select();
+      .eq('id', msgId);
 
-    // (Opsional) socket.emit('report_message', { id: msgId, user_id: user.id });
+    if (!error) {
+      setReportStatus((prev) => ({
+        ...prev,
+        [msgId]: 'Pesan berhasil dilaporkan.'
+      }));
+      setTimeout(() => {
+        setReportStatus((prev) => ({ ...prev, [msgId]: '' }));
+      }, 1600);
+    } else {
+      setReportStatus((prev) => ({
+        ...prev,
+        [msgId]: 'Gagal melaporkan, coba lagi.'
+      }));
+      setTimeout(() => {
+        setReportStatus((prev) => ({ ...prev, [msgId]: '' }));
+      }, 2000);
+    }
   };
 
   const sendMessage = () => {
@@ -183,6 +210,9 @@ export default function ChatPasarPopup({ onClose }: { onClose: () => void }) {
                 )}
               </div>
               <div className="text-gray-800 break-words">{msg.content}</div>
+              {reportStatus[msg.id] && (
+                <div className="text-xs mt-1 text-blue-600">{reportStatus[msg.id]}</div>
+              )}
               <div className="text-right text-xs text-gray-400 mt-1">
                 {new Date(msg.created_at || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </div>
