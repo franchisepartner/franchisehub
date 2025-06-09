@@ -24,7 +24,7 @@ export default function FranchisorApprovals() {
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
-  const [messageDraft, setMessageDraft] = useState<Record<string, string>>({}); // Untuk edit pesan
+  const [messageDraft, setMessageDraft] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const fetchData = async () => {
@@ -88,7 +88,7 @@ export default function FranchisorApprovals() {
     fetchData();
   }, [router]);
 
-  // Handler Approve
+  // Approve
   const handleApprove = async (user_id: string, email: string) => {
     try {
       const res = await fetch('/api/admin/approve-franchisor', {
@@ -109,7 +109,7 @@ export default function FranchisorApprovals() {
     }
   };
 
-  // Handler Reject
+  // Reject (update status)
   const handleReject = async (user_id: string) => {
     const { error: rejectError } = await supabase
       .from('franchisor_applications')
@@ -120,6 +120,21 @@ export default function FranchisorApprovals() {
     } else {
       alert('Berhasil reject.');
       setApplications(applications.filter(app => app.user_id !== user_id));
+    }
+  };
+
+  // Hapus data pengajuan (delete dari DB)
+  const handleDelete = async (id: string) => {
+    if (!confirm('Yakin ingin menghapus data pengajuan ini?')) return;
+    const { error } = await supabase
+      .from('franchisor_applications')
+      .delete()
+      .eq('id', id);
+    if (error) {
+      alert('Gagal menghapus data.');
+    } else {
+      alert('Data berhasil dihapus.');
+      setApplications(applications.filter(app => app.id !== id));
     }
   };
 
@@ -214,10 +229,10 @@ export default function FranchisorApprovals() {
                       Simpan Pesan
                     </button>
                   </td>
-                  <td className="p-2 border space-x-1">
+                  <td className="p-2 border space-y-1 flex flex-col gap-1">
                     <button 
                       onClick={() => handleApprove(app.user_id, app.email)} 
-                      className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded mr-1"
+                      className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded"
                     >
                       Approve
                     </button>
@@ -226,6 +241,12 @@ export default function FranchisorApprovals() {
                       className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
                     >
                       Reject
+                    </button>
+                    <button
+                      onClick={() => handleDelete(app.id)}
+                      className="bg-gray-500 hover:bg-gray-700 text-white px-3 py-1 rounded"
+                    >
+                      Hapus Data
                     </button>
                   </td>
                 </tr>
