@@ -175,7 +175,7 @@ export default function AnnouncementPage() {
           onClick={() => setSelectedAnnouncement(null)}
         >
           <div
-            className="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-auto p-6 relative animate-fade-in"
+            className="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-auto p-6 relative animate-fade-in max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <button
