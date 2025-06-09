@@ -73,7 +73,7 @@ export default function ChatPasarPopup({ onClose }: { onClose: () => void }) {
 
   const fullName = user?.user_metadata?.full_name || 'User';
 
-  // Handler report
+  // Handler report (fix: boolean only)
   const handleReport = async (msgId: string, reportedBy: string[] = []) => {
     if (!user) return;
     if (reportedBy.includes(user.id)) return; // Tidak bisa report 2x
@@ -85,8 +85,19 @@ export default function ChatPasarPopup({ onClose }: { onClose: () => void }) {
       .eq('id', msgId)
       .select();
 
-    // Bisa juga trigger event via socket jika ingin real-time
-    // socket.emit('report_message', { id: msgId, user_id: user.id });
+    // (Opsional) socket.emit('report_message', { id: msgId, user_id: user.id });
+  };
+
+  const sendMessage = () => {
+    if (!user || !message.trim()) return;
+    const data = {
+      sender_id: user.id,
+      sender_name: fullName,
+      sender_role: role,
+      content: message,
+    };
+    socket.emit('send_message', data);
+    setMessage('');
   };
 
   return (
@@ -107,12 +118,9 @@ export default function ChatPasarPopup({ onClose }: { onClose: () => void }) {
       </div>
       <div className="flex-1 px-3 py-2 overflow-y-auto bg-white/80">
         {messages.map((msg, idx) => {
-          // Hitung laporan, default: []
           const reportedBy: string[] = msg.reported_by || [];
-          const alreadyReported = user && reportedBy.includes(user.id);
+          const alreadyReported = !!user && reportedBy.includes(user.id);
           const reportCount = reportedBy.length;
-
-          // Jika sudah 3+ report, pesan disembunyikan
           if (reportCount >= 3) {
             return (
               <div
@@ -123,7 +131,6 @@ export default function ChatPasarPopup({ onClose }: { onClose: () => void }) {
               </div>
             );
           }
-
           return (
             <div
               key={idx}
@@ -157,7 +164,6 @@ export default function ChatPasarPopup({ onClose }: { onClose: () => void }) {
                     ? 'Administrator'
                     : 'Franchisee'}
                 </span>
-                {/* Icon Report */}
                 {user && (
                   <button
                     title={
@@ -172,7 +178,6 @@ export default function ChatPasarPopup({ onClose }: { onClose: () => void }) {
                     }`}
                     style={{padding: 0, background: 'none', border: 'none'}}
                   >
-                    {/* Pakai icon 🚩 atau ganti svg */}
                     <span role="img" aria-label="Laporkan">🚩</span>
                   </button>
                 )}
