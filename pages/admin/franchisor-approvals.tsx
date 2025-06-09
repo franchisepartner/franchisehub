@@ -14,6 +14,7 @@ interface Application {
   logo_url: string;
   ktp_url: string;
   status: string;
+  admin_message?: string;
 }
 
 export default function FranchisorApprovals() {
@@ -23,6 +24,7 @@ export default function FranchisorApprovals() {
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
+  const [messageDraft, setMessageDraft] = useState<Record<string, string>>({}); // Untuk edit pesan
 
   useEffect(() => {
     const fetchData = async () => {
@@ -36,7 +38,7 @@ export default function FranchisorApprovals() {
         router.push('/');
         return;
       }
-      // Validasi apakah user adalah admin (misal berdasarkan tabel profiles.is_admin)
+      // Validasi admin
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('is_admin')
@@ -50,7 +52,7 @@ export default function FranchisorApprovals() {
       }
       setIsAuthorized(true);
 
-      // Ambil data semua pengajuan franchisor dengan status pending
+      // Ambil semua pengajuan pending
       const { data: appsData, error: appsError } = await supabase
         .from('franchisor_applications')
         .select('*')
@@ -62,14 +64,18 @@ export default function FranchisorApprovals() {
       }
       setApplications(appsData);
 
-      // Buat Signed URL untuk setiap logo dan KTP (agar bisa ditampilkan sebagai thumbnail)
+      // Siapkan draft pesan
+      const draft: Record<string, string> = {};
+      appsData.forEach((app: Application) => {
+        draft[app.id] = app.admin_message || '';
+      });
+      setMessageDraft(draft);
+
+      // Buat signed URL
       const paths = appsData.flatMap(item => [item.logo_url, item.ktp_url]);
-      const { data: signedData, error: signedError } = await supabase.storage
+      const { data: signedData } = await supabase.storage
         .from('franchisor-assets')
-        .createSignedUrls(paths, 60 * 60);  // URL berlaku 1 jam
-      if (signedError) {
-        console.error('Error createSignedUrls:', signedError);
-      }
+        .createSignedUrls(paths, 60 * 60);  // 1 jam
       const urls: Record<string, string> = {};
       signedData?.forEach(obj => {
         if (obj.path && obj.signedUrl) {
@@ -82,7 +88,7 @@ export default function FranchisorApprovals() {
     fetchData();
   }, [router]);
 
-  // Handler Approve: panggil API untuk approve franchisor
+  // Handler Approve
   const handleApprove = async (user_id: string, email: string) => {
     try {
       const res = await fetch('/api/admin/approve-franchisor', {
@@ -103,7 +109,7 @@ export default function FranchisorApprovals() {
     }
   };
 
-  // Handler Reject: langsung update status pengajuan menjadi 'rejected'
+  // Handler Reject
   const handleReject = async (user_id: string) => {
     const { error: rejectError } = await supabase
       .from('franchisor_applications')
@@ -117,15 +123,24 @@ export default function FranchisorApprovals() {
     }
   };
 
-  if (loading) {
-    return <p>Memuat...</p>;
-  }
-  if (!isAuthorized) {
-    return <p className="text-red-500">Tidak memiliki akses.</p>;
-  }
-  if (errorMessage) {
-    return <p className="text-red-500">{errorMessage}</p>;
-  }
+  // Simpan pesan admin
+  const handleSaveMessage = async (app: Application) => {
+    const msg = messageDraft[app.id]?.trim() || '';
+    const { error } = await supabase
+      .from('franchisor_applications')
+      .update({ admin_message: msg })
+      .eq('id', app.id);
+    if (!error) {
+      alert('Pesan disimpan.');
+      setApplications(applications.map(a => a.id === app.id ? { ...a, admin_message: msg } : a));
+    } else {
+      alert('Gagal menyimpan pesan.');
+    }
+  };
+
+  if (loading) return <p>Memuat...</p>;
+  if (!isAuthorized) return <p className="text-red-500">Tidak memiliki akses.</p>;
+  if (errorMessage) return <p className="text-red-500">{errorMessage}</p>;
 
   return (
     <div className="p-4">
@@ -145,6 +160,7 @@ export default function FranchisorApprovals() {
                 <th className="p-2 border">Lokasi</th>
                 <th className="p-2 border">Logo</th>
                 <th className="p-2 border">KTP</th>
+                <th className="p-2 border">Pesan Admin</th>
                 <th className="p-2 border">Aksi</th>
               </tr>
             </thead>
@@ -163,7 +179,7 @@ export default function FranchisorApprovals() {
                         <img 
                           src={imageUrls[app.logo_url]} 
                           alt="Logo" 
-                          className="w-10 h-10 object-cover mx-auto" 
+                          className="w-10 h-10 object-cover mx-auto rounded" 
                         />
                       </a>
                     ) : (
@@ -176,7 +192,7 @@ export default function FranchisorApprovals() {
                         <img 
                           src={imageUrls[app.ktp_url]} 
                           alt="KTP" 
-                          className="w-10 h-10 object-cover mx-auto" 
+                          className="w-10 h-10 object-cover mx-auto rounded" 
                         />
                       </a>
                     ) : (
@@ -184,9 +200,24 @@ export default function FranchisorApprovals() {
                     )}
                   </td>
                   <td className="p-2 border">
+                    <textarea
+                      className="w-40 p-1 rounded border border-gray-200 text-xs"
+                      rows={2}
+                      value={messageDraft[app.id] ?? ''}
+                      onChange={e => setMessageDraft(m => ({ ...m, [app.id]: e.target.value }))}
+                      placeholder="Pesan untuk user (opsional)..."
+                    />
+                    <button
+                      onClick={() => handleSaveMessage(app)}
+                      className="block w-full mt-1 bg-blue-500 hover:bg-blue-700 text-white text-xs py-1 rounded"
+                    >
+                      Simpan Pesan
+                    </button>
+                  </td>
+                  <td className="p-2 border space-x-1">
                     <button 
                       onClick={() => handleApprove(app.user_id, app.email)} 
-                      className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded mr-2"
+                      className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded mr-1"
                     >
                       Approve
                     </button>
