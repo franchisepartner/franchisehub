@@ -61,18 +61,18 @@ export default function BlogGlobal() {
   return (
     <>
       <Head>
-        <title>Blog FranchiseHub - Inspirasi & Wawasan Bisnis Franchise</title>
+        <title>Blog FranchiseNusantara - Inspirasi & Wawasan Bisnis Franchise</title>
         <meta
           name="description"
           content="Baca blog, riset, dan cerita sukses franchise Indonesia hanya di FranchiseHub. Tips, studi kasus, panduan bisnis, dan banyak lagi."
         />
-        <link rel="canonical" href="https://franchisehubcom.vercel.app/blog-global" />
+        <link rel="canonical" href="https://franchisenusantara.com/blog-global" />
       </Head>
       <div className="max-w-5xl mx-auto px-3 sm:px-6 py-10 min-h-screen relative">
         {/* Header */}
         <div className="flex justify-between items-end mb-9">
           <div>
-            <h1 className="text-3xl md:text-4xl font-extrabold mb-1 tracking-tight text-blue-900">Blog FranchiseHub</h1>
+            <h1 className="text-3xl md:text-4xl font-extrabold mb-1 tracking-tight text-blue-900">Blog FranchiseNusantara</h1>
             <p className="text-gray-500 text-sm md:text-base">
               Inspirasi bisnis, wawasan franchise, dan tips sukses terkini dari para pelaku dan ahli.
             </p>
