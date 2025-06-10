@@ -40,9 +40,9 @@ interface Thread {
 export default function Home() {
   // BANNER DARI PUBLIC FOLDER
   const banners = [
-    '/banners/Banner1.png',
-    '/banners/Banner2.png',
-    '/banners/Banner3.png',
+    '/Banner1.PNG',
+    '/Banner2.PNG',
+    '/Banner3.PNG',
     // Tambah lagi jika perlu
   ];
 
