@@ -13,7 +13,7 @@ export default function Footer() {
           <div className="flex-1 min-w-[220px]">
             <h4 className="font-semibold mb-3">Tentang Kami</h4>
             <p className="text-sm text-gray-300 leading-relaxed mb-5">
-              FranchiseHub adalah platform terdepan untuk menemukan dan mengelola peluang franchise di Indonesia.
+              FranchiseNusantara adalah platform terdepan untuk menemukan dan mengelola peluang franchise di Indonesia.
               Kami hadir untuk membantu Anda berkembang dan terhubung dengan berbagai peluang usaha terbaik.
             </p>
             <div>
@@ -31,14 +31,14 @@ export default function Footer() {
         <div className="flex flex-col items-center mb-4">
           <button
             className="flex flex-col items-center group focus:outline-none transition"
-            aria-label="Dukungan FranchiseHub"
+            aria-label="Dukungan FranchiseNusantara"
             onClick={() => router.push('/pengembangan')}
             type="button"
           >
             <span className="bg-white rounded-full shadow-lg p-2 mb-2 group-hover:scale-110 transition">
               <Image
                 src="/22C6DD46-5682-4FDD-998B-710D24A74856.png"
-                alt="Dukungan FranchiseHub"
+                alt="Dukungan FranchiseNusantara"
                 width={52}
                 height={52}
                 className="object-contain"
@@ -49,13 +49,13 @@ export default function Footer() {
               Dukungan &amp; Pengembangan
             </span>
             <span className="text-xs text-blue-300 group-hover:text-white transition">
-              franchisehub.com
+              franchisehubnusantara.com
             </span>
           </button>
         </div>
         {/* Copyright */}
         <div className="text-center text-sm text-gray-400 mt-3">
-          &copy; 2025 FranchiseHub. Semua hak dilindungi.
+          &copy; 2025 FranchiseNusantara. Semua hak dilindungi.
         </div>
       </div>
     </footer>
