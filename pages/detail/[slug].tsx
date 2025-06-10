@@ -159,7 +159,7 @@ export default function DetailPage() {
   return (
     <>
       <Head>
-        <title>{blog?.title || "Memuat..."} - FranchiseHub</title>
+        <title>{blog?.title || "Memuat..."} - FranchiseNusantara</title>
       </Head>
 
       <div className="max-w-2xl mx-auto px-4 py-8 relative">
