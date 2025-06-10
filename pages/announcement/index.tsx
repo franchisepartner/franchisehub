@@ -84,7 +84,7 @@ export default function AnnouncementPage() {
     <div className="max-w-3xl mx-auto px-2 sm:px-4 py-6 min-h-screen">
       <div className="mb-8 flex items-center gap-3">
         <span className="text-3xl">📣</span>
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Pengumuman FranchiseHub</h1>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Pengumuman FranchiseNusantara</h1>
       </div>
 
       {isAdmin && (
