@@ -6,7 +6,7 @@ export default function Pengembangan() {
   return (
     <>
       <Head>
-        <title>Pengembangan & Inovasi FranchiseHub</title>
+        <title>Pengembangan & Inovasi FranchiseNusantara</title>
         <meta name="description" content="Kisah dan visi pengembangan fitur-fitur masa depan FranchiseHub. Dompet franchisor, investor, chat real-time privat, dashboard franchisee/investor, dan event tahunan." />
       </Head>
       <div className="bg-gradient-to-b from-green-100/60 to-white min-h-screen pb-24">
@@ -15,16 +15,16 @@ export default function Pengembangan() {
           <div className="w-full max-w-xl relative rounded-3xl shadow-xl overflow-hidden mb-8">
             <Image
               src="/CCD5FC44-D602-4286-A273-6FEDD8CFEDA2.jpeg"
-              alt="Ilustrasi Pengembangan FranchiseHub"
+              alt="Ilustrasi Pengembangan FranchiseNusantara"
               width={768}
               height={768}
               className="w-full h-auto object-cover rounded-3xl"
               priority
             />
           </div>
-          <h1 className="text-3xl md:text-4xl font-extrabold text-center text-gray-800 mb-2">FranchiseHub — Pengembangan & Inovasi Masa Depan</h1>
+          <h1 className="text-3xl md:text-4xl font-extrabold text-center text-gray-800 mb-2">FranchiseNusantara — Pengembangan & Inovasi Masa Depan</h1>
           <p className="max-w-2xl text-center text-gray-600 text-lg">
-            FranchiseHub tidak sekadar situs franchise, ini adalah kisah perjalanan kita bersama untuk membangun masa depan bisnis franchise yang lebih aman, transparan, dan kolaboratif di Indonesia. Inilah beberapa fitur futuristik yang sedang, dan akan kami kembangkan bersama komunitas!
+            FranchiseNusantara tidak sekadar situs franchise, ini adalah kisah perjalanan kita bersama untuk membangun masa depan bisnis franchise yang lebih aman, transparan, dan kolaboratif di Indonesia. Inilah beberapa fitur futuristik yang sedang, dan akan kami kembangkan bersama komunitas!
           </p>
         </div>
 
