@@ -4,8 +4,8 @@ export default function SyaratKetentuan() {
   return (
     <div className="max-w-4xl mx-auto px-3 sm:px-8 py-12 min-h-screen">
       <Head>
-        <title>Syarat dan Ketentuan - FranchiseHub</title>
-        <meta name="description" content="Syarat dan Ketentuan penggunaan platform FranchiseHub." />
+        <title>Syarat dan Ketentuan - FranchiseNusantara</title>
+        <meta name="description" content="Syarat dan Ketentuan penggunaan platform FranchiseNusantara." />
       </Head>
 
       <div className="mb-10">
@@ -13,19 +13,19 @@ export default function SyaratKetentuan() {
           Syarat & Ketentuan
         </h1>
         <div className="text-base md:text-lg text-gray-500">
-          Berlaku untuk seluruh pengguna platform <span className="font-semibold text-blue-700">FranchiseHub</span>.
+          Berlaku untuk seluruh pengguna platform <span className="font-semibold text-blue-700">FranchiseNusantara</span>.
         </div>
       </div>
 
       <div className="bg-white/80 rounded-2xl shadow-lg border border-blue-100 p-6 md:p-10 space-y-9">
         <div className="text-gray-700 text-base md:text-lg mb-4">
-          Dengan menggunakan layanan FranchiseHub di situs <a href="https://franchisehub.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline hover:text-blue-800">https://franchisehub.com</a>, Anda menyetujui syarat dan ketentuan berikut ini:
+          Dengan menggunakan layanan FranchiseNusantara di situs <a href="https://franchisenusantara.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline hover:text-blue-800">https://franchisenusantara.com</a>, Anda menyetujui syarat dan ketentuan berikut ini:
         </div>
         {/* Isi S&K */}
         {[
           {
             title: "Akun dan Keanggotaan",
-            content: "Pengguna wajib mendaftar menggunakan akun Google untuk mengakses layanan FranchiseHub. Anda bertanggung jawab penuh atas keamanan dan aktivitas di akun Anda."
+            content: "Pengguna wajib mendaftar menggunakan akun Google untuk mengakses layanan FranchiseNusantara. Anda bertanggung jawab penuh atas keamanan dan aktivitas di akun Anda."
           },
           {
             title: "Kewajiban Franchisor",
@@ -37,35 +37,35 @@ export default function SyaratKetentuan() {
           },
           {
             title: "Transaksi Pembayaran",
-            content: "Semua transaksi pembayaran di FranchiseHub diproses melalui pihak payment gateway terpercaya. FranchiseHub tidak menyimpan informasi sensitif seperti detail kartu kredit atau rekening pengguna."
+            content: "Semua transaksi pembayaran di FranchiseNusantara diproses melalui pihak payment gateway terpercaya. FranchiseNusantara tidak menyimpan informasi sensitif seperti detail kartu kredit atau rekening pengguna."
           },
           {
             title: "Konten dan Interaksi Pengguna",
-            content: "FranchiseHub berhak mengelola, menghapus, atau memodifikasi konten pengguna yang melanggar etika, peraturan hukum, atau merugikan pengguna lain."
+            content: "FranchiseNusantara berhak mengelola, menghapus, atau memodifikasi konten pengguna yang melanggar etika, peraturan hukum, atau merugikan pengguna lain."
           },
           {
             title: "Privasi Data",
-            content: "Kami berkomitmen melindungi privasi pengguna sesuai dengan Kebijakan Privasi FranchiseHub, yang dapat Anda akses melalui situs ini."
+            content: "Kami berkomitmen melindungi privasi pengguna sesuai dengan Kebijakan Privasi FranchiseNusantara, yang dapat Anda akses melalui situs ini."
           },
           {
             title: "Kekayaan Intelektual",
-            content: "Seluruh konten, merek dagang, logo, desain, kode, dan materi lainnya di FranchiseHub dilindungi oleh Undang-Undang Kekayaan Intelektual. Pengguna dilarang keras menggunakan, mengubah, atau menyebarluaskan tanpa izin tertulis dari pihak FranchiseHub."
+            content: "Seluruh konten, merek dagang, logo, desain, kode, dan materi lainnya di FranchiseNusantara dilindungi oleh Undang-Undang Kekayaan Intelektual. Pengguna dilarang keras menggunakan, mengubah, atau menyebarluaskan tanpa izin tertulis dari pihak FranchiseNusantara."
           },
           {
             title: "Penafian Risiko Investasi",
-            content: "FranchiseHub hanya sebagai platform informasi dan penghubung antara franchisor dan franchisee. Semua keputusan investasi sepenuhnya tanggung jawab pengguna. FranchiseHub tidak bertanggung jawab atas kerugian yang timbul akibat keputusan pengguna yang diambil berdasarkan informasi dalam platform ini."
+            content: "FranchiseNusantara hanya sebagai platform informasi dan penghubung antara franchisor dan franchisee. Semua keputusan investasi sepenuhnya tanggung jawab pengguna. FranchiseNusantara tidak bertanggung jawab atas kerugian yang timbul akibat keputusan pengguna yang diambil berdasarkan informasi dalam platform ini."
           },
           {
             title: "Force Majeure",
-            content: "FranchiseHub tidak bertanggung jawab atas keterlambatan, kegagalan layanan, atau dampak negatif lainnya akibat situasi di luar kendali, seperti bencana alam, perang, demonstrasi massal, gangguan teknologi, kebijakan pemerintah, atau keadaan darurat nasional."
+            content: "FranchiseNusantara tidak bertanggung jawab atas keterlambatan, kegagalan layanan, atau dampak negatif lainnya akibat situasi di luar kendali, seperti bencana alam, perang, demonstrasi massal, gangguan teknologi, kebijakan pemerintah, atau keadaan darurat nasional."
           },
           {
             title: "Perubahan Ketentuan",
-            content: "FranchiseHub berhak untuk memperbarui atau mengubah syarat ini kapan saja. Perubahan berlaku efektif sejak dipublikasikan di halaman ini."
+            content: "FranchiseNusantara berhak untuk memperbarui atau mengubah syarat ini kapan saja. Perubahan berlaku efektif sejak dipublikasikan di halaman ini."
           },
           {
             title: "Pembatasan Tanggung Jawab",
-            content: "FranchiseHub tidak bertanggung jawab atas kerugian atau dampak negatif apapun yang timbul dari keputusan investasi pengguna yang didasarkan pada informasi dari platform kami."
+            content: "FranchiseNusantara tidak bertanggung jawab atas kerugian atau dampak negatif apapun yang timbul dari keputusan investasi pengguna yang didasarkan pada informasi dari platform kami."
           },
           {
             title: "Hukum dan Penyelesaian Sengketa",
