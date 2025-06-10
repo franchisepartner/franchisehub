@@ -1,5 +1,6 @@
-import { GetServerSideProps } from 'next';
-import { supabase } from '../lib/supabaseClient';
+// pages/api/sitemap.ts
+import { NextApiRequest, NextApiResponse } from 'next';
+import { supabase } from '../../lib/supabaseClient';
 
 const SITE_URL = 'https://franchisenusantara.com';
 
@@ -41,7 +42,7 @@ function generateSiteMap({ franchises, blogs, threads }: { franchises: { slug: s
 </urlset>`;
 }
 
-export const getServerSideProps: GetServerSideProps = async ({ res }) => {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { data: franchisesRaw } = await supabase.from('franchises').select('slug');
   const { data: blogsRaw } = await supabase.from('blogs').select('slug');
   const { data: threadsRaw } = await supabase.from('forum_threads').select('id');
@@ -53,12 +54,5 @@ export const getServerSideProps: GetServerSideProps = async ({ res }) => {
   const sitemap = generateSiteMap({ franchises, blogs, threads });
 
   res.setHeader('Content-Type', 'text/xml');
-  res.write(sitemap);
-  res.end();
-
-  return { props: {} };
-};
-
-export default function Sitemap() {
-  return null;
+  res.status(200).send(sitemap);
 }
