@@ -1,7 +1,7 @@
 // /pages/sitemap.xml.tsx
 
 import { GetServerSideProps } from 'next';
-import { supabase } from '../lib/supabaseClient';
+import { supabase } from '../../lib/supabaseClient';
 
 const SITE_URL = 'https://franchisenusantara.com';
 
