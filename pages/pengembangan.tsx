@@ -68,7 +68,7 @@ export default function Pengembangan() {
         {/* Call To Action */}
         <div className="flex flex-col items-center mt-12 mb-6">
           <div className="text-center text-lg font-medium text-blue-700">
-            <span>Ingin request fitur atau berkolaborasi dalam pengembangan FranchiseHub?</span>
+            <span>Ingin request fitur atau berkolaborasi dalam pengembangan FranchiseNusantara?</span>
             <br />
             <a
               href="mailto:mesebeng17@gmail.com"
