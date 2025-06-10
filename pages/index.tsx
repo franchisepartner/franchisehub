@@ -38,11 +38,18 @@ interface Thread {
 }
 
 export default function Home() {
+  // BANNER DARI PUBLIC FOLDER
+  const banners = [
+    '/banners/banner1.jpg',
+    '/banners/banner2.jpg',
+    '/banners/banner3.jpg',
+    // Tambah lagi jika perlu
+  ];
+
   const [franchises, setFranchises] = useState<Franchise[]>([]);
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [threads, setThreads] = useState<Thread[]>([]);
   const [showCalculatorModal, setShowCalculatorModal] = useState(false);
-  const [banners, setBanners] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
@@ -99,28 +106,6 @@ export default function Home() {
         }))
       );
     };
-    const fetchBanners = async () => {
-      const { data } = await supabase.storage
-        .from('homepage-banners')
-        .list('', { limit: 20, sortBy: { column: 'name', order: 'asc' } });
-      if (!data) {
-        setBanners([]);
-        return;
-      }
-      const urls = await Promise.all(
-        data
-          .filter(item => item.name.match(/\.(jpg|jpeg|png|webp)$/i))
-          .map(async (item) => {
-            const { data: signed } = await supabase
-              .storage
-              .from('homepage-banners')
-              .createSignedUrl(item.name, 60 * 60);
-            return signed?.signedUrl || '';
-          })
-      );
-      setBanners(urls.filter(Boolean));
-    };
-    fetchBanners();
     fetchFranchises();
     fetchBlogs();
     fetchThreads();
