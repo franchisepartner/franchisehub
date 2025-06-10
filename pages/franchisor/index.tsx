@@ -186,7 +186,7 @@ export default function FranchisorForm() {
         ) : status === 'approved' ? (
           <div className="bg-green-50 border border-green-400 p-5 rounded-xl mb-6 shadow">
             <p className="text-green-700 font-semibold mb-3 text-center">
-              ✅ Pendaftaran anda telah <span className="font-bold">disetujui Administrator</span> FranchiseHub.<br />
+              ✅ Pendaftaran anda telah <span className="font-bold">disetujui Administrator</span> FranchiseNusantara.<br />
               Silahkan lakukan pembayaran paket pilihan anda untuk mendapatkan akses role Franchisor.
             </p>
             <button
