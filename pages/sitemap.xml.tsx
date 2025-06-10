@@ -1,4 +1,4 @@
-// /pages/sitemap.xml.tsx
+/pages/sitemap.xml.tsx
 import { GetServerSideProps } from 'next';
 import { supabase } from '../../lib/supabaseClient';
 
