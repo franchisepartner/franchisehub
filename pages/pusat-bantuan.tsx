@@ -66,13 +66,13 @@ export default function PusatBantuan() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-12 min-h-screen">
       <Head>
-        <title>Pusat Bantuan - FranchiseHub</title>
+        <title>Pusat Bantuan - FranchiseNusantara</title>
       </Head>
 
       <h1 className="text-3xl md:text-4xl font-extrabold text-blue-900 mb-2">
         Pusat Bantuan
       </h1>
-      <p className="mb-8 text-gray-500">Temukan jawaban seputar FranchiseHub, fitur, dan pertanyaan umum.</p>
+      <p className="mb-8 text-gray-500">Temukan jawaban seputar FranchiseNusantara, fitur, dan pertanyaan umum.</p>
 
       {/* Search */}
       <input
