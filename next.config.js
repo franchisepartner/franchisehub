@@ -4,6 +4,16 @@ const nextConfig = {
   images: {
     domains: ['lh3.googleusercontent.com'],
   },
-}
 
-module.exports = nextConfig
+  // Tambahkan bagian ini agar sitemap.xml diproses melalui API route
+  async rewrites() {
+    return [
+      {
+        source: '/sitemap.xml',
+        destination: '/api/sitemap',
+      },
+    ];
+  },
+};
+
+module.exports = nextConfig;
