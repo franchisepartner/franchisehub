@@ -1,4 +1,4 @@
-// /pages/sitemap.xml.tsx
+// pages/sitemap.xml.tsx
 
 import { GetServerSideProps } from 'next';
 import { supabase } from '../lib/supabaseClient';
@@ -16,11 +16,13 @@ function generateSiteMap({
 }) {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
   <url>
     <loc>${SITE_URL}/</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
+
   ${franchises
     .map(
       ({ slug }) => `
@@ -31,6 +33,7 @@ function generateSiteMap({
   </url>`
     )
     .join('')}
+
   ${blogs
     .map(
       ({ slug }) => `
@@ -41,6 +44,7 @@ function generateSiteMap({
   </url>`
     )
     .join('')}
+
   ${threads
     .map(
       ({ slug }) => `
@@ -51,6 +55,7 @@ function generateSiteMap({
   </url>`
     )
     .join('')}
+
 </urlset>`;
 }
 
@@ -72,6 +77,7 @@ export const getServerSideProps: GetServerSideProps = async ({ res }) => {
   return { props: {} };
 };
 
+// HARUS export default function kosong, agar tidak render HTML
 export default function Sitemap() {
   return null;
 }
