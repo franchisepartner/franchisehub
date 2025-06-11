@@ -1,4 +1,3 @@
 User-agent: *
-Disallow:
-
-Sitemap: https://www.franchisenusantara.com/sitemap.xml
+Allow: /
+Sitemap: https://franchisenusantara.com/sitemap.xml
