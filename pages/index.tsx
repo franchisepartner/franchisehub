@@ -480,6 +480,7 @@ export default function Home() {
       {/* MODAL KALKULATOR */}
       <CalculatorModal show={showCalculatorModal} setShow={setShowCalculatorModal} />
     </div>
+  </>
   );
 }
 
@@ -505,7 +506,6 @@ function CalculatorModal({ show, setShow }: CalculatorModalProps) {
         <Calculator />
       </div>
     </div>
-</>
   );
 }
 function Calculator() {
