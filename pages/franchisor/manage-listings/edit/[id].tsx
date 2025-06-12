@@ -261,6 +261,7 @@ export default function EditListing() {
               src={supabase.storage.from('listing-images').getPublicUrl(form.logo_url).data.publicUrl}
               alt="Logo"
               className="w-20 h-20 object-contain rounded border"
+              loading="lazy"
             />
             <span className="text-xs text-gray-600">{form.logo_url.split('/').pop()}</span>
           </div>
@@ -276,7 +277,7 @@ export default function EditListing() {
         <div className="flex gap-2 mb-2 flex-wrap">
           {showcaseImages.map((img, idx) => (
             <div key={img.id} className="relative flex flex-col items-center">
-              <img src={img.url} className="w-20 h-16 object-cover rounded border" alt={`Showcase ${idx + 1}`} />
+              <img src={img.url} className="w-20 h-16 object-cover rounded border" alt={`Showcase ${idx + 1}`} loading="lazy" />
               <span className="text-[10px] text-gray-600">{img.name}</span>
               <button type="button"
                 className="absolute top-0 right-0 bg-white rounded-full shadow p-1 hover:bg-red-200 transition"
