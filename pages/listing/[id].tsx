@@ -60,6 +60,7 @@ export default function ListingDetail() {
           src={listing.image_url}
           alt={listing.name}
           className="w-full h-64 object-cover rounded mb-4"
+          loading="lazy"
         />
         <h1 className="text-2xl font-bold mb-2">{listing.name}</h1>
         <p className="mb-4">{listing.description}</p>
@@ -86,7 +87,7 @@ export default function ListingDetail() {
           <h2 className="text-xl font-semibold mb-2">Kontak Franchise</h2>
           {!session ? (
             <div className="flex items-center gap-4">
-              <img src="/lock-icon.png" alt="Locked" className="w-6 h-6" />
+              <img src="/lock-icon.png" alt="Locked" className="w-6 h-6" loading="lazy" />
               <p>Login untuk melihat info kontak</p>
               <Link
                 href="/login"
