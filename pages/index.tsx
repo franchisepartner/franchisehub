@@ -183,6 +183,24 @@ export default function Home() {
   }, [showSearchDropdown, searchResults, selectedIdx]);
 
   return (
+    <>
+      <Head>
+        <title>Franchise Nusantara — Pengembangan & Inovasi Masa Depan</title>
+        <meta name="description" content="Franchise Nusantara adalah platform franchise modern Indonesia. Temukan, kelola, dan kembangkan bisnis franchise terbaik bersama kami." />
+        {/* Favicon */}
+        <link rel="icon" href="/favicon.ico" />
+        {/* Open Graph & Twitter */}
+        <meta property="og:title" content="Franchise Nusantara — Pengembangan & Inovasi Masa Depan" />
+        <meta property="og:description" content="Franchise Nusantara adalah platform franchise modern Indonesia. Temukan, kelola, dan kembangkan bisnis franchise terbaik bersama kami." />
+        <meta property="og:image" content="https://franchisenusantara.com/logo-og.png" />
+        <meta property="og:url" content="https://franchisenusantara.com/" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Franchise Nusantara — Pengembangan & Inovasi Masa Depan" />
+        <meta name="twitter:description" content="Franchise Nusantara adalah platform franchise modern Indonesia. Temukan, kelola, dan kembangkan bisnis franchise terbaik bersama kami." />
+        <meta name="theme-color" content="#ffffff" />
+      </Head>
+      
     <div className="relative min-h-screen bg-white">
       {/* ==== BANNER SWIPER ==== */}
       <div className="relative w-full h-[300px] sm:h-[340px] md:h-[420px] lg:h-[500px] overflow-visible pb-16 bg-white">
@@ -324,6 +342,7 @@ export default function Home() {
             ))}
           </div>
         </div>
+      </>
       </section>
 
       {/* === DAFTAR FRANCHISE === */}
