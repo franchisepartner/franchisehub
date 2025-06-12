@@ -142,6 +142,7 @@ export default function AnnouncementPage() {
                 src={item.image_url}
                 alt="Gambar Pengumuman"
                 className="w-20 h-20 object-cover rounded-xl border bg-gray-50 shrink-0"
+                loading="lazy"
               />
             )}
             <div className="flex-1 min-w-0">
@@ -191,6 +192,7 @@ export default function AnnouncementPage() {
                 src={selectedAnnouncement.image_url}
                 alt="Gambar Pengumuman"
                 className="w-full max-h-80 object-cover mb-4 rounded-xl"
+                loading="lazy"
               />
             )}
             <p className="text-gray-700 text-base whitespace-pre-line">{selectedAnnouncement.content}</p>
