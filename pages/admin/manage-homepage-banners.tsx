@@ -78,6 +78,7 @@ export default function ManageHomepageBanners() {
             alt="preview"
             className="rounded mt-2 w-full max-h-48 object-contain"
             style={{ maxWidth: 320 }}
+            loading="lazy"
           />
         </div>
       )}
@@ -90,6 +91,7 @@ export default function ManageHomepageBanners() {
               src={supabase.storage.from('homepage-banners').getPublicUrl(b.name).data.publicUrl}
               alt={b.name}
               className="rounded w-full h-28 object-cover mb-2"
+              loading="lazy"
             />
             <span className="block truncate text-xs mb-2">{b.name}</span>
             <button
