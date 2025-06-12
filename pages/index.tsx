@@ -201,6 +201,7 @@ export default function Home() {
         <meta name="twitter:description" content="Franchise Nusantara adalah platform franchise modern Indonesia. Temukan, kelola, dan kembangkan bisnis franchise terbaik bersama kami." />
         <meta name="theme-color" content="#ffffff" />
       </Head>
+    <>
       
     <div className="relative min-h-screen bg-white">
       {/* ==== BANNER SWIPER ==== */}
@@ -305,7 +306,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-    <>
 
       {/* ===== MENU FITUR ===== */}
       <section className="relative mt-8 mb-6 z-20">
