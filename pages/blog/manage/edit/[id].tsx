@@ -127,6 +127,7 @@ export default function EditBlog() {
           src={url}
           alt="Cover"
           className="w-32 h-24 object-cover rounded border"
+          loading="lazy"
           onError={e => { (e.target as HTMLImageElement).src = "/placeholder.png"; }}
         />
         <button
