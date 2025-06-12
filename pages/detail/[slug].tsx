@@ -198,6 +198,7 @@ export default function DetailPage() {
                   alt={blog.title}
                   className="w-full rounded-lg object-cover max-h-[420px] mx-auto"
                   style={{ boxShadow: "0 4px 12px 0 rgba(0,0,0,0.10)" }}
+                  loading="lazy"
                 />
               </div>
             )}
