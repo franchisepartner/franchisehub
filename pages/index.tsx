@@ -226,6 +226,7 @@ export default function Home() {
                   alt={`Banner ${i + 1}`}
                   className="object-cover w-full h-full"
                   style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+                  loading="lazy"
                 />
               </SwiperSlide>
             ))
@@ -289,6 +290,7 @@ export default function Home() {
                         src={item.img || '/logo192.png'}
                         alt={item.label}
                         className="w-12 h-12 rounded-xl object-cover bg-gray-100 border"
+                        loading="lazy"
                       />
                       <div className="flex-1">
                         <div className="font-semibold text-gray-900">{item.label}</div>
@@ -373,6 +375,7 @@ export default function Home() {
                       src={fr.logo_url}
                       alt={fr.franchise_name}
                       className="w-full h-full object-cover"
+                      loading="lazy"
                     />
                     <span className="absolute top-3 left-3 bg-yellow-400 text-xs font-semibold text-black px-2 py-1 rounded">
                       {fr.category}
@@ -419,7 +422,7 @@ export default function Home() {
                 <div className="bg-white border rounded-xl shadow-sm hover:shadow-lg transition cursor-pointer flex flex-col overflow-hidden h-full">
                   <div className="h-36 flex items-center justify-center bg-gray-50">
                     {b.cover_url ? (
-                      <img src={b.cover_url} alt={b.title} className="object-cover w-full h-full" />
+                      <img src={b.cover_url} alt={b.title} className="object-cover w-full h-full" loading="lazy" />
                     ) : (
                       <span className="text-gray-400 text-sm">Tanpa Cover</span>
                     )}
@@ -461,7 +464,7 @@ export default function Home() {
                 <div className="bg-white border rounded-xl shadow-sm hover:shadow-lg transition cursor-pointer flex flex-col overflow-hidden h-full">
                   <div className="h-36 flex items-center justify-center bg-gray-50">
                     {t.image_url ? (
-                      <img src={t.image_url} alt={t.title} className="object-cover w-full h-full" />
+                      <img src={t.image_url} alt={t.title} className="object-cover w-full h-full" loading="lazy" />
                     ) : (
                       <span className="text-gray-400 text-sm">Tanpa Gambar</span>
                     )}
