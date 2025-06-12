@@ -305,6 +305,7 @@ export default function Home() {
           </div>
         </div>
       </div>
+    <>
 
       {/* ===== MENU FITUR ===== */}
       <section className="relative mt-8 mb-6 z-20">
