@@ -198,6 +198,7 @@ export default function FranchisorApprovals() {
                           src={imageUrls[app.logo_url]} 
                           alt="Logo" 
                           className="w-10 h-10 object-cover mx-auto rounded" 
+                          loading="lazy"
                         />
                       </a>
                     ) : (
@@ -211,6 +212,7 @@ export default function FranchisorApprovals() {
                           src={imageUrls[app.ktp_url]} 
                           alt="KTP" 
                           className="w-10 h-10 object-cover mx-auto rounded" 
+                          loading="lazy"
                         />
                       </a>
                     ) : (
