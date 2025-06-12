@@ -226,6 +226,7 @@ export default function ForumGlobal() {
                 src={selectedThread.image_url}
                 className="w-full rounded-xl mb-3 border"
                 alt="Thread Image"
+                loading="lazy"
               />
             )}
             <p className="mb-3 text-gray-800">{selectedThread.content}</p>
