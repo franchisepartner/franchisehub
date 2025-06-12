@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import Head from 'next/head';
 import Link from 'next/link';
 import { supabase } from '../lib/supabaseClient';
 import { Swiper, SwiperSlide } from 'swiper/react';
