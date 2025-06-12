@@ -173,6 +173,7 @@ export default function FranchiseDetail() {
                 setModalImg(url);
                 setShowModal(true);
               }}
+              loading="lazy"
             />
           ))}
           <div className="absolute bottom-2 left-1/2 flex gap-2 -translate-x-1/2 z-20">
@@ -237,6 +238,7 @@ export default function FranchiseDetail() {
               alt="Gambar Full"
               className="max-h-[90vh] w-auto max-w-full rounded-xl mx-auto shadow-lg"
               draggable={false}
+              loading="lazy"
             />
           </div>
         </div>
@@ -453,6 +455,7 @@ export default function FranchiseDetail() {
                         src={item.image}
                         alt={item.title}
                         className="h-24 w-full object-cover rounded-t-lg bg-white"
+                        loading="lazy"
                       />
                       <div className="flex-1 px-2 pt-2 flex flex-col justify-between">
                         <div className="font-bold text-base truncate">{item.title}</div>
@@ -502,6 +505,7 @@ export default function FranchiseDetail() {
                       <div className="flex-1 px-2 pt-2 flex flex-col justify-between">
                         <div className="font-bold text-base truncate">{item.title}</div>
                         <div className="text-xs text-gray-500 mt-1 px-2 py-0.5 bg-gray-100 rounded inline-block w-max">Blog</div>
+                        loading="lazy"
                       </div>
                     </div>
                   </SwiperSlide>
