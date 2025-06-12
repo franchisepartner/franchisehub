@@ -364,6 +364,7 @@ export default function Navbar() {
                           src={item.img}
                           alt={item.label}
                           className="w-10 h-10 rounded-xl object-cover bg-gray-100 border"
+                          loading="lazy"
                         />
                       ) : (
                         <span className="w-10 h-10 flex items-center justify-center text-xl">{item.icon || '🔎'}</span>
