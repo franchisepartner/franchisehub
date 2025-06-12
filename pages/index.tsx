@@ -343,7 +343,6 @@ export default function Home() {
             ))}
           </div>
         </div>
-      </>
       </section>
 
       {/* === DAFTAR FRANCHISE === */}
