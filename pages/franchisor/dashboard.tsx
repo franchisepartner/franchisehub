@@ -182,6 +182,7 @@ export default function DashboardFranchisor() {
                       }
                       alt={item.title}
                       className="h-24 w-full object-cover rounded-t-lg bg-white"
+                      loading="lazy"
                     />
                     <div className="flex-1 px-2 pt-2 flex flex-col justify-between">
                       <div className="font-bold text-base truncate">{item.title}</div>
