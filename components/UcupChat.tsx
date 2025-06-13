@@ -1,7 +1,13 @@
 import { useRef, useState, useEffect } from "react";
 
 export default function UcupChat() {
-  const [chat, setChat] = useState<{ from: "user" | "ucup", text: string }[]>([]);
+  const [chat, setChat] = useState<{ from: "user" | "ucup", text: string }[]>([
+    {
+      from: "ucup",
+      text:
+        "Monggo panjenengan tanya, Ucup siap bantu rek 🐣. Ada yang bisa Ucup bantu hari ini? Soal franchise, peluang usaha, atau mungkin tips legalitas?",
+    },
+  ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const chatBoxRef = useRef<HTMLDivElement>(null);
@@ -11,14 +17,19 @@ export default function UcupChat() {
     setLoading(true);
     setChat(prev => [...prev, { from: "user", text: input }]);
     setInput("");
-    const res = await fetch("/api/ucup-chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question: input })
-    });
-    const data = await res.json();
-    setChat(prev => [...prev, { from: "ucup", text: data.reply }]);
-    setLoading(false);
+    try {
+      const res = await fetch("/api/ucup-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: input })
+      });
+      const data = await res.json();
+      setChat(prev => [...prev, { from: "ucup", text: data.reply }]);
+    } catch {
+      setChat(prev => [...prev, { from: "ucup", text: "Maaf, Ucup lagi gangguan jaringan, rek!" }]);
+    } finally {
+      setLoading(false);
+    }
   }
 
   // --- Scroll otomatis ke bawah setiap ada chat baru
@@ -29,7 +40,7 @@ export default function UcupChat() {
   }, [chat, loading]);
 
   return (
-    <div className="w-full max-w-sm"> {/* max-w-sm = lebih lebar dari xs */}
+    <div className="w-full max-w-sm">
       <div className="bg-white rounded-2xl shadow-xl p-4 border border-blue-200">
         <div className="mb-3 font-bold text-blue-800 flex items-center gap-2 text-base">
           <span>🐣</span> Ucup AI - FranchiseNusantara
@@ -65,10 +76,16 @@ export default function UcupChat() {
           />
           <button
             onClick={sendMsg}
-            disabled={loading}
-            className="bg-blue-500 hover:bg-blue-700 text-white px-3 py-2 rounded"
+            disabled={loading || !input.trim()}
+            className="bg-blue-500 hover:bg-blue-700 text-white px-3 py-2 rounded flex items-center justify-center"
+            style={{ minWidth: 40, minHeight: 40 }}
+            aria-label="Kirim"
           >
-            Kirim
+            {/* Icon search/magnifier */}
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <circle cx="11" cy="11" r="8" strokeWidth={2} />
+              <path d="M21 21l-4-4" strokeWidth={2} strokeLinecap="round" />
+            </svg>
           </button>
         </div>
       </div>
