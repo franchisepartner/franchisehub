@@ -111,7 +111,7 @@ export default function Home() {
   // Tombol Fitur Menu (Ucup AI ada paling awal)
   const featureMenus = [
     {
-      label: 'Ucup AI',
+      label: 'Tanya Ucup',
       bg: 'from-orange-400 to-yellow-400',
       icon: <span className="text-2xl">🐣</span>,
       action: () => setShowUcupModal(true)
