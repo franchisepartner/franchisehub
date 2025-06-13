@@ -1,14 +1,15 @@
-import { useState } from "react";
+import { useRef, useState, useEffect } from "react";
 
 export default function UcupChat() {
   const [chat, setChat] = useState<{ from: "user" | "ucup", text: string }[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const chatBoxRef = useRef<HTMLDivElement>(null);
 
   async function sendMsg() {
     if (!input.trim()) return;
     setLoading(true);
-    setChat([...chat, { from: "user", text: input }]);
+    setChat(prev => [...prev, { from: "user", text: input }]);
     setInput("");
     const res = await fetch("/api/ucup-chat", {
       method: "POST",
@@ -16,26 +17,42 @@ export default function UcupChat() {
       body: JSON.stringify({ question: input })
     });
     const data = await res.json();
-    setChat(chat => [...chat, { from: "ucup", text: data.reply }]);
+    setChat(prev => [...prev, { from: "ucup", text: data.reply }]);
     setLoading(false);
   }
 
+  // --- Scroll otomatis ke bawah setiap ada chat baru
+  useEffect(() => {
+    if (chatBoxRef.current) {
+      chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
+    }
+  }, [chat, loading]);
+
   return (
-    <div className="w-full max-w-xs">
+    <div className="w-full max-w-sm"> {/* max-w-sm = lebih lebar dari xs */}
       <div className="bg-white rounded-2xl shadow-xl p-4 border border-blue-200">
-        <div className="mb-3 font-bold text-blue-800 flex items-center gap-2">
-          <span>🐣</span> Ucup - FranchiseNusantara
+        <div className="mb-3 font-bold text-blue-800 flex items-center gap-2 text-base">
+          <span>🐣</span> Ucup AI - FranchiseNusantara
         </div>
-        <div className="h-52 overflow-y-auto mb-2 flex flex-col gap-2 bg-gray-50 p-2 rounded">
+        <div
+          ref={chatBoxRef}
+          className="h-64 overflow-y-auto mb-2 flex flex-col gap-2 bg-gray-50 p-2 rounded transition-all"
+        >
           {chat.map((c, i) => (
             <div
               key={i}
-              className={`text-sm px-3 py-2 rounded-lg ${c.from === "user" ? "bg-blue-100 self-end" : "bg-yellow-50 self-start border border-yellow-200"}`}
+              className={`text-sm px-3 py-2 rounded-lg break-words max-w-[85%] ${
+                c.from === "user"
+                  ? "bg-blue-100 self-end"
+                  : "bg-yellow-50 self-start border border-yellow-200"
+              }`}
             >
               {c.text}
             </div>
           ))}
-          {loading && <div className="text-xs text-gray-500">Ucup lagi mikir, sabar yo...</div>}
+          {loading && (
+            <div className="text-xs text-gray-500 italic">Ucup lagi mikir, sabar yo...</div>
+          )}
         </div>
         <div className="flex gap-2">
           <input
