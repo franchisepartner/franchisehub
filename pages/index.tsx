@@ -113,7 +113,7 @@ export default function Home() {
     {
       label: 'Ucup AI',
       bg: 'from-orange-400 to-yellow-400',
-      icon: <span className="text-2xl">🇮🇩</span>,
+      icon: <span className="text-2xl">🐣</span>,
       action: () => setShowUcupModal(true)
     },
     { label: 'Pengumuman', href: '/announcement', bg: 'from-yellow-400 to-yellow-300', icon: <Megaphone className="h-7 w-7" /> },
