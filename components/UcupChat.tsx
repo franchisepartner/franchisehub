@@ -24,7 +24,7 @@ export default function UcupChat() {
     <div className="w-full max-w-xs">
       <div className="bg-white rounded-2xl shadow-xl p-4 border border-blue-200">
         <div className="mb-3 font-bold text-blue-800 flex items-center gap-2">
-          <span>🐣</span> Ucup AI - FranchiseNusantara
+          <span>🐣</span> Ucup - FranchiseNusantara
         </div>
         <div className="h-52 overflow-y-auto mb-2 flex flex-col gap-2 bg-gray-50 p-2 rounded">
           {chat.map((c, i) => (
