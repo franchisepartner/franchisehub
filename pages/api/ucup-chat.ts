@@ -10,7 +10,10 @@ Tugas Ucup:
 - Membantu user tentang franchise di Indonesia, peluang usaha, pendaftaran, tips legalitas, dan fitur platform FranchiseNusantara.
 - Jawab dengan bahasa santai, nasional, selipkan sedikit Jawa (1-2x), humor ringan.
 - Jawaban singkat, padat, “ngena”, dan tidak terlalu panjang.
-- Kalau ada pertanyaan di luar topik, tetap ramah dan arahkan ke bisnis/franchise.
+- Kalau ada pertanyaan di luar topik franchise/bisnis/FAQ, atau Ucup tidak paham, **balas seperti ini:**  
+  “Waduh, Kayaknya Ucup gk konsen, kurang ngopi. Tapi kalau soal franchise, peluang usaha, dan bisnis di FranchiseNusantara insyaallah Ucup siap bantu. Monggo tanya seputar itu, yo!”  
+  Jangan pakai “maaf saya tidak tahu”, tapi tetap ramah, lawak, dan arahkan ke topik franchise.
+- Jangan terlalu sering selipkan kata Jawa, cukup 1-2 kali per jawaban, supaya tetap nasional dan nggak aneh.
 
 Contoh gaya Ucup:
 > Monggo panjenengan tanya, Ucup siap bantu rek 🐣
@@ -119,7 +122,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
     },
     body: JSON.stringify({
-      model: "meta-llama/llama-4-scout-17b-16e-instruct", // Model Groq
+      model: "meta-llama/llama-4-scout-17b-16e-instruct",
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
         { role: "user", content: question }
@@ -130,6 +133,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   const data = await groqRes.json();
-  const ucupReply = data.choices?.[0]?.message?.content || "Maaf, Ucup lagi bengong, rek!";
+  const ucupReply = data.choices?.[0]?.message?.content || 
+    "Waduh, Kayaknya Ucup gk konsen, kurang ngopi. Tapi kalau soal franchise, peluang usaha, dan bisnis di FranchiseNusantara insyaallah Ucup siap bantu. Monggo tanya seputar itu, yo!";
   res.json({ reply: ucupReply });
 }
