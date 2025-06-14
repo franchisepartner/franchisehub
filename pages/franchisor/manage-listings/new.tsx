@@ -2,7 +2,11 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '../../../lib/supabaseClient';
 import { v4 as uuidv4 } from 'uuid';
-import { FaInfoCircle, FaStore, FaMapMarkerAlt, FaMoneyBillAlt, FaThList, FaCog, FaFileAlt, FaLink, FaImage } from 'react-icons/fa';
+import imageCompression from 'browser-image-compression';
+import {
+  FaInfoCircle, FaStore, FaMapMarkerAlt, FaMoneyBillAlt, FaThList,
+  FaCog, FaFileAlt, FaLink, FaImage
+} from 'react-icons/fa';
 
 const LEGAL_DOCUMENTS = [
   { key: 'stpw', label: 'STPW (Surat Tanda Pendaftaran Waralaba)' },
@@ -76,10 +80,18 @@ export default function NewListing() {
     </span>
   );
 
+  // Upload logo dengan compress
   const uploadLogoImage = async (file: File) => {
     const fileExt = file.name.split('.').pop();
     const fileName = `logo/${uuidv4()}.${fileExt}`;
-    const { error } = await supabase.storage.from('listing-images').upload(fileName, file);
+    // Compress logo
+    const compressedFile = await imageCompression(file, {
+      maxSizeMB: 0.7,
+      maxWidthOrHeight: 1280,
+      useWebWorker: true,
+      initialQuality: 0.85,
+    });
+    const { error } = await supabase.storage.from('listing-images').upload(fileName, compressedFile);
     if (error) throw error;
     return fileName;
   };
@@ -101,6 +113,7 @@ export default function NewListing() {
     setLoading(true);
 
     try {
+      // LOGO: compress sebelum upload!
       const logoPath = form.logo_file ? await uploadLogoImage(form.logo_file) : null;
       const slug = form.franchise_name.toLowerCase().replace(/\s+/g, '-');
 
@@ -145,7 +158,14 @@ export default function NewListing() {
           showcaseFiles.map(async (file) => {
             const fileExt = file.name.split('.').pop();
             const fileName = `showcase/${uuidv4()}.${fileExt}`;
-            const { error: uploadError } = await supabase.storage.from('listing-images').upload(fileName, file);
+            // COMPRESS SHOWCASE
+            const compressedFile = await imageCompression(file, {
+              maxSizeMB: 0.7,
+              maxWidthOrHeight: 1280,
+              useWebWorker: true,
+              initialQuality: 0.85,
+            });
+            const { error: uploadError } = await supabase.storage.from('listing-images').upload(fileName, compressedFile);
             if (uploadError) throw uploadError;
             await supabase.from('listing_images').insert({
               listing_id: listingId,
@@ -273,7 +293,6 @@ export default function NewListing() {
         <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
           <table className="w-full table-fixed border-separate border-spacing-y-4">
             <tbody>
-              {/* Semua field form seperti file lama */}
               <tr>
                 <td className="align-top w-[32%] pr-2"><FormLabel>Nama Franchise</FormLabel></td>
                 <td className="align-middle w-[68%]">
@@ -367,7 +386,6 @@ export default function NewListing() {
                     <option value="autopilot">Autopilot</option>
                     <option value="semi">Semi Autopilot</option>
                   </select>
-                  {/* Penjelasan Autopilot & Semi */}
                   <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-xs flex flex-col">
                       <div className="font-bold text-blue-600 mb-1 flex items-center gap-1"><FaCog /> Autopilot</div>
