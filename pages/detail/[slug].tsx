@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
-import { FaShareAlt } from 'react-icons/fa';
+import { FaShareAlt, FaFileAlt } from 'react-icons/fa';
 
 interface Blog {
   id: string;
@@ -34,6 +34,10 @@ export default function DetailPage() {
   const [user, setUser] = useState<any>(null);
   const [shareMsg, setShareMsg] = useState('');
   const [showImageModal, setShowImageModal] = useState(false);
+
+  // State showcase
+  const [showcaseBlogs, setShowcaseBlogs] = useState<Blog[]>([]);
+  const [showcaseListings, setShowcaseListings] = useState<any[]>([]);
 
   useEffect(() => {
     async function fetchBlog() {
@@ -68,6 +72,42 @@ export default function DetailPage() {
           owner_id: data.created_by,
           viewer_role: viewerRole,
         });
+
+        // --- FETCH SHOWCASE KARYA FRANCHISOR ---
+        // Fetch listing lain dan blog lain milik franchisor yang sama (kecuali blog ini sendiri)
+        const [listingRes, blogRes] = await Promise.all([
+          supabase
+            .from('franchise_listings')
+            .select('id, franchise_name, logo_url, slug, created_at')
+            .eq('created_by', data.created_by),
+          supabase
+            .from('blogs')
+            .select('id, title, cover_url, slug, created_at')
+            .eq('created_by', data.created_by)
+            .neq('id', data.id), // kecuali blog ini sendiri
+        ]);
+        setShowcaseListings(
+          (listingRes.data || []).map((item: any) => ({
+            ...item,
+            image: item.logo_url
+              ? supabase.storage.from('listing-images').getPublicUrl(item.logo_url).data.publicUrl
+              : '/logo192.png',
+            url: `/franchise/${item.slug}`,
+            date: item.created_at,
+            type: 'listing',
+            title: item.franchise_name,
+          }))
+        );
+        setShowcaseBlogs(
+          (blogRes.data || []).map((item: any) => ({
+            ...item,
+            image: item.cover_url,
+            url: `/detail/${item.slug}`,
+            date: item.created_at,
+            type: 'blog',
+            title: item.title,
+          }))
+        );
       }
     }
 
@@ -226,6 +266,74 @@ export default function DetailPage() {
             <div className="prose prose-lg max-w-none text-gray-700 mb-4 whitespace-pre-wrap">
               {blog.content}
             </div>
+
+            {/* === SHOWCASE KARYA FRANCHISOR === */}
+            {(showcaseListings.length > 0 || showcaseBlogs.length > 0) && (
+              <div className="my-12">
+                <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <FaFileAlt className="text-pink-600" /> Showcase Karya Franchisor
+                </h2>
+                {/* Listing */}
+                {showcaseListings.length > 0 && (
+                  <>
+                    <div className="font-semibold mb-2 text-base text-gray-800">Listing</div>
+                    <div className="flex gap-5 overflow-x-auto pb-3">
+                      {showcaseListings.map(item => (
+                        <div
+                          key={item.id}
+                          className="min-w-[240px] max-w-[260px] bg-white rounded-xl shadow-md flex flex-col overflow-hidden cursor-pointer transition hover:shadow-lg"
+                          onClick={() => router.push(item.url)}
+                        >
+                          <img
+                            src={item.image}
+                            alt={item.title}
+                            className="h-24 w-full object-cover rounded-t-lg bg-white"
+                            loading="lazy"
+                          />
+                          <div className="flex-1 px-2 pt-2 flex flex-col justify-between">
+                            <div className="font-bold text-base truncate">{item.title}</div>
+                            <div className="text-xs text-gray-500 mt-1 px-2 py-0.5 bg-gray-100 rounded inline-block w-max">Listing</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+                {/* Blog */}
+                {showcaseBlogs.length > 0 && (
+                  <>
+                    <div className="font-semibold mb-2 text-base text-gray-800">Blog</div>
+                    <div className="flex gap-5 overflow-x-auto pb-3">
+                      {showcaseBlogs.map(item => (
+                        <div
+                          key={item.id}
+                          className="min-w-[240px] max-w-[260px] bg-white rounded-xl shadow-md flex flex-col overflow-hidden cursor-pointer transition hover:shadow-lg"
+                          onClick={() => router.push(item.url)}
+                        >
+                          <img
+                            src={
+                              item.image
+                                ? item.image.startsWith('http')
+                                  ? item.image
+                                  : supabase.storage.from('blog-assets').getPublicUrl(item.image).data.publicUrl
+                                : '/logo192.png'
+                            }
+                            alt={item.title}
+                            className="h-24 w-full object-cover rounded-t-lg bg-white"
+                            loading="lazy"
+                          />
+                          <div className="flex-1 px-2 pt-2 flex flex-col justify-between">
+                            <div className="font-bold text-base truncate">{item.title}</div>
+                            <div className="text-xs text-gray-500 mt-1 px-2 py-0.5 bg-gray-100 rounded inline-block w-max">Blog</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
           </>
         ) : (
           <p className="text-gray-500">Memuat konten...</p>
