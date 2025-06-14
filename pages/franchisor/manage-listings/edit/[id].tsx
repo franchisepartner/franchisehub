@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '../../../../lib/supabaseClient';
 import { v4 as uuidv4 } from 'uuid';
+import imageCompression from 'browser-image-compression';
 
 const LEGAL_DOCUMENTS = [
   { key: 'stpw', label: 'STPW (Surat Tanda Pendaftaran Waralaba)' },
@@ -132,18 +133,32 @@ export default function EditListing() {
     });
   };
 
+  // --- AUTO COMPRESS LOGO
   const uploadLogoImage = async (file: File) => {
     const ext = file.name.split('.').pop();
     const fileName = `logo/${uuidv4()}.${ext}`;
-    const { error } = await supabase.storage.from('listing-images').upload(fileName, file);
+    const compressedFile = await imageCompression(file, {
+      maxSizeMB: 0.7,
+      maxWidthOrHeight: 1280,
+      useWebWorker: true,
+      initialQuality: 0.85,
+    });
+    const { error } = await supabase.storage.from('listing-images').upload(fileName, compressedFile);
     if (error) throw error;
     return fileName;
   };
 
+  // --- AUTO COMPRESS SHOWCASE
   const uploadShowcaseImage = async (file: File) => {
     const ext = file.name.split('.').pop();
     const fileName = `showcase/${uuidv4()}.${ext}`;
-    const { error } = await supabase.storage.from('listing-images').upload(fileName, file);
+    const compressedFile = await imageCompression(file, {
+      maxSizeMB: 0.7,
+      maxWidthOrHeight: 1280,
+      useWebWorker: true,
+      initialQuality: 0.85,
+    });
+    const { error } = await supabase.storage.from('listing-images').upload(fileName, compressedFile);
     if (error) throw error;
     return fileName;
   };
@@ -195,7 +210,6 @@ export default function EditListing() {
     }
   };
 
-  // --- HEADING COMPONENT UTAMA ---
   const SectionHeading = ({ children }: { children: string }) => (
     <div className="font-bold text-lg mt-6 mb-2">{children}</div>
   );
