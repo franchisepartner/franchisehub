@@ -159,6 +159,18 @@ export default function FranchiseDetail() {
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-lg max-w-3xl mx-auto px-2 py-8">
+      {/* === BAR PERINGATAN === */}
+      <div className="w-full mb-6">
+        <div className="bg-yellow-50 border-l-4 border-yellow-400 text-yellow-900 py-4 px-5 rounded-xl shadow flex items-center gap-2">
+          <FaInfoCircle className="mr-2 text-yellow-500 text-xl flex-shrink-0" />
+          <div className="flex-1 text-[15px] sm:text-base">
+            <b>Mohon Perhatian!</b>
+            Franchisee dan Franchisor disarankan untuk <b>mengecek ulang seluruh dokumen, legalitas, serta kelengkapan yang dijanjikan oleh Franchisor (pemilik waralaba)</b> sebelum mengambil keputusan kerja sama atau transaksi apapun.<br />
+            <span className="text-yellow-800">Yuk, pastikan semua informasi, dokumen, dan perjanjian benar-benar sesuai agar bisnis berjalan aman, nyaman, dan saling percaya. Kalau ada yang kurang jelas, jangan ragu untuk bertanya atau konsultasi dengan tim FranchiseNusantara!</span>
+          </div>
+        </div>
+      </div>
+
       {/* SLIDER COVER + CLICK FOR FULL IMAGE */}
       {showcaseUrls.length > 0 && (
         <div className="mb-6 relative rounded-2xl shadow overflow-hidden" style={{height: '220px'}}>
@@ -216,7 +228,6 @@ export default function FranchiseDetail() {
           >
             <FaShareAlt size={20} />
           </button>
-          {/* Feedback share */}
           {shareMsg && (
             <div className="absolute bottom-16 right-4 z-40 bg-blue-700 text-white rounded-lg px-4 py-2 text-sm shadow">
               {shareMsg}
@@ -515,7 +526,6 @@ export default function FranchiseDetail() {
           )}
         </div>
       )}
-
     </div>
   );
 }
