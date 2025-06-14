@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
-import Image from 'next/image';
+import imageCompression from 'browser-image-compression';
 
 export default function AnnouncementPage() {
   const [announcements, setAnnouncements] = useState<any[]>([]);
@@ -49,9 +49,22 @@ export default function AnnouncementPage() {
 
     if (imageFile) {
       const fileName = `${Date.now()}_${imageFile.name}`;
+      // === COMPRESS imageFile sebelum upload
+      let compressedFile = imageFile;
+      try {
+        compressedFile = await imageCompression(imageFile, {
+          maxSizeMB: 0.7,
+          maxWidthOrHeight: 1280,
+          useWebWorker: true,
+          initialQuality: 0.85,
+        });
+      } catch (err) {
+        // fallback ke file asli jika gagal compress
+        compressedFile = imageFile;
+      }
       const { data, error } = await supabase.storage
         .from('announcement-assets')
-        .upload(fileName, imageFile);
+        .upload(fileName, compressedFile);
       if (!error && data?.path) {
         const { data: publicUrlData } = supabase.storage
           .from('announcement-assets')
