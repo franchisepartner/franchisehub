@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
+import imageCompression from 'browser-image-compression';
 
 export default function ManageHomepageBanners() {
   const [banners, setBanners] = useState<any[]>([]);
@@ -25,13 +26,25 @@ export default function ManageHomepageBanners() {
     setBanners(data || []);
   }
 
-  // Upload file ke bucket homepage-banners
+  // Upload file ke bucket homepage-banners (auto-compress!)
   async function handleUpload(e: React.FormEvent) {
     e.preventDefault();
     if (!selectedFile) return;
     setUploading(true);
     const fileName = `${Date.now()}-${selectedFile.name}`;
-    const { error } = await supabase.storage.from('homepage-banners').upload(fileName, selectedFile);
+    // ==== COMPRESS BEFORE UPLOAD ====
+    let compressedFile = selectedFile;
+    try {
+      compressedFile = await imageCompression(selectedFile, {
+        maxSizeMB: 0.7,
+        maxWidthOrHeight: 1920,
+        useWebWorker: true,
+        initialQuality: 0.85,
+      });
+    } catch (err) {
+      compressedFile = selectedFile;
+    }
+    const { error } = await supabase.storage.from('homepage-banners').upload(fileName, compressedFile);
     setUploading(false);
     if (error) return alert('Gagal upload: ' + error.message);
     setSelectedFile(null);
