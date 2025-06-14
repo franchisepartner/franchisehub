@@ -27,6 +27,7 @@ export default function NewListing() {
   const [loading, setLoading] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
+  const [alreadyHasListing, setAlreadyHasListing] = useState(false);
 
   const [form, setForm] = useState({
     franchise_name: '',
@@ -53,7 +54,15 @@ export default function NewListing() {
   useEffect(() => {
     const fetchUser = async () => {
       const { data } = await supabase.auth.getUser();
-      if (data?.user) setUser(data.user);
+      if (data?.user) {
+        setUser(data.user);
+        // Cek listing milik user ini
+        const { data: list, error } = await supabase
+          .from('franchise_listings')
+          .select('id')
+          .eq('user_id', data.user.id);
+        if (!error && list && list.length > 0) setAlreadyHasListing(true);
+      }
       else router.push('/login');
     };
     fetchUser();
@@ -321,230 +330,249 @@ export default function NewListing() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
-          <table className="w-full table-fixed border-separate border-spacing-y-4">
-            <tbody>
-              <tr>
-                <td className="align-top w-[32%] pr-2"><FormLabel>Nama Franchise</FormLabel></td>
-                <td className="align-middle w-[68%]">
-                  <input required name="franchise_name" value={form.franchise_name} onChange={handleChange}
-                    className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
-                    placeholder="Tulis nama franchise..." />
-                </td>
-              </tr>
-              <tr>
-                <td className="align-top w-[32%] pr-2"><FormLabel>Kategori</FormLabel></td>
-                <td className="align-middle w-[68%]">
-                  <input required name="category" value={form.category} onChange={handleChange}
-                    className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
-                    placeholder="Pilih/isi kategori usaha" />
-                </td>
-              </tr>
-              <tr>
-                <td className="align-top w-[32%] pr-2"><FormLabel>Investasi Minimal</FormLabel></td>
-                <td className="align-middle w-[68%]">
-                  <div className="flex items-center gap-2">
-                    <span>Rp</span>
-                    <input required type="number" name="investment_min" value={form.investment_min} onChange={handleChange}
-                      className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
-                      placeholder="Jumlah" />
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td className="align-top w-[32%] pr-2"><FormLabel>Lokasi</FormLabel></td>
-                <td className="align-middle w-[68%]">
-                  <input required name="location" value={form.location} onChange={handleChange}
-                    className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
-                    placeholder="Lokasi usaha" />
-                </td>
-              </tr>
-              <tr>
-                <td className="align-top w-[32%] pr-2"><FormLabel>No WhatsApp</FormLabel></td>
-                <td className="align-middle w-[68%]">
-                  <input required name="whatsapp_contact" value={form.whatsapp_contact} onChange={handleChange}
-                    className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
-                    placeholder="08xxxxxxxxxx" />
-                </td>
-              </tr>
-              <tr>
-                <td className="align-top w-[32%] pr-2"><FormLabel>Email Kontak</FormLabel></td>
-                <td className="align-middle w-[68%]">
-                  <input required name="email_contact" value={form.email_contact} onChange={handleChange}
-                    className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
-                    placeholder="nama@email.com" />
-                </td>
-              </tr>
-              <tr>
-                <td className="align-top w-[32%] pr-2"><FormLabel>Website (opsional)</FormLabel></td>
-                <td className="align-middle w-[68%]">
-                  <input name="website_url" value={form.website_url} onChange={handleChange}
-                    className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
-                    placeholder="https://" />
-                </td>
-              </tr>
-              <tr>
-                <td className="align-top w-[32%] pr-2"><FormLabel>Google Maps URL (opsional)</FormLabel></td>
-                <td className="align-middle w-[68%]">
-                  <input name="google_maps_url" value={form.google_maps_url} onChange={handleChange}
-                    className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
-                    placeholder="https://maps.google.com/..." />
-                </td>
-              </tr>
-              <tr>
-                <td className="align-top w-[32%] pr-2"><FormLabel>Tag</FormLabel></td>
-                <td className="align-middle w-[68%]">
-                  <input name="tags" value={form.tags} onChange={handleChange}
-                    className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
-                    placeholder="Pisahkan dengan koma (,) jika lebih dari satu" />
-                </td>
-              </tr>
-              <tr>
-                <td className="align-top w-[32%] pr-2 pt-2"><FormLabel>Deskripsi</FormLabel></td>
-                <td className="align-top w-[68%]">
-                  <textarea required name="description" value={form.description} onChange={handleChange}
-                    className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition resize-none"
-                    rows={3} placeholder="Tuliskan deskripsi usaha..." />
-                </td>
-              </tr>
-              {/* Mode Operasional */}
-              <tr>
-                <td className="align-top w-[32%] pr-2"><FormLabel>Mode Operasional</FormLabel></td>
-                <td className="align-middle w-[68%]">
-                  <select required name="operation_mode" value={form.operation_mode} onChange={handleChange}
-                    className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition">
-                    <option value="">Pilih...</option>
-                    <option value="autopilot">Autopilot</option>
-                    <option value="semi">Semi Autopilot</option>
-                  </select>
-                  <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-xs flex flex-col">
-                      <div className="font-bold text-blue-600 mb-1 flex items-center gap-1"><FaCog /> Autopilot</div>
-                      <ul className="list-disc pl-5 mb-1">
-                        <li>Mitra tidak perlu terlibat langsung dalam operasional harian.</li>
-                        <li>Seluruh aktivitas dijalankan oleh tim pusat/franchisor.</li>
-                        <li>Mitra tetap menerima laporan dan hasil bisnis secara rutin.</li>
-                        <li>Cocok untuk investor yang ingin bisnis berjalan otomatis.</li>
-                      </ul>
-                      <span className="text-[11px] text-gray-500">“Autopilot berarti seluruh operasional harian bisnis dijalankan oleh tim pusat/franchisor, mitra hanya menerima laporan dan hasil.”</span>
-                    </div>
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-3 text-xs flex flex-col">
-                      <div className="font-bold text-yellow-600 mb-1 flex items-center gap-1"><FaCog /> Semi Autopilot</div>
-                      <ul className="list-disc pl-5 mb-1">
-                        <li>Mitra menjalankan sendiri operasional harian bisnis.</li>
-                        <li>Franchisor hanya sebagai pemberi dukungan teknis, pelatihan, SOP, dan pemasaran pusat.</li>
-                        <li>Cocok untuk mitra yang ingin aktif terjun dan mengelola bisnis sendiri namun tetap mendapat pendampingan dari franchisor.</li>
-                      </ul>
-                      <span className="text-[11px] text-gray-500">“Semi-autopilot berarti mitra sebagai pihak utama yang menjalankan operasional bisnis harian, sementara franchisor hanya sebagai pemberi dukungan teknis.”</span>
-                    </div>
-                  </div>
-                </td>
-              </tr>
-              {/* Checklist Dokumen Hukum */}
-              <tr>
-                <td className="align-top w-[32%] pr-2"><FormLabel>Checklist Dokumen Hukum</FormLabel></td>
-                <td className="align-top w-[68%]">
-                  <div className="overflow-x-auto">
-                    <table className="min-w-[480px] w-full bg-gray-50 rounded-2xl border border-gray-200 shadow-md">
-                      <thead>
-                        <tr className="bg-gray-100">
-                          <th className="py-3 px-4 text-left font-semibold rounded-tl-2xl">Dokumen</th>
-                          <th className="py-3 px-4 text-center font-semibold">Sudah Memiliki</th>
-                          <th className="py-3 px-4 text-center font-semibold rounded-tr-2xl">Akan/Sedang diurus</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {LEGAL_DOCUMENTS.map((doc, idx) => (
-                          <tr key={doc.key} className="border-t border-gray-200">
-                            <td className="py-3 px-4">{doc.label}</td>
-                            {LEGAL_STATUSES.map(status => (
-                              <td key={status.key} className="py-3 px-4 text-center">
-                                <input
-                                  type="radio"
-                                  name={`doc-status-${doc.key}`}
-                                  value={status.key}
-                                  checked={legalDocs[idx].status === status.key}
-                                  onChange={() => {
-                                    const next = [...legalDocs];
-                                    next[idx].status = status.key;
-                                    setLegalDocs(next);
-                                  }}
-                                  required
-                                  className="form-radio h-5 w-5 text-green-600 border-gray-300 focus:ring-2 focus:ring-blue-300 transition"
-                                />
-                              </td>
-                            ))}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                    {!allDocsFilled && (
-                      <p className="text-red-500 text-xs mt-2">Semua dokumen harus dipilih statusnya.</p>
-                    )}
-                  </div>
-                </td>
-              </tr>
-              {/* Upload Logo */}
-              <tr>
-                <td className="align-top w-[32%] pr-2"><FormLabel>Upload Logo</FormLabel></td>
-                <td className="align-middle w-[68%]">
-                  <input required type="file" name="logo_file" onChange={handleChange} className="file-input file-input-bordered w-full max-w-xl" />
-                </td>
-              </tr>
-              {/* Upload Showcase */}
-              <tr>
-                <td className="align-top w-[32%] pr-2">
-                  <FormLabel>
-                    Upload Showcase (max 5 gambar)
-                  </FormLabel>
-                  <div className="flex items-center gap-2 text-xs mt-1 text-gray-500">
-                    <FaImage className="text-blue-400" />
-                    <span>
-                      **Disarankan gambar lebar (landscape), minimal <b>1200 x 360 px</b>. <br />
-                      Di halaman franchise, gambar akan dicrop otomatis dengan tinggi 220px, lebar penuh.**
-                    </span>
-                  </div>
-                </td>
-                <td className="align-top w-[68%]">
-                  <input type="file" multiple accept="image/*" onChange={handleShowcaseChange} className="file-input file-input-bordered w-full max-w-xl"/>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Upload hingga 5 gambar untuk galeri showcase franchise Anda.
-                  </p>
-                  <div className="flex gap-2 mt-2 flex-wrap">
-                    <span className="text-xs text-gray-600">
-                      {showcaseFiles.length} / 5 file dipilih
-                    </span>
-                    {showcaseFiles.map((file, idx) => (
-                      <span key={idx} className="inline-block bg-gray-200 px-2 py-1 rounded text-xs">
-                        {file.name}
-                      </span>
-                    ))}
-                  </div>
-                </td>
-              </tr>
-              {/* Catatan Tambahan */}
-              <tr>
-                <td className="align-top w-[32%] pr-2"><FormLabel>Catatan Tambahan</FormLabel></td>
-                <td className="align-top w-[68%]">
-                  <textarea name="notes" value={form.notes} onChange={handleChange} className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition resize-none" rows={2} placeholder="Catatan (opsional)" />
-                </td>
-              </tr>
-            </tbody>
-          </table>
+      {/* FORM / GEMBOK */}
+      {alreadyHasListing ? (
+        <div className="flex flex-col items-center justify-center py-16">
+          <div className="bg-gray-50 border-2 border-gray-200 rounded-2xl shadow-md p-10 flex flex-col items-center">
+            <span className="text-6xl mb-3 text-blue-400">🔒</span>
+            <h2 className="text-2xl font-bold mb-2 text-blue-700">Akses Ditutup</h2>
+            <p className="text-center text-gray-700 max-w-sm mb-2">
+              Anda sudah memiliki dan menggunakan fitur ini.<br />
+              Silakan <a href="/franchisor/manage-listings" className="underline text-blue-600 hover:text-blue-800">kelola listing yang sudah ada</a>.
+            </p>
+            <p className="text-center text-gray-400 text-sm">
+              Jika ada pertanyaan atau saran terkait, silakan menghubungi tim Administrator.
+            </p>
+          </div>
         </div>
-        <button type="submit" disabled={loading} className="w-full px-4 py-2 rounded-full bg-green-600 text-white font-semibold shadow transition hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400">
-          {loading ? 'Menyimpan...' : 'Tambah Listing'}
-        </button>
-        <button
-          type="button"
-          className="mt-6 w-full px-4 py-2 rounded-full bg-gray-700 text-white font-semibold shadow transition hover:bg-gray-900"
-          onClick={() => setShowPreview(true)}
-        >
-          Preview Listing
-        </button>
-      </form>
-      <ModalPreview show={showPreview} onClose={() => setShowPreview(false)} />
+      ) : (
+        <>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+              <table className="w-full table-fixed border-separate border-spacing-y-4">
+                <tbody>
+                  <tr>
+                    <td className="align-top w-[32%] pr-2"><FormLabel>Nama Franchise</FormLabel></td>
+                    <td className="align-middle w-[68%]">
+                      <input required name="franchise_name" value={form.franchise_name} onChange={handleChange}
+                        className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
+                        placeholder="Tulis nama franchise..." />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="align-top w-[32%] pr-2"><FormLabel>Kategori</FormLabel></td>
+                    <td className="align-middle w-[68%]">
+                      <input required name="category" value={form.category} onChange={handleChange}
+                        className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
+                        placeholder="Pilih/isi kategori usaha" />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="align-top w-[32%] pr-2"><FormLabel>Investasi Minimal</FormLabel></td>
+                    <td className="align-middle w-[68%]">
+                      <div className="flex items-center gap-2">
+                        <span>Rp</span>
+                        <input required type="number" name="investment_min" value={form.investment_min} onChange={handleChange}
+                          className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
+                          placeholder="Jumlah" />
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="align-top w-[32%] pr-2"><FormLabel>Lokasi</FormLabel></td>
+                    <td className="align-middle w-[68%]">
+                      <input required name="location" value={form.location} onChange={handleChange}
+                        className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
+                        placeholder="Lokasi usaha" />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="align-top w-[32%] pr-2"><FormLabel>No WhatsApp</FormLabel></td>
+                    <td className="align-middle w-[68%]">
+                      <input required name="whatsapp_contact" value={form.whatsapp_contact} onChange={handleChange}
+                        className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
+                        placeholder="08xxxxxxxxxx" />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="align-top w-[32%] pr-2"><FormLabel>Email Kontak</FormLabel></td>
+                    <td className="align-middle w-[68%]">
+                      <input required name="email_contact" value={form.email_contact} onChange={handleChange}
+                        className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
+                        placeholder="nama@email.com" />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="align-top w-[32%] pr-2"><FormLabel>Website (opsional)</FormLabel></td>
+                    <td className="align-middle w-[68%]">
+                      <input name="website_url" value={form.website_url} onChange={handleChange}
+                        className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
+                        placeholder="https://" />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="align-top w-[32%] pr-2"><FormLabel>Google Maps URL (opsional)</FormLabel></td>
+                    <td className="align-middle w-[68%]">
+                      <input name="google_maps_url" value={form.google_maps_url} onChange={handleChange}
+                        className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
+                        placeholder="https://maps.google.com/..." />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="align-top w-[32%] pr-2"><FormLabel>Tag</FormLabel></td>
+                    <td className="align-middle w-[68%]">
+                      <input name="tags" value={form.tags} onChange={handleChange}
+                        className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition"
+                        placeholder="Pisahkan dengan koma (,) jika lebih dari satu" />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="align-top w-[32%] pr-2 pt-2"><FormLabel>Deskripsi</FormLabel></td>
+                    <td className="align-top w-[68%]">
+                      <textarea required name="description" value={form.description} onChange={handleChange}
+                        className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition resize-none"
+                        rows={3} placeholder="Tuliskan deskripsi usaha..." />
+                    </td>
+                  </tr>
+                  {/* Mode Operasional */}
+                  <tr>
+                    <td className="align-top w-[32%] pr-2"><FormLabel>Mode Operasional</FormLabel></td>
+                    <td className="align-middle w-[68%]">
+                      <select required name="operation_mode" value={form.operation_mode} onChange={handleChange}
+                        className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition">
+                        <option value="">Pilih...</option>
+                        <option value="autopilot">Autopilot</option>
+                        <option value="semi">Semi Autopilot</option>
+                      </select>
+                      <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-xs flex flex-col">
+                          <div className="font-bold text-blue-600 mb-1 flex items-center gap-1"><FaCog /> Autopilot</div>
+                          <ul className="list-disc pl-5 mb-1">
+                            <li>Mitra tidak perlu terlibat langsung dalam operasional harian.</li>
+                            <li>Seluruh aktivitas dijalankan oleh tim pusat/franchisor.</li>
+                            <li>Mitra tetap menerima laporan dan hasil bisnis secara rutin.</li>
+                            <li>Cocok untuk investor yang ingin bisnis berjalan otomatis.</li>
+                          </ul>
+                          <span className="text-[11px] text-gray-500">“Autopilot berarti seluruh operasional harian bisnis dijalankan oleh tim pusat/franchisor, mitra hanya menerima laporan dan hasil.”</span>
+                        </div>
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-3 text-xs flex flex-col">
+                          <div className="font-bold text-yellow-600 mb-1 flex items-center gap-1"><FaCog /> Semi Autopilot</div>
+                          <ul className="list-disc pl-5 mb-1">
+                            <li>Mitra menjalankan sendiri operasional harian bisnis.</li>
+                            <li>Franchisor hanya sebagai pemberi dukungan teknis, pelatihan, SOP, dan pemasaran pusat.</li>
+                            <li>Cocok untuk mitra yang ingin aktif terjun dan mengelola bisnis sendiri namun tetap mendapat pendampingan dari franchisor.</li>
+                          </ul>
+                          <span className="text-[11px] text-gray-500">“Semi-autopilot berarti mitra sebagai pihak utama yang menjalankan operasional bisnis harian, sementara franchisor hanya sebagai pemberi dukungan teknis.”</span>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                  {/* Checklist Dokumen Hukum */}
+                  <tr>
+                    <td className="align-top w-[32%] pr-2"><FormLabel>Checklist Dokumen Hukum</FormLabel></td>
+                    <td className="align-top w-[68%]">
+                      <div className="overflow-x-auto">
+                        <table className="min-w-[480px] w-full bg-gray-50 rounded-2xl border border-gray-200 shadow-md">
+                          <thead>
+                            <tr className="bg-gray-100">
+                              <th className="py-3 px-4 text-left font-semibold rounded-tl-2xl">Dokumen</th>
+                              <th className="py-3 px-4 text-center font-semibold">Sudah Memiliki</th>
+                              <th className="py-3 px-4 text-center font-semibold rounded-tr-2xl">Akan/Sedang diurus</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {LEGAL_DOCUMENTS.map((doc, idx) => (
+                              <tr key={doc.key} className="border-t border-gray-200">
+                                <td className="py-3 px-4">{doc.label}</td>
+                                {LEGAL_STATUSES.map(status => (
+                                  <td key={status.key} className="py-3 px-4 text-center">
+                                    <input
+                                      type="radio"
+                                      name={`doc-status-${doc.key}`}
+                                      value={status.key}
+                                      checked={legalDocs[idx].status === status.key}
+                                      onChange={() => {
+                                        const next = [...legalDocs];
+                                        next[idx].status = status.key;
+                                        setLegalDocs(next);
+                                      }}
+                                      required
+                                      className="form-radio h-5 w-5 text-green-600 border-gray-300 focus:ring-2 focus:ring-blue-300 transition"
+                                    />
+                                  </td>
+                                ))}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                        {!allDocsFilled && (
+                          <p className="text-red-500 text-xs mt-2">Semua dokumen harus dipilih statusnya.</p>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                  {/* Upload Logo */}
+                  <tr>
+                    <td className="align-top w-[32%] pr-2"><FormLabel>Upload Logo</FormLabel></td>
+                    <td className="align-middle w-[68%]">
+                      <input required type="file" name="logo_file" onChange={handleChange} className="file-input file-input-bordered w-full max-w-xl" />
+                    </td>
+                  </tr>
+                  {/* Upload Showcase */}
+                  <tr>
+                    <td className="align-top w-[32%] pr-2">
+                      <FormLabel>
+                        Upload Showcase (max 5 gambar)
+                      </FormLabel>
+                      <div className="flex items-center gap-2 text-xs mt-1 text-gray-500">
+                        <FaImage className="text-blue-400" />
+                        <span>
+                          **Disarankan gambar lebar (landscape), minimal <b>1200 x 360 px</b>. <br />
+                          Di halaman franchise, gambar akan dicrop otomatis dengan tinggi 220px, lebar penuh.**
+                        </span>
+                      </div>
+                    </td>
+                    <td className="align-top w-[68%]">
+                      <input type="file" multiple accept="image/*" onChange={handleShowcaseChange} className="file-input file-input-bordered w-full max-w-xl"/>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Upload hingga 5 gambar untuk galeri showcase franchise Anda.
+                      </p>
+                      <div className="flex gap-2 mt-2 flex-wrap">
+                        <span className="text-xs text-gray-600">
+                          {showcaseFiles.length} / 5 file dipilih
+                        </span>
+                        {showcaseFiles.map((file, idx) => (
+                          <span key={idx} className="inline-block bg-gray-200 px-2 py-1 rounded text-xs">
+                            {file.name}
+                          </span>
+                        ))}
+                      </div>
+                    </td>
+                  </tr>
+                  {/* Catatan Tambahan */}
+                  <tr>
+                    <td className="align-top w-[32%] pr-2"><FormLabel>Catatan Tambahan</FormLabel></td>
+                    <td className="align-top w-[68%]">
+                      <textarea name="notes" value={form.notes} onChange={handleChange} className="block w-full max-w-xl bg-transparent border-0 border-b-2 border-gray-400 focus:border-blue-500 outline-none transition resize-none" rows={2} placeholder="Catatan (opsional)" />
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <button type="submit" disabled={loading} className="w-full px-4 py-2 rounded-full bg-green-600 text-white font-semibold shadow transition hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400">
+              {loading ? 'Menyimpan...' : 'Tambah Listing'}
+            </button>
+            <button
+              type="button"
+              className="mt-6 w-full px-4 py-2 rounded-full bg-gray-700 text-white font-semibold shadow transition hover:bg-gray-900"
+              onClick={() => setShowPreview(true)}
+            >
+              Preview Listing
+            </button>
+          </form>
+          <ModalPreview show={showPreview} onClose={() => setShowPreview(false)} />
+        </>
+      )}
     </div>
   );
 }
