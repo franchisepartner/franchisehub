@@ -119,7 +119,7 @@ export default function AnnouncementPage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-2 sm:px-4 py-6 min-h-screen">
+    <div className="w-full max-w-5xl xl:max-w-7xl mx-auto px-2 sm:px-6 lg:px-12 py-8 min-h-screen">
       {/* Judul + tombol info */}
       <div className="mb-8 flex items-center gap-3">
         <span className="text-3xl">📣</span>
@@ -193,9 +193,10 @@ export default function AnnouncementPage() {
         </form>
       )}
 
-      <div className="space-y-5">
+      {/* List pengumuman: grid 2 kolom di desktop */}
+      <div className="md:grid md:grid-cols-2 md:gap-7 space-y-5 md:space-y-0">
         {announcements.length === 0 && (
-          <div className="text-center text-gray-400 py-8">
+          <div className="col-span-2 text-center text-gray-400 py-8">
             Tidak ada pengumuman.
           </div>
         )}
