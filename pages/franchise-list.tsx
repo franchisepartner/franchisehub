@@ -33,6 +33,22 @@ export default function FranchiseList() {
   const [category, setCategory] = useState('');
   const [categories, setCategories] = useState<string[]>([]);
 
+  // PAGINATION RESPONSIVE
+  const [perPage, setPerPage] = useState(20);
+  const [currentPage, setCurrentPage] = useState(1);
+  useEffect(() => {
+    function updatePerPage() {
+      if (window.innerWidth < 768) setPerPage(10);
+      else setPerPage(20);
+    }
+    updatePerPage();
+    window.addEventListener('resize', updatePerPage);
+    return () => window.removeEventListener('resize', updatePerPage);
+  }, []);
+  const totalPages = Math.ceil(franchises.length / perPage);
+  const pagedFranchises = franchises.slice((currentPage - 1) * perPage, currentPage * perPage);
+  useEffect(() => { setCurrentPage(1); }, [franchises.length, perPage]);
+
   useEffect(() => {
     const fetchFranchises = async () => {
       const { data, error } = await supabase
@@ -93,7 +109,6 @@ export default function FranchiseList() {
     setSort('created_desc');
   };
 
-  // Badge mode operasional, rapi di bawah kategori
   const modeBadge = (mode?: string) => {
     if (mode === 'autopilot') {
       return (
@@ -157,51 +172,68 @@ export default function FranchiseList() {
           </select>
         </div>
 
-        {/* GRID LISTING */}
+        {/* GRID LISTING + PAGINATION */}
         {loading ? (
           <div className="text-center text-gray-500 py-16 text-lg">Memuat semua franchise...</div>
         ) : franchises.length === 0 ? (
           <div className="text-center text-gray-400 py-16">Tidak ditemukan franchise yang sesuai.</div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-8">
-            {franchises.map((fr) => (
-              <Link href={`/franchise/${fr.slug}`} key={fr.id} passHref>
-                <div className="group bg-white rounded-3xl shadow-lg hover:shadow-2xl transition overflow-hidden cursor-pointer flex flex-col h-full border border-gray-100 hover:border-blue-400 ring-1 ring-blue-50 hover:ring-blue-300">
-                  <div className="relative h-40">
-                    <img
-                      src={fr.logo_url}
-                      alt={fr.franchise_name}
-                      className="w-full h-full object-cover transition group-hover:scale-105"
-                      loading="lazy"
-                    />
-                    {/* Kategori */}
-                    <span className="absolute top-3 left-3 bg-yellow-400 text-xs font-bold text-black px-2 py-1 rounded-xl shadow">
-                      {fr.category}
-                    </span>
-                    {/* Mode Operasi */}
-                    <span className="absolute left-3 top-10 z-10">{modeBadge(fr.operation_mode)}</span>
-                  </div>
-                  <div className="p-4 flex-1 flex flex-col">
-                    <h3 className="text-lg font-bold text-blue-900 truncate drop-shadow-sm">
-                      {fr.franchise_name}
-                    </h3>
-                    <p className="text-xs text-gray-500">{fr.location}</p>
-                    <p className="mt-2 text-sm text-gray-700 flex-1 line-clamp-2">
-                      {fr.description}
-                    </p>
-                    <div className="mt-3 flex items-center gap-2">
-                      <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-bold shadow">
-                        Rp {fr.investment_min.toLocaleString('id-ID')}
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-8">
+              {pagedFranchises.map((fr) => (
+                <Link href={`/franchise/${fr.slug}`} key={fr.id} passHref>
+                  <div className="group bg-white rounded-3xl shadow-lg hover:shadow-2xl transition overflow-hidden cursor-pointer flex flex-col h-full border border-gray-100 hover:border-blue-400 ring-1 ring-blue-50 hover:ring-blue-300">
+                    <div className="relative h-40">
+                      <img
+                        src={fr.logo_url}
+                        alt={fr.franchise_name}
+                        className="w-full h-full object-cover transition group-hover:scale-105"
+                        loading="lazy"
+                      />
+                      {/* Kategori */}
+                      <span className="absolute top-3 left-3 bg-yellow-400 text-xs font-bold text-black px-2 py-1 rounded-xl shadow">
+                        {fr.category}
                       </span>
-                      <span className="text-gray-400 text-xs ml-auto group-hover:text-blue-500 transition">
-                        Lihat detail →
-                      </span>
+                      {/* Mode Operasi */}
+                      <span className="absolute left-3 top-10 z-10">{modeBadge(fr.operation_mode)}</span>
+                    </div>
+                    <div className="p-4 flex-1 flex flex-col">
+                      <h3 className="text-lg font-bold text-blue-900 truncate drop-shadow-sm">
+                        {fr.franchise_name}
+                      </h3>
+                      <p className="text-xs text-gray-500">{fr.location}</p>
+                      <p className="mt-2 text-sm text-gray-700 flex-1 line-clamp-2">
+                        {fr.description}
+                      </p>
+                      <div className="mt-3 flex items-center gap-2">
+                        <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-bold shadow">
+                          Rp {fr.investment_min.toLocaleString('id-ID')}
+                        </span>
+                        <span className="text-gray-400 text-xs ml-auto group-hover:text-blue-500 transition">
+                          Lihat detail →
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+                </Link>
+              ))}
+            </div>
+            {/* PAGINATION BUTTONS */}
+            {totalPages > 1 && (
+              <div className="flex justify-center mt-10 gap-2">
+                {Array.from({ length: totalPages }, (_, i) => (
+                  <button
+                    key={i + 1}
+                    onClick={() => setCurrentPage(i + 1)}
+                    className={`px-3 py-1 rounded-full font-bold border transition
+                      ${currentPage === i + 1 ? 'bg-blue-600 text-white border-blue-700' : 'bg-white text-blue-700 border-blue-200 hover:bg-blue-50'}`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
