@@ -33,6 +33,7 @@ export default function DetailPage() {
   const [errorMsg, setErrorMsg] = useState('');
   const [user, setUser] = useState<any>(null);
   const [shareMsg, setShareMsg] = useState('');
+  const [showImageModal, setShowImageModal] = useState(false);
 
   useEffect(() => {
     async function fetchBlog() {
@@ -191,10 +192,34 @@ export default function DetailPage() {
                 <img
                   src={blog.cover_url}
                   alt={blog.title}
-                  className="w-full rounded-lg object-cover max-h-[420px] mx-auto"
+                  className="w-full rounded-lg object-cover max-h-[420px] mx-auto cursor-zoom-in transition hover:brightness-90"
                   style={{ boxShadow: "0 4px 12px 0 rgba(0,0,0,0.10)" }}
                   loading="lazy"
+                  onClick={() => setShowImageModal(true)}
+                  title="Klik untuk memperbesar"
                 />
+              </div>
+            )}
+
+            {/* Modal image preview */}
+            {showImageModal && blog.cover_url && (
+              <div
+                className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center"
+                onClick={() => setShowImageModal(false)}
+              >
+                <img
+                  src={blog.cover_url}
+                  alt="Gambar Cover"
+                  className="max-h-[90vh] max-w-[96vw] rounded-2xl shadow-2xl border-4 border-white object-contain"
+                  onClick={e => e.stopPropagation()}
+                  style={{ background: "#fff" }}
+                />
+                <button
+                  className="absolute top-4 right-8 text-white text-4xl font-bold z-60"
+                  style={{ textShadow: "0 2px 10px #0008" }}
+                  onClick={() => setShowImageModal(false)}
+                  aria-label="Tutup gambar"
+                >&times;</button>
               </div>
             )}
 
