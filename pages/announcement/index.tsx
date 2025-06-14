@@ -7,6 +7,7 @@ export default function AnnouncementPage() {
   const [selectedAnnouncement, setSelectedAnnouncement] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [session, setSession] = useState<any>(null);
+  const [showInfo, setShowInfo] = useState(false); // Popup info
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -46,7 +47,6 @@ export default function AnnouncementPage() {
     e.preventDefault();
     setLoading(true);
 
-    // Pastikan user sudah login (untuk insert created_by)
     if (!session?.user?.id) {
       alert('Anda harus login terlebih dahulu.');
       setLoading(false);
@@ -69,7 +69,6 @@ export default function AnnouncementPage() {
         compressedFile = imageFile;
       }
 
-      // Tambahkan pengecekan size setelah compress
       if (compressedFile.size > 5 * 1024 * 1024) {
         alert('Ukuran gambar setelah compress masih > 5MB. Pilih gambar yang lebih kecil.');
         setLoading(false);
@@ -93,7 +92,6 @@ export default function AnnouncementPage() {
       }
     }
 
-    // Insert data ke table announcements
     const { error: insertError } = await supabase.from('announcements').insert({
       title,
       content,
@@ -122,10 +120,40 @@ export default function AnnouncementPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-2 sm:px-4 py-6 min-h-screen">
+      {/* Judul + tombol info */}
       <div className="mb-8 flex items-center gap-3">
         <span className="text-3xl">📣</span>
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Pengumuman FranchiseNusantara</h1>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight flex items-center gap-2">
+          Pengumuman FranchiseNusantara
+          <button
+            className="ml-2 text-blue-600 hover:text-blue-900 text-xl transition"
+            onClick={() => setShowInfo(true)}
+            type="button"
+            title="Tentang fitur pengumuman"
+          >ℹ️</button>
+        </h1>
       </div>
+
+      {/* Popup info versi pendek */}
+      {showInfo && (
+        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center px-3" onClick={() => setShowInfo(false)}>
+          <div
+            className="bg-white max-w-lg w-full rounded-2xl shadow-2xl p-6 relative"
+            onClick={e => e.stopPropagation()}
+          >
+            <button className="absolute top-3 right-5 text-xl text-gray-400 hover:text-red-600" onClick={() => setShowInfo(false)}>&times;</button>
+            <h2 className="font-bold text-xl mb-3">Tentang Pengumuman</h2>
+            <div className="text-gray-800 leading-relaxed">
+              <b>Fitur pengumuman</b> digunakan untuk menyampaikan info penting, event, atau promo resmi dari tim FranchiseNusantara.<br /><br />
+              <ul className="list-disc pl-5 mb-2">
+                <li>Hanya admin yang bisa membuat/menghapus pengumuman.</li>
+                <li>Semua user dapat membaca.</li>
+                <li>Selalu cek halaman ini agar tidak ketinggalan berita terbaru!</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
 
       {isAdmin && (
         <form
