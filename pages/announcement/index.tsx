@@ -45,11 +45,18 @@ export default function AnnouncementPage() {
   async function handleSubmit(e: any) {
     e.preventDefault();
     setLoading(true);
+
+    // Pastikan user sudah login (untuk insert created_by)
+    if (!session?.user?.id) {
+      alert('Anda harus login terlebih dahulu.');
+      setLoading(false);
+      return;
+    }
+
     let image_url = '';
 
     if (imageFile) {
       const fileName = `${Date.now()}_${imageFile.name}`;
-      // === COMPRESS imageFile sebelum upload
       let compressedFile = imageFile;
       try {
         compressedFile = await imageCompression(imageFile, {
@@ -59,13 +66,26 @@ export default function AnnouncementPage() {
           initialQuality: 0.85,
         });
       } catch (err) {
-        // fallback ke file asli jika gagal compress
         compressedFile = imageFile;
       }
+
+      // Tambahkan pengecekan size setelah compress
+      if (compressedFile.size > 5 * 1024 * 1024) {
+        alert('Ukuran gambar setelah compress masih > 5MB. Pilih gambar yang lebih kecil.');
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase.storage
         .from('announcement-assets')
         .upload(fileName, compressedFile);
-      if (!error && data?.path) {
+
+      if (error) {
+        alert('Gagal upload gambar: ' + error.message);
+        setLoading(false);
+        return;
+      }
+      if (data?.path) {
         const { data: publicUrlData } = supabase.storage
           .from('announcement-assets')
           .getPublicUrl(data.path);
@@ -73,13 +93,20 @@ export default function AnnouncementPage() {
       }
     }
 
-    await supabase.from('announcements').insert({
+    // Insert data ke table announcements
+    const { error: insertError } = await supabase.from('announcements').insert({
       title,
       content,
       image_url,
       created_by: session.user.id,
       status: 'published',
     });
+
+    if (insertError) {
+      alert('Gagal menyimpan pengumuman: ' + insertError.message);
+      setLoading(false);
+      return;
+    }
 
     setTitle('');
     setContent('');
