@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabaseClient';
 import { useRouter } from 'next/router';
 import { v4 as uuidv4 } from 'uuid';
 import Link from 'next/link';
+import imageCompression from 'browser-image-compression';
 
 const templates = [
   {
@@ -78,13 +79,26 @@ export default function BlogManage() {
       .replace(/-+$/, '');
   }
 
+  // --- AUTO-COMPRESS COVER BLOG ---
   async function handleUploadCover(file: File) {
     const ext = file.name.split('.').pop();
     const filename = `${uuidv4()}.${ext}`;
+    // compress file sebelum upload
+    let compressedFile = file;
+    try {
+      compressedFile = await imageCompression(file, {
+        maxSizeMB: 0.7,
+        maxWidthOrHeight: 1280,
+        useWebWorker: true,
+        initialQuality: 0.85,
+      });
+    } catch (err) {
+      compressedFile = file;
+    }
     const { data, error } = await supabase
       .storage
       .from('blog-assets')
-      .upload(filename, file);
+      .upload(filename, compressedFile);
     if (error) throw error;
     return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/blog-assets/${filename}`;
   }
@@ -329,7 +343,7 @@ export default function BlogManage() {
                     <button
                       className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
                       onClick={e => {
-                        e.stopPropagation(); // Supaya klik hapus tidak buka detail
+                        e.stopPropagation();
                         handleDelete(blog);
                       }}
                     >
