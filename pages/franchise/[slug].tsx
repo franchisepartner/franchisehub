@@ -104,7 +104,6 @@ export default function FranchiseDetail() {
           .map(img => supabase.storage.from('listing-images').getPublicUrl(img.image_url).data.publicUrl) || [];
       setShowcaseUrls(urls);
 
-      // Listing
       const { data: allListings } = await supabase
         .from('franchise_listings')
         .select('id, franchise_name, logo_url, slug, created_at')
@@ -123,7 +122,6 @@ export default function FranchiseDetail() {
         }))
       );
 
-      // Blogs
       const { data: blogs } = await supabase
         .from('blogs')
         .select('id, title, cover_url, slug, created_at')
@@ -157,34 +155,35 @@ export default function FranchiseDetail() {
   if (loading) return <div className="p-8 text-center">Memuat detail franchise...</div>;
   if (!franchise) return <div className="p-8 text-center text-red-500">Franchise tidak ditemukan.</div>;
 
-<div className="bg-white rounded-2xl border border-gray-200 shadow-lg max-w-3xl mx-auto px-2 py-8">
-  {/* === MARQUEE WARNING === */}
-  <div className="w-full mb-4 overflow-hidden">
-    <div className="relative w-full bg-yellow-50 border-l-4 border-yellow-400 rounded-xl shadow h-12 flex items-center">
-      <FaInfoCircle className="ml-4 text-yellow-500 text-xl flex-shrink-0" />
-      <div className="marquee-container flex-1 h-full overflow-hidden relative">
-        <div className="marquee-text absolute left-full whitespace-nowrap animate-marquee font-medium text-yellow-900 text-sm sm:text-base">
-          Mohon perhatian! Franchisee dan Franchisor disarankan untuk mengecek ulang seluruh dokumen, legalitas, serta kelengkapan yang dijanjikan oleh Franchisor (pemilik waralaba) sebelum mengambil keputusan kerja sama atau transaksi apapun. Yuk, pastikan semua dokumen benar, bisnis berjalan aman, nyaman, dan saling percaya. Kalau kurang jelas, jangan ragu konsultasi dengan tim FranchiseNusantara! &nbsp;&nbsp;&nbsp;&nbsp;
+  return (
+    <div className="bg-white rounded-2xl border border-gray-200 shadow-lg max-w-3xl mx-auto px-2 py-8">
+      {/* === MARQUEE WARNING === */}
+      <div className="w-full mb-4 overflow-hidden">
+        <div className="relative w-full bg-yellow-50 border-l-4 border-yellow-400 rounded-xl shadow h-12 flex items-center">
+          <FaInfoCircle className="ml-4 text-yellow-500 text-xl flex-shrink-0" />
+          <div className="marquee-container flex-1 h-full overflow-hidden relative">
+            <div className="marquee-text absolute left-full whitespace-nowrap font-medium text-yellow-900 text-sm sm:text-base">
+              Mohon perhatian! Franchisee dan Franchisor disarankan untuk mengecek ulang seluruh dokumen, legalitas, serta kelengkapan yang dijanjikan oleh Franchisor (pemilik waralaba) sebelum mengambil keputusan kerja sama atau transaksi apapun. Yuk, pastikan semua dokumen benar, bisnis berjalan aman, nyaman, dan saling percaya. Kalau kurang jelas, jangan ragu konsultasi dengan tim FranchiseNusantara! &nbsp;&nbsp;&nbsp;&nbsp;
+            </div>
+          </div>
         </div>
+        <style jsx>{`
+          .marquee-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+          }
+          .marquee-text {
+            will-change: transform;
+            animation: marquee 25s linear infinite;
+          }
+          @keyframes marquee {
+            0%   { left: 100%; }
+            100% { left: -120%; }
+          }
+        `}</style>
       </div>
-    </div>
-    <style jsx>{`
-      .marquee-container {
-        position: relative;
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-      }
-      .marquee-text {
-        will-change: transform;
-        animation: marquee 25s linear infinite;
-      }
-      @keyframes marquee {
-        0%   { left: 100%; }
-        100% { left: -120%; }
-      }
-    `}</style>
-  </div>
 
       {/* SLIDER COVER + CLICK FOR FULL IMAGE */}
       {showcaseUrls.length > 0 && (
