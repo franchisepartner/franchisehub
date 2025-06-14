@@ -19,6 +19,28 @@ export default function BlogGlobal() {
   const [role, setRole] = useState<string>('');
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showInfo, setShowInfo] = useState(false);
+
+  // Pagination responsive
+  const [blogsPerPage, setBlogsPerPage] = useState(20);
+  useEffect(() => {
+    function updateBlogsPerPage() {
+      if (window.innerWidth < 768) {
+        setBlogsPerPage(10);
+      } else {
+        setBlogsPerPage(20);
+      }
+    }
+    updateBlogsPerPage();
+    window.addEventListener('resize', updateBlogsPerPage);
+    return () => window.removeEventListener('resize', updateBlogsPerPage);
+  }, []);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalPages = Math.ceil(blogs.length / blogsPerPage);
+  const pagedBlogs = blogs.slice((currentPage - 1) * blogsPerPage, currentPage * blogsPerPage);
+
+  useEffect(() => { setCurrentPage(1); }, [blogs.length, blogsPerPage]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -72,7 +94,19 @@ export default function BlogGlobal() {
         {/* Header */}
         <div className="flex justify-between items-end mb-9">
           <div>
-            <h1 className="text-3xl md:text-4xl font-extrabold mb-1 tracking-tight text-blue-900">Blog FranchiseNusantara</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-3xl md:text-4xl font-extrabold mb-1 tracking-tight text-blue-900">
+                Blog FranchiseNusantara
+              </h1>
+              <button
+                className="text-blue-600 hover:text-blue-900 text-xl mt-1"
+                onClick={() => setShowInfo(true)}
+                type="button"
+                title="Tentang fitur blog"
+              >
+                ℹ️
+              </button>
+            </div>
             <p className="text-gray-500 text-sm md:text-base">
               Inspirasi bisnis, wawasan franchise, dan tips sukses terkini dari para pelaku dan ahli.
             </p>
@@ -91,48 +125,90 @@ export default function BlogGlobal() {
             </div>
           )}
         </div>
+
+        {/* POPUP INFO */}
+        {showInfo && (
+          <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center px-3" onClick={() => setShowInfo(false)}>
+            <div
+              className="bg-white max-w-lg w-full rounded-2xl shadow-2xl p-6 relative"
+              onClick={e => e.stopPropagation()}
+            >
+              <button className="absolute top-3 right-5 text-xl text-gray-400 hover:text-red-600" onClick={() => setShowInfo(false)}>&times;</button>
+              <h2 className="font-bold text-xl mb-3">Tentang Fitur Blog</h2>
+              <div className="text-gray-800 leading-relaxed">
+                Blog FranchiseNusantara adalah ruang berbagi inspirasi, tips, dan kisah sukses seputar dunia franchise.<br /><br />
+                <b>Fitur & Aturan:</b>
+                <ul className="list-disc pl-5 mb-2">
+                  <li>Blog dapat dibuat oleh franchisor dan administrator.</li>
+                  <li>Semua pengguna bisa membaca blog, baik yang login maupun belum login.</li>
+                  <li>Konten yang diperbolehkan: tips, studi kasus, analisis peluang, cerita sukses/gagal, dan panduan bisnis.</li>
+                  <li>Admin berhak mengedit atau menghapus blog yang tidak layak.</li>
+                  <li>Gunakan bahasa sopan, berbagi ilmu, hindari SARA & promosi pribadi berlebihan.</li>
+                </ul>
+                <span className="block mt-2">Yuk, baca & tulis blog untuk membangun ekosistem franchise yang lebih cerdas & kolaboratif!</span>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* List Blog */}
         {loading ? (
           <div className="text-center py-16 text-gray-400 animate-pulse">Memuat blog...</div>
         ) : blogs.length === 0 ? (
           <div className="text-center py-16 text-gray-400">Belum ada blog.</div>
         ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-7">
-            {blogs.map(blog => {
-              // Buat ringkasan 110 karakter dari konten (tanpa tag HTML)
-              const excerpt = blog.content.replace(/<[^>]+>/g, '').slice(0, 110) + (blog.content.length > 110 ? '...' : '');
-              return (
-                <Link
-                  key={blog.id}
-                  href={`/detail/${blog.slug}`}
-                  className="group flex flex-col bg-white rounded-2xl border border-blue-50 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition overflow-hidden"
-                >
-                  <div className="relative">
-                    {blog.cover_url && (
-                      <img
-                        src={blog.cover_url}
-                        alt={blog.title}
-                        className="w-full h-44 object-cover bg-gray-100 group-hover:scale-[1.03] transition rounded-t-2xl"
-                        loading="lazy"
-                      />
-                    )}
-                    <span className="absolute top-3 left-3 bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full shadow-md">
-                      {blog.category}
-                    </span>
-                  </div>
-                  <div className="flex-1 flex flex-col p-4">
-                    <h2 className="text-lg font-semibold mb-1 line-clamp-2 text-gray-900 group-hover:text-blue-700">{blog.title}</h2>
-                    <div className="text-xs text-gray-500 flex items-center gap-2 mb-2">
-                      <span>{new Date(blog.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-                      <span>•</span>
-                      <span>Oleh {blog.author}</span>
+          <>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-7">
+              {pagedBlogs.map(blog => {
+                const excerpt = blog.content.replace(/<[^>]+>/g, '').slice(0, 110) + (blog.content.length > 110 ? '...' : '');
+                return (
+                  <Link
+                    key={blog.id}
+                    href={`/detail/${blog.slug}`}
+                    className="group flex flex-col bg-white rounded-2xl border border-blue-50 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition overflow-hidden"
+                  >
+                    <div className="relative">
+                      {blog.cover_url && (
+                        <img
+                          src={blog.cover_url}
+                          alt={blog.title}
+                          className="w-full h-44 object-cover bg-gray-100 group-hover:scale-[1.03] transition rounded-t-2xl"
+                          loading="lazy"
+                        />
+                      )}
+                      <span className="absolute top-3 left-3 bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full shadow-md">
+                        {blog.category}
+                      </span>
                     </div>
-                    <p className="text-sm text-gray-600 line-clamp-2 flex-1">{excerpt}</p>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
+                    <div className="flex-1 flex flex-col p-4">
+                      <h2 className="text-lg font-semibold mb-1 line-clamp-2 text-gray-900 group-hover:text-blue-700">{blog.title}</h2>
+                      <div className="text-xs text-gray-500 flex items-center gap-2 mb-2">
+                        <span>{new Date(blog.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                        <span>•</span>
+                        <span>Oleh {blog.author}</span>
+                      </div>
+                      <p className="text-sm text-gray-600 line-clamp-2 flex-1">{excerpt}</p>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+            {/* PAGINATION BUTTONS */}
+            {totalPages > 1 && (
+              <div className="flex justify-center mt-8 gap-2">
+                {Array.from({ length: totalPages }, (_, i) => (
+                  <button
+                    key={i + 1}
+                    onClick={() => setCurrentPage(i + 1)}
+                    className={`px-3 py-1 rounded-full font-bold border transition
+                      ${currentPage === i + 1 ? 'bg-blue-600 text-white border-blue-700' : 'bg-white text-blue-700 border-blue-200 hover:bg-blue-50'}`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
     </>
