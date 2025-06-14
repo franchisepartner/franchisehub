@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '../../../../lib/supabaseClient';
 import { v4 as uuidv4 } from 'uuid';
+import imageCompression from 'browser-image-compression';
 
 export default function EditBlog() {
   const router = useRouter();
@@ -75,10 +76,22 @@ export default function EditBlog() {
     setLoading(false);
   };
 
+  // --- AUTO COMPRESS COVER
   const uploadCover = async (file: File) => {
     const ext = file.name.split('.').pop();
     const fileName = `cover/${uuidv4()}.${ext}`;
-    const { error } = await supabase.storage.from('blog-assets').upload(fileName, file);
+    let compressedFile = file;
+    try {
+      compressedFile = await imageCompression(file, {
+        maxSizeMB: 0.7,
+        maxWidthOrHeight: 1280,
+        useWebWorker: true,
+        initialQuality: 0.85,
+      });
+    } catch (err) {
+      compressedFile = file;
+    }
+    const { error } = await supabase.storage.from('blog-assets').upload(fileName, compressedFile);
     if (error) throw error;
     return fileName; // <-- yang disimpan ke DB hanya "cover/xxxx.jpg"
   };
