@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabaseClient'
 import { v4 as uuidv4 } from 'uuid'
 import { useRouter } from 'next/router'
 import { FiLock, FiLoader } from 'react-icons/fi'
+import imageCompression from 'browser-image-compression' // --- Tambah ini
 
 export default function FranchisorForm() {
   const [brand_name, setBrandName] = useState('')
@@ -92,15 +93,37 @@ export default function FranchisorForm() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
+    // --- AUTO COMPRESS LOGIC START ---
+    const compressOptions = {
+      maxSizeMB: 0.7,
+      maxWidthOrHeight: 1280,
+      useWebWorker: true,
+      initialQuality: 0.85,
+    }
+    let compressedLogoFile = logoFile
+    let compressedKtpFile = ktpFile
+    try {
+      compressedLogoFile = await imageCompression(logoFile, compressOptions)
+    } catch (e) {
+      // Fallback: tetap pakai file asli jika gagal compress
+      compressedLogoFile = logoFile
+    }
+    try {
+      compressedKtpFile = await imageCompression(ktpFile, compressOptions)
+    } catch (e) {
+      compressedKtpFile = ktpFile
+    }
+    // --- AUTO COMPRESS LOGIC END ---
+
     const logoPath = `logos/${uuidv4()}_${logoFile.name}`
     const ktpPath = `ktps/${uuidv4()}_${ktpFile.name}`
 
     const { error: logoError } = await supabase.storage
       .from('franchisor-assets')
-      .upload(logoPath, logoFile)
+      .upload(logoPath, compressedLogoFile)
     const { error: ktpError } = await supabase.storage
       .from('franchisor-assets')
-      .upload(ktpPath, ktpFile)
+      .upload(ktpPath, compressedKtpFile)
 
     if (logoError || ktpError) {
       alert('Gagal mengunggah gambar.')
