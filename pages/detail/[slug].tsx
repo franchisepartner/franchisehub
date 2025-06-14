@@ -13,6 +13,9 @@ interface Blog {
   author?: string;
   created_by: string;
   created_at: string;
+  url?: string;     // <-- fix: properti tambahan manual
+  image?: string;   // <-- fix: properti tambahan manual
+  type?: string;    // <-- opsional, untuk showcase
 }
 
 interface Comment {
