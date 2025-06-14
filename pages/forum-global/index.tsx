@@ -33,6 +33,31 @@ export default function ForumGlobal() {
   const [selectedThread, setSelectedThread] = useState<Thread | null>(null);
   const [showThreadPopup, setShowThreadPopup] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
+
+  // Responsive pagination: 10 mobile, 20 desktop
+  const [threadsPerPage, setThreadsPerPage] = useState(20);
+
+  // Update per page on load/resize
+  useEffect(() => {
+    function updateThreadsPerPage() {
+      if (window.innerWidth < 768) {
+        setThreadsPerPage(10); // mobile
+      } else {
+        setThreadsPerPage(20); // desktop
+      }
+    }
+    updateThreadsPerPage();
+    window.addEventListener('resize', updateThreadsPerPage);
+    return () => window.removeEventListener('resize', updateThreadsPerPage);
+  }, []);
+
+  // PAGINATION STATE
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalPages = Math.ceil(threads.length / threadsPerPage);
+  const pagedThreads = threads.slice((currentPage - 1) * threadsPerPage, currentPage * threadsPerPage);
+
+  useEffect(() => { setCurrentPage(1); }, [threads.length, threadsPerPage]);
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -78,9 +103,7 @@ export default function ForumGlobal() {
       if (newThread.imageFile.size > 5 * 1024 * 1024) {
         return alert("Ukuran gambar maksimal 5MB.");
       }
-
       const fileName = `${Date.now()}_${newThread.imageFile.name}`;
-      // === AUTO COMPRESS sebelum upload
       let compressedFile = newThread.imageFile;
       try {
         compressedFile = await imageCompression(newThread.imageFile, {
@@ -91,6 +114,9 @@ export default function ForumGlobal() {
         });
       } catch (err) {
         compressedFile = newThread.imageFile;
+      }
+      if (compressedFile.size > 5 * 1024 * 1024) {
+        return alert("Gambar setelah compress masih >5MB.");
       }
       const { data: uploadData, error: uploadError } = await supabase
         .storage
@@ -166,7 +192,15 @@ export default function ForumGlobal() {
         className="absolute top-0 left-0 -z-10 opacity-10 pointer-events-none select-none"
       />
       <div className="flex justify-between items-end mb-6">
-        <h1 className="text-2xl md:text-3xl font-extrabold text-blue-900">Forum Global 🌐</h1>
+        <h1 className="text-2xl md:text-3xl font-extrabold text-blue-900 flex items-center gap-3">
+          Forum Global 🌐
+          <button
+            className="ml-2 text-blue-600 hover:text-blue-900 text-xl"
+            onClick={() => setShowHelp(true)}
+            type="button"
+            title="Bantuan Forum"
+          >ℹ️</button>
+        </h1>
         {session && (
           <button
             className="bg-gradient-to-r from-blue-600 to-cyan-400 text-white font-bold px-5 py-2 rounded-full shadow-lg hover:scale-105 transition"
@@ -177,12 +211,45 @@ export default function ForumGlobal() {
         )}
       </div>
 
-      {/* List Thread */}
+      {/* ==== POPUP BANTUAN ==== */}
+      {showHelp && (
+        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center px-3" onClick={() => setShowHelp(false)}>
+          <div
+            className="bg-white max-w-lg w-full rounded-2xl shadow-2xl p-6 relative"
+            onClick={e => e.stopPropagation()}
+          >
+            <button className="absolute top-3 right-5 text-xl text-gray-400 hover:text-red-600" onClick={() => setShowHelp(false)}>&times;</button>
+            <h2 className="font-bold text-xl mb-3">Tentang Forum Global</h2>
+            <div className="text-gray-800 leading-relaxed">
+              Forum Global adalah ruang diskusi terbuka untuk seluruh pengguna FranchiseNusantara.<br /><br />
+              <b>Fitur yang bisa kamu lakukan di sini:</b>
+              <ul className="list-disc pl-5 mb-2">
+                <li>Membuat thread/topik baru seputar franchise, bisnis, investasi, dan pengalaman pribadi.</li>
+                <li>Bertanya dan menjawab thread pengguna lain.</li>
+                <li>Menyisipkan gambar pada thread untuk penjelasan visual.</li>
+              </ul>
+              <b>Tips dan Aturan:</b>
+              <ul className="list-disc pl-5 mb-2">
+                <li>Gunakan bahasa yang sopan, ringkas, dan jelas.</li>
+                <li>Hindari spam, promosi, atau konten yang menyinggung.</li>
+                <li>Admin berhak menghapus thread/komentar yang melanggar.</li>
+                <li>Klik <span className="font-mono">+ Thread Baru</span> untuk mulai diskusi.</li>
+              </ul>
+              <div className="bg-yellow-50 border-l-4 border-yellow-400 px-4 py-2 rounded text-sm mt-2">
+                <b>Perhatian:</b> Semua thread dan komentar <u>akan otomatis terhapus setelah 7 hari</u> sejak dibuat.
+              </div>
+              <span className="block mt-3">Ayo, manfaatkan forum ini untuk berbagi ilmu, pengalaman, dan inspirasi bersama komunitas FranchiseNusantara!</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==== LIST THREAD + PAGINATION ==== */}
       {loading && <p className="text-center py-12 text-gray-400">Memuat diskusi...</p>}
       {!loading && threads.length === 0 && (
         <div className="text-center text-gray-400 py-12">Belum ada diskusi. Jadilah yang pertama!</div>
       )}
-      {!loading && threads.map(thread => (
+      {!loading && pagedThreads.map(thread => (
         <div
           key={thread.id}
           className="group bg-white rounded-2xl border border-blue-100 shadow-md hover:shadow-xl hover:-translate-y-1 transition p-5 mb-4 cursor-pointer relative"
@@ -202,7 +269,23 @@ export default function ForumGlobal() {
         </div>
       ))}
 
-      {/* Thread Detail & Komentar */}
+      {/* PAGINATION BUTTONS */}
+      {totalPages > 1 && (
+        <div className="flex justify-center mt-7 gap-2">
+          {Array.from({ length: totalPages }, (_, i) => (
+            <button
+              key={i + 1}
+              onClick={() => setCurrentPage(i + 1)}
+              className={`px-3 py-1 rounded-full font-bold border transition
+                ${currentPage === i + 1 ? 'bg-blue-600 text-white border-blue-700' : 'bg-white text-blue-700 border-blue-200 hover:bg-blue-50'}`}
+            >
+              {i + 1}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* ==== THREAD DETAIL & KOMENTAR ==== */}
       {selectedThread && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-3 py-8"
@@ -276,7 +359,7 @@ export default function ForumGlobal() {
         </div>
       )}
 
-      {/* Modal Buat Thread Baru */}
+      {/* ==== MODAL BUAT THREAD BARU ==== */}
       {showThreadPopup && (
         <div
           className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center px-3 py-8"
