@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { Session } from '@supabase/supabase-js';
 import Image from 'next/image';
+import imageCompression from 'browser-image-compression';
 
 interface Thread {
   id: string;
@@ -79,10 +80,22 @@ export default function ForumGlobal() {
       }
 
       const fileName = `${Date.now()}_${newThread.imageFile.name}`;
+      // === AUTO COMPRESS sebelum upload
+      let compressedFile = newThread.imageFile;
+      try {
+        compressedFile = await imageCompression(newThread.imageFile, {
+          maxSizeMB: 0.7,
+          maxWidthOrHeight: 1280,
+          useWebWorker: true,
+          initialQuality: 0.85,
+        });
+      } catch (err) {
+        compressedFile = newThread.imageFile;
+      }
       const { data: uploadData, error: uploadError } = await supabase
         .storage
         .from('thread-images')
-        .upload(fileName, newThread.imageFile);
+        .upload(fileName, compressedFile);
 
       if (uploadError || !uploadData) {
         console.error("Upload failed:", uploadError);
