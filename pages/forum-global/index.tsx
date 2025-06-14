@@ -183,7 +183,7 @@ export default function ForumGlobal() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-3 sm:px-6 py-8 min-h-screen relative">
+    <div className="w-full max-w-6xl xl:max-w-screen-2xl mx-auto px-3 sm:px-6 py-8 min-h-screen">
       <Image
         src="/pattern.jpg"
         alt="Decorative Corner"
@@ -244,30 +244,31 @@ export default function ForumGlobal() {
         </div>
       )}
 
-      {/* ==== LIST THREAD + PAGINATION ==== */}
-      {loading && <p className="text-center py-12 text-gray-400">Memuat diskusi...</p>}
-      {!loading && threads.length === 0 && (
-        <div className="text-center text-gray-400 py-12">Belum ada diskusi. Jadilah yang pertama!</div>
-      )}
-      {!loading && pagedThreads.map(thread => (
-        <div
-          key={thread.id}
-          className="group bg-white rounded-2xl border border-blue-100 shadow-md hover:shadow-xl hover:-translate-y-1 transition p-5 mb-4 cursor-pointer relative"
-          onClick={() => { setSelectedThread(thread); fetchComments(thread.id); }}
-        >
-          <div className="flex items-center gap-3 mb-1">
-            <span className="text-lg font-semibold text-blue-700 group-hover:underline">{thread.title}</span>
-            <span className="bg-blue-50 text-blue-400 font-bold px-3 py-0.5 rounded-full text-xs">{thread.user_name}</span>
+      {/* ==== LIST THREAD: GRID LAYOUT ==== */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {pagedThreads.length === 0 && !loading && (
+          <div className="col-span-full text-center text-gray-400 py-8">Belum ada diskusi.</div>
+        )}
+        {pagedThreads.map(thread => (
+          <div
+            key={thread.id}
+            className="group bg-white rounded-2xl border border-blue-100 shadow-md hover:shadow-xl hover:-translate-y-1 transition p-5 cursor-pointer relative flex flex-col"
+            onClick={() => { setSelectedThread(thread); fetchComments(thread.id); }}
+          >
+            <div className="flex items-center gap-3 mb-1">
+              <span className="text-lg font-semibold text-blue-700 group-hover:underline">{thread.title}</span>
+              <span className="bg-blue-50 text-blue-400 font-bold px-3 py-0.5 rounded-full text-xs">{thread.user_name}</span>
+            </div>
+            <div className="flex items-center text-xs text-gray-400 gap-2 mb-2">
+              <span>{new Date(thread.created_at).toLocaleString()}</span>
+              {thread.image_url && (
+                <span className="ml-1 px-2 py-0.5 rounded bg-gray-100 text-blue-500 text-[10px]">+ gambar</span>
+              )}
+            </div>
+            <p className="text-gray-700 text-sm line-clamp-2">{thread.content}</p>
           </div>
-          <div className="flex items-center text-xs text-gray-400 gap-2 mb-2">
-            <span>{new Date(thread.created_at).toLocaleString()}</span>
-            {thread.image_url && (
-              <span className="ml-1 px-2 py-0.5 rounded bg-gray-100 text-blue-500 text-[10px]">+ gambar</span>
-            )}
-          </div>
-          <p className="text-gray-700 text-sm line-clamp-2">{thread.content}</p>
-        </div>
-      ))}
+        ))}
+      </div>
 
       {/* PAGINATION BUTTONS */}
       {totalPages > 1 && (
