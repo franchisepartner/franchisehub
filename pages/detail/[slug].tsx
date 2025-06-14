@@ -37,7 +37,6 @@ export default function DetailPage() {
   useEffect(() => {
     async function fetchBlog() {
       if (!slug) return;
-
       const { data, error } = await supabase
         .from('blogs')
         .select('*')
@@ -87,13 +86,11 @@ export default function DetailPage() {
   async function fetchComments() {
     setLoading(true);
     setErrorMsg('');
-
     const { data, error } = await supabase
       .from('comments')
       .select('*')
       .eq('slug', slug)
       .order('created_at', { ascending: false });
-
     if (error) {
       setErrorMsg('Gagal memuat komentar.');
     } else {
@@ -108,13 +105,11 @@ export default function DetailPage() {
       alert("Anda harus login untuk mengirim komentar!");
       return;
     }
-
     const { error } = await supabase.from('comments').insert({
       slug: slug,
       content: newComment,
       created_by: userName,
     });
-
     if (!error) {
       setNewComment('');
       fetchComments();
@@ -162,7 +157,7 @@ export default function DetailPage() {
         <title>{blog?.title || "Memuat..."} - FranchiseNusantara</title>
       </Head>
 
-      <div className="max-w-2xl mx-auto px-4 py-8 relative">
+      <div className="w-full max-w-5xl xl:max-w-7xl mx-auto px-4 md:px-10 xl:px-20 py-8 relative">
         {blog ? (
           <>
             {/* Tombol share sticky di pojok kanan */}
@@ -181,7 +176,7 @@ export default function DetailPage() {
               </div>
             )}
 
-            <h1 className="text-2xl font-bold mb-2">{blog.title}</h1>
+            <h1 className="text-2xl md:text-3xl font-bold mb-2">{blog.title}</h1>
             <div className="text-sm text-gray-500 mb-4 flex gap-x-3 flex-wrap">
               <span>{blog.category}</span>
               <span>|</span>
@@ -203,7 +198,7 @@ export default function DetailPage() {
               </div>
             )}
 
-            <div className="text-gray-700 mb-4 whitespace-pre-wrap">
+            <div className="prose prose-lg max-w-none text-gray-700 mb-4 whitespace-pre-wrap">
               {blog.content}
             </div>
           </>
