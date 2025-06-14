@@ -26,6 +26,7 @@ export default function NewListing() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [showInfo, setShowInfo] = useState(false);
 
   const [form, setForm] = useState({
     franchise_name: '',
@@ -84,7 +85,6 @@ export default function NewListing() {
   const uploadLogoImage = async (file: File) => {
     const fileExt = file.name.split('.').pop();
     const fileName = `logo/${uuidv4()}.${fileExt}`;
-    // Compress logo
     const compressedFile = await imageCompression(file, {
       maxSizeMB: 0.7,
       maxWidthOrHeight: 1280,
@@ -113,11 +113,9 @@ export default function NewListing() {
     setLoading(true);
 
     try {
-      // LOGO: compress sebelum upload!
       const logoPath = form.logo_file ? await uploadLogoImage(form.logo_file) : null;
       const slug = form.franchise_name.toLowerCase().replace(/\s+/g, '-');
 
-      // 1. Insert listing dengan user_id
       const { data, error } = await supabase.from('franchise_listings').insert([{
         user_id: user.id,
         franchise_name: form.franchise_name,
@@ -135,13 +133,9 @@ export default function NewListing() {
         slug,
         logo_url: logoPath,
       }]).select('id').single();
-      if (error) {
-        console.log('Supabase Insert Error:', error);
-        throw error;
-      }
+      if (error) throw error;
       const listingId = data.id;
 
-      // 2. Insert dokumen hukum
       await Promise.all(
         legalDocs.map(doc =>
           supabase.from('legal_documents').insert({
@@ -152,13 +146,11 @@ export default function NewListing() {
         )
       );
 
-      // 3. Upload & insert showcase images satu per satu (type: 'showcase')
       if (showcaseFiles.length > 0) {
         await Promise.all(
           showcaseFiles.map(async (file) => {
             const fileExt = file.name.split('.').pop();
             const fileName = `showcase/${uuidv4()}.${fileExt}`;
-            // COMPRESS SHOWCASE
             const compressedFile = await imageCompression(file, {
               maxSizeMB: 0.7,
               maxWidthOrHeight: 1280,
@@ -288,7 +280,47 @@ export default function NewListing() {
 
   return (
     <div className="max-w-3xl mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-6">Tambah Listing Franchise</h1>
+      <div className="flex items-center gap-3 mb-4">
+        <h1 className="text-2xl font-bold">Tambah Listing Franchise</h1>
+        <button
+          className="text-blue-600 hover:text-blue-900 text-xl"
+          onClick={() => setShowInfo(true)}
+          type="button"
+          title="Tips & Info Pengisian Listing"
+        >
+          <FaInfoCircle />
+        </button>
+      </div>
+
+      {/* POPUP INFO */}
+      {showInfo && (
+        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center px-3" onClick={() => setShowInfo(false)}>
+          <div
+            className="bg-white max-w-lg w-full rounded-2xl shadow-2xl p-6 relative"
+            onClick={e => e.stopPropagation()}
+          >
+            <button className="absolute top-3 right-5 text-xl text-gray-400 hover:text-red-600" onClick={() => setShowInfo(false)}>&times;</button>
+            <h2 className="font-bold text-xl mb-3">Tips & Info Pengisian Listing</h2>
+            <div className="text-gray-800 leading-relaxed">
+              <ul className="list-disc pl-5 mb-2">
+                <li>Isi nama, kategori, lokasi, dan deskripsi franchise dengan jelas & singkat.</li>
+                <li>Upload logo serta gambar showcase menarik agar lebih dipercaya calon mitra.</li>
+                <li>Pilih mode operasional yang sesuai (Autopilot/Semi Autopilot) & lengkapi dokumen hukum.</li>
+                <li>Jangan lupa kontak WhatsApp/email & website jika ada.</li>
+                <li>Setelah submit, admin akan meninjau data sebelum tampil publik.</li>
+              </ul>
+              <div className="bg-yellow-50 border-l-4 border-yellow-400 px-4 py-2 rounded text-sm mb-2 mt-2">
+                <b>PERHATIAN:</b><br />
+                Franchisor <u>WAJIB mengisi status dokumen dan legalitas secara JUJUR</u>.<br />
+                Data yang tidak valid, palsu, atau menyesatkan akan berakibat pada penolakan, pemblokiran, atau penghapusan listing tanpa pemberitahuan.<br />
+                Pastikan semua dokumen telah benar dan sah untuk menghindari masalah hukum di kemudian hari.
+              </div>
+              <span className="block mt-2 text-xs text-gray-500">Data listing dummy tetap bisa untuk testing (tanpa data sensitif).</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
           <table className="w-full table-fixed border-separate border-spacing-y-4">
