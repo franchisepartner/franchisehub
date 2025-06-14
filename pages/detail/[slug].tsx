@@ -13,9 +13,9 @@ interface Blog {
   author?: string;
   created_by: string;
   created_at: string;
-  url?: string;     // <-- fix: properti tambahan manual
-  image?: string;   // <-- fix: properti tambahan manual
-  type?: string;    // <-- opsional, untuk showcase
+  url?: string;
+  image?: string;
+  type?: string;
 }
 
 interface Comment {
@@ -77,7 +77,6 @@ export default function DetailPage() {
         });
 
         // --- FETCH SHOWCASE KARYA FRANCHISOR ---
-        // Fetch listing lain dan blog lain milik franchisor yang sama (kecuali blog ini sendiri)
         const [listingRes, blogRes] = await Promise.all([
           supabase
             .from('franchise_listings')
@@ -87,7 +86,7 @@ export default function DetailPage() {
             .from('blogs')
             .select('id, title, cover_url, slug, created_at')
             .eq('created_by', data.created_by)
-            .neq('id', data.id), // kecuali blog ini sendiri
+            .neq('id', data.id),
         ]);
         setShowcaseListings(
           (listingRes.data || []).map((item: any) => ({
@@ -285,7 +284,7 @@ export default function DetailPage() {
                         <div
                           key={item.id}
                           className="min-w-[240px] max-w-[260px] bg-white rounded-xl shadow-md flex flex-col overflow-hidden cursor-pointer transition hover:shadow-lg"
-                          onClick={() => router.push(item.url)}
+                          onClick={() => item.url && router.push(item.url)}
                         >
                           <img
                             src={item.image}
@@ -311,7 +310,7 @@ export default function DetailPage() {
                         <div
                           key={item.id}
                           className="min-w-[240px] max-w-[260px] bg-white rounded-xl shadow-md flex flex-col overflow-hidden cursor-pointer transition hover:shadow-lg"
-                          onClick={() => router.push(item.url)}
+                          onClick={() => item.url && router.push(item.url)}
                         >
                           <img
                             src={
