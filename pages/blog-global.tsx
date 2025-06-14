@@ -145,7 +145,7 @@ export default function BlogGlobal() {
                   <li>Admin berhak mengedit atau menghapus blog yang tidak layak.</li>
                   <li>Gunakan bahasa sopan, berbagi ilmu, hindari SARA & promosi pribadi berlebihan.</li>
                 </ul>
-                <span className="block mt-2">Yuk, baca & tulis blog untuk membangun ekosistem franchise yang lebih cerdas & kolaboratif!</span>
+                <span className="block mt-2">Yuk, baca & tulis blog untuk membangun ekosistem franchise yang lebih sehat & kolaboratif!</span>
               </div>
             </div>
           </div>
