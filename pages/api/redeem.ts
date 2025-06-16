@@ -1,9 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { supabase } from "../../lib/supabaseClient";
 
-// Helper untuk extend masa aktif
+// Helper: extend masa aktif subscription user
 async function extendSubscription(user_id: string, duration: number) {
-  // Ambil data subscription user
+  // Ambil subscription terbaru user
   const { data: current } = await supabase
     .from("subscriptions")
     .select("*")
@@ -47,8 +47,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { code } = req.body;
   if (!code) return res.status(400).json({ success: false, message: "Kode wajib diisi" });
 
-  // Ambil user session (gunakan cookies/token supabase client-side)
-  const { data: { user } } = await supabase.auth.getUser(req.cookies["sb-access-token"] || "");
+  // Ambil user session (pastikan user login via cookies/tokens)
+  const {
+    data: { user },
+    error: userErr,
+  } = await supabase.auth.getUser(req.cookies["sb-access-token"] || "");
+
   if (!user) return res.status(401).json({ success: false, message: "Kamu harus login untuk redeem kode." });
 
   // 1. Cek di tabel vouchers (type voucher/promo)
