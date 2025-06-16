@@ -9,6 +9,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { data, error } = await supabaseAdmin
     .from('auth.users')
     .select('id, email')
-    .limit(100);
+    .limit(10);
   res.json({ data, error });
 }
