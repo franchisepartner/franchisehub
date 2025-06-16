@@ -7,18 +7,20 @@ const supabaseAdmin = createClient(
 );
 
 async function extendSubscription(user_id: string, duration: number) {
-  // CEK user_id ADA DI auth.users
+  // CEK user_id ADA DI auth.users (Supabase Auth utama)
   const { data: userExist, error: userExistError } = await supabaseAdmin
     .from("auth.users")
-    .select("id")
+    .select("id, email")
     .eq("id", user_id)
     .maybeSingle();
-  console.log("Cek user_id di auth.users:", user_id, userExist, userExistError);
+
+  console.log("DEBUG user_id:", user_id, "found in auth.users:", !!userExist, "userExist:", userExist);
 
   if (!userExist) {
-    throw new Error("User id tidak ditemukan di tabel auth.users (foreign key constraint).");
+    throw new Error("User tidak ditemukan di Supabase Auth. Pastikan login lewat Google menggunakan tombol login Google di aplikasi ini, dan environment key sudah sama.");
   }
 
+  // Proses extend/update subscription
   const { data: current, error: currError } = await supabaseAdmin
     .from("subscriptions")
     .select("*")
