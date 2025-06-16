@@ -59,6 +59,7 @@ export default function FranchiseDetail() {
   const [showModal, setShowModal] = useState(false);
   const [modalImg, setModalImg] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [subscriptionActive, setSubscriptionActive] = useState<boolean | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -86,6 +87,21 @@ export default function FranchiseDetail() {
         return;
       }
       setFranchise(data);
+
+      // === Cek status subscription franchisor ===
+      const { data: subs } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('user_id', data.created_by)
+        .order('ends_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      let isActive = false;
+      if (subs && subs.status === "active" && new Date(subs.ends_at) > new Date()) {
+        isActive = true;
+      }
+      setSubscriptionActive(isActive);
 
       const { data: docs } = await supabase
         .from('legal_documents')
@@ -157,6 +173,24 @@ export default function FranchiseDetail() {
   if (loading) return <div className="p-8 text-center">Memuat detail franchise...</div>;
   if (!franchise) return <div className="p-8 text-center text-red-500">Franchise tidak ditemukan.</div>;
 
+  // === BLOKIR JIKA LANGGANAN NON-AKTIF ===
+  if (subscriptionActive === false) {
+    return (
+      <div className="p-8 text-center text-yellow-600 bg-yellow-50 rounded-2xl border border-yellow-200 shadow max-w-2xl mx-auto my-8">
+        <FaInfoCircle className="inline-block text-4xl mb-2 text-yellow-400" />
+        <div className="text-xl font-bold mb-2">Langganan franchisor sudah tidak aktif</div>
+        <div className="mb-4">Listing ini tidak dapat diakses publik karena langganan pemilik telah berakhir atau belum diperpanjang.</div>
+        <button
+          className="bg-blue-600 text-white px-4 py-2 rounded-full"
+          onClick={() => router.push('/')}
+        >
+          Kembali ke Beranda
+        </button>
+      </div>
+    );
+  }
+
+  // === TAMPILAN DETAIL FRANCHISE (KODEMU) ===
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-lg max-w-3xl mx-auto px-2 py-8">
       {/* === MARQUEE WARNING === */}
