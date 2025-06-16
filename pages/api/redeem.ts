@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createClient } from '@supabase/supabase-js';
 
+// Admin client untuk bypass RLS
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -64,9 +65,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!code || !user_id)
     return res.status(400).json({ success: false, message: "Kode dan user wajib diisi" });
 
-  // DEBUG
-  console.log("[REDEEM] user_id:", user_id, "code:", code);
-
   let { data: voucher, error } = await supabaseAdmin
     .from("vouchers")
     .select("*")
@@ -74,7 +72,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     .maybeSingle();
 
   if (error || !voucher) {
-    console.error("Voucher error:", error);
     return res.status(404).json({ success: false, message: "Kode tidak ditemukan.", detail: error?.message });
   }
 
@@ -85,7 +82,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       await extendSubscription(user_id, voucher.duration);
     } catch (err: any) {
-      console.error("Gagal update/insert subscription:", err);
       return res.status(500).json({
         success: false,
         message: "Gagal update subscription.",
@@ -100,7 +96,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .eq("id", voucher.id);
 
     if (voucherErr) {
-      console.error("Gagal update voucher:", voucherErr);
       return res.status(500).json({ success: false, message: "Gagal update status voucher.", detail: voucherErr.message });
     }
 
@@ -124,7 +119,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       await extendSubscription(user_id, voucher.duration);
     } catch (err: any) {
-      console.error("Gagal update/insert subscription:", err);
       return res.status(500).json({
         success: false,
         message: "Gagal update subscription.",
@@ -137,7 +131,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       { voucher_code: code, user_id: user_id }
     ]);
     if (redemptionErr) {
-      console.error("Gagal insert voucher_redemptions:", redemptionErr);
       return res.status(500).json({ success: false, message: "Gagal insert voucher_redemptions.", detail: redemptionErr.message });
     }
 
@@ -147,7 +140,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .eq("id", voucher.id);
 
     if (updatePromoErr) {
-      console.error("Gagal update used_count promo:", updatePromoErr);
       return res.status(500).json({ success: false, message: "Gagal update kuota promo.", detail: updatePromoErr.message });
     }
 
