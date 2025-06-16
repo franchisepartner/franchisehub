@@ -74,6 +74,17 @@ export default function BurgerMenu({ open, onClose }: Props) {
       {/* MENU */}
       <ul className="flex flex-col gap-4 px-6 py-7 text-base font-medium">
         <li>
+          <a
+            href="/Franchise_Nusantara_compressed.pdf"
+            download="FranchiseNusantara-Roadmap.pdf"
+            onClick={onClose}
+            className="flex items-center gap-3 hover:text-green-700 transition font-semibold"
+            style={{ color: "#059669" }}
+          >
+            <span className="text-xl">🗺️</span> Roadmap Franchise (PDF)
+          </a>
+        </li>
+        <li>
           <Link href="/announcement" onClick={onClose} className="flex items-center gap-3 hover:text-blue-700 transition">
             <span className="text-xl">📣</span> Pengumuman
           </Link>
