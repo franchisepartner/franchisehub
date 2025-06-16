@@ -1,15 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createClient } from '@supabase/supabase-js';
 
-// Pakai admin client (service role) agar bypass RLS
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-// Helper: extend masa aktif subscription user
 async function extendSubscription(user_id: string, duration: number) {
-  // Ambil subscription terbaru user
   const { data: current, error: currError } = await supabaseAdmin
     .from("subscriptions")
     .select("*")
@@ -67,7 +64,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!code || !user_id)
     return res.status(400).json({ success: false, message: "Kode dan user wajib diisi" });
 
-  // 1. Cek di tabel vouchers (type voucher/promo)
+  // DEBUG
+  console.log("[REDEEM] user_id:", user_id, "code:", code);
+
   let { data: voucher, error } = await supabaseAdmin
     .from("vouchers")
     .select("*")
@@ -76,22 +75,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (error || !voucher) {
     console.error("Voucher error:", error);
-    return res.status(404).json({ success: false, message: "Kode tidak ditemukan." });
+    return res.status(404).json({ success: false, message: "Kode tidak ditemukan.", detail: error?.message });
   }
 
   if (voucher.type === "voucher") {
-    // --- Kode voucher unik ---
     if (voucher.is_used)
       return res.status(400).json({ success: false, message: "Kode sudah digunakan." });
 
-    // Extend subscription
     try {
       await extendSubscription(user_id, voucher.duration);
     } catch (err: any) {
-      return res.status(500).json({ success: false, message: "Gagal update subscription.", detail: err.message });
+      console.error("Gagal update/insert subscription:", err);
+      return res.status(500).json({
+        success: false,
+        message: "Gagal update subscription.",
+        detail: err?.message || JSON.stringify(err),
+        code: err?.code,
+      });
     }
 
-    // Tandai kode sudah dipakai
     const { error: voucherErr } = await supabaseAdmin
       .from("vouchers")
       .update({ is_used: true, used_by: user_id, used_at: new Date().toISOString() })
@@ -99,15 +101,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (voucherErr) {
       console.error("Gagal update voucher:", voucherErr);
-      return res.status(500).json({ success: false, message: "Gagal update status voucher." });
+      return res.status(500).json({ success: false, message: "Gagal update status voucher.", detail: voucherErr.message });
     }
 
     return res.status(200).json({ success: true, message: `Sukses! Langganan bertambah ${voucher.duration} hari.` });
   }
 
   if (voucher.type === "promo") {
-    // --- Kode promo massal ---
-    // 1. Cek user sudah pernah redeem kode ini?
     const { data: redeemed } = await supabaseAdmin
       .from("voucher_redemptions")
       .select("*")
@@ -118,27 +118,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (redeemed)
       return res.status(400).json({ success: false, message: "Kamu sudah pernah menukarkan kode ini." });
 
-    // 2. Cek kuota promo
     if (voucher.used_count >= voucher.quota)
       return res.status(400).json({ success: false, message: "Kuota promo habis." });
 
-    // Extend subscription
     try {
       await extendSubscription(user_id, voucher.duration);
     } catch (err: any) {
-      return res.status(500).json({ success: false, message: "Gagal update subscription.", detail: err.message });
+      console.error("Gagal update/insert subscription:", err);
+      return res.status(500).json({
+        success: false,
+        message: "Gagal update subscription.",
+        detail: err?.message || JSON.stringify(err),
+        code: err?.code,
+      });
     }
 
-    // Tambahkan ke voucher_redemptions
     const { error: redemptionErr } = await supabaseAdmin.from("voucher_redemptions").insert([
       { voucher_code: code, user_id: user_id }
     ]);
     if (redemptionErr) {
       console.error("Gagal insert voucher_redemptions:", redemptionErr);
-      return res.status(500).json({ success: false, message: "Gagal insert voucher_redemptions." });
+      return res.status(500).json({ success: false, message: "Gagal insert voucher_redemptions.", detail: redemptionErr.message });
     }
 
-    // Update counter promo
     const { error: updatePromoErr } = await supabaseAdmin
       .from("vouchers")
       .update({ used_count: voucher.used_count + 1 })
@@ -146,7 +148,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (updatePromoErr) {
       console.error("Gagal update used_count promo:", updatePromoErr);
-      return res.status(500).json({ success: false, message: "Gagal update kuota promo." });
+      return res.status(500).json({ success: false, message: "Gagal update kuota promo.", detail: updatePromoErr.message });
     }
 
     return res.status(200).json({ success: true, message: `Sukses! Promo ${voucher.duration} hari aktif.` });
