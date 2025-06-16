@@ -260,7 +260,7 @@ export default function FranchisorForm() {
 <p className="text-green-700 font-semibold mb-3">
   ✅ <span className="font-bold">Pendaftaran Anda telah disetujui Administrator.</span>
   <br />
-  Silahkan memasukkan <span className="underline underline-offset-4">kode voucher / redeem code</span> untuk unlock fitur Franchisor.
+  Silahkan memasukkan <span className="underline underline-offset-4">kode voucher / redeem code</span> untuk unlock fitur Franchisor. Atau bisa juga beli langsung via Tim Administrator.
 </p>
 <button
   className="mt-3 mb-2 px-5 py-2 bg-green-600 hover:bg-green-700 text-white rounded-full font-semibold shadow transition"
