@@ -190,10 +190,10 @@ export default function FranchiseDetail() {
     );
   }
 
-  // === TAMPILAN DETAIL FRANCHISE (KODEMU) ===
+  // === DETAIL FRANCHISE (SEMUA UI KAMU DARI ATAS TETAP DI SINI, SUDAH LENGKAP) ===
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-lg max-w-3xl mx-auto px-2 py-8">
-      {/* === MARQUEE WARNING === */}
+      {/* Marquee Warning */}
       <div className="w-full mb-4 overflow-hidden">
         <div className="relative w-full bg-yellow-50 border-l-4 border-yellow-400 rounded-xl shadow h-12 flex items-center">
           <FaInfoCircle className="ml-4 text-yellow-500 text-xl flex-shrink-0 z-10" />
@@ -231,7 +231,6 @@ export default function FranchiseDetail() {
           `}</style>
         </div>
       </div>
-
       {/* SLIDER COVER + CLICK FOR FULL IMAGE */}
       {showcaseUrls.length > 0 && (
         <div className="mb-6 relative rounded-2xl shadow overflow-hidden" style={{height: '220px'}}>
