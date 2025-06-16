@@ -3,7 +3,6 @@ import { supabase } from "../../lib/supabaseClient";
 
 // Helper: extend masa aktif subscription user
 async function extendSubscription(user_id: string, duration: number) {
-  // Ambil subscription terbaru user
   const { data: current } = await supabase
     .from("subscriptions")
     .select("*")
@@ -44,16 +43,9 @@ async function extendSubscription(user_id: string, duration: number) {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") return res.status(405).end();
 
-  const { code } = req.body;
-  if (!code) return res.status(400).json({ success: false, message: "Kode wajib diisi" });
-
-  // Ambil user session (pastikan user login via cookies/tokens)
-  const {
-    data: { user },
-    error: userErr,
-  } = await supabase.auth.getUser(req.cookies["sb-access-token"] || "");
-
-  if (!user) return res.status(401).json({ success: false, message: "Kamu harus login untuk redeem kode." });
+  const { code, user_id } = req.body;
+  if (!code || !user_id)
+    return res.status(400).json({ success: false, message: "Kode dan user wajib diisi" });
 
   // 1. Cek di tabel vouchers (type voucher/promo)
   let { data: voucher, error } = await supabase
@@ -70,12 +62,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ success: false, message: "Kode sudah digunakan." });
 
     // Extend subscription
-    await extendSubscription(user.id, voucher.duration);
+    await extendSubscription(user_id, voucher.duration);
 
     // Tandai kode sudah dipakai
     await supabase
       .from("vouchers")
-      .update({ is_used: true, used_by: user.id, used_at: new Date().toISOString() })
+      .update({ is_used: true, used_by: user_id, used_at: new Date().toISOString() })
       .eq("id", voucher.id);
 
     return res.status(200).json({ success: true, message: `Sukses! Langganan bertambah ${voucher.duration} hari.` });
@@ -88,7 +80,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .from("voucher_redemptions")
       .select("*")
       .eq("voucher_code", code)
-      .eq("user_id", user.id)
+      .eq("user_id", user_id)
       .maybeSingle();
 
     if (redeemed)
@@ -99,11 +91,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ success: false, message: "Kuota promo habis." });
 
     // Extend subscription
-    await extendSubscription(user.id, voucher.duration);
+    await extendSubscription(user_id, voucher.duration);
 
     // Tambahkan ke voucher_redemptions
     await supabase.from("voucher_redemptions").insert([
-      { voucher_code: code, user_id: user.id }
+      { voucher_code: code, user_id: user_id }
     ]);
     // Update counter promo
     await supabase
