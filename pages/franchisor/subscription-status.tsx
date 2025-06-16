@@ -1,6 +1,60 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 
+// --- Komponen VoucherRedeem ---
+function VoucherRedeem({ onSuccess }: { onSuccess?: () => void }) {
+  const [code, setCode] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+
+  async function handleRedeem(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setMessage(null);
+
+    const res = await fetch("/api/redeem", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code: code.trim() }),
+    });
+
+    const data = await res.json();
+    setLoading(false);
+    setMessage(data.message || (data.success ? "Sukses!" : "Gagal menukarkan kode"));
+    if (data.success) {
+      setCode("");
+      if (onSuccess) onSuccess();
+    }
+  }
+
+  return (
+    <form onSubmit={handleRedeem} className="max-w-md mx-auto p-6 bg-white rounded-lg shadow text-center mt-6">
+      <h2 className="text-xl font-bold mb-2">Tukarkan Voucher / Kode Promo</h2>
+      <input
+        className="w-full px-4 py-2 border rounded mb-4"
+        placeholder="Masukkan kode voucher atau promo di sini"
+        value={code}
+        onChange={(e) => setCode(e.target.value)}
+        required
+        autoFocus
+      />
+      <button
+        type="submit"
+        disabled={loading || !code}
+        className="bg-blue-600 text-white px-6 py-2 rounded font-semibold shadow"
+      >
+        {loading ? "Memproses..." : "Tukarkan"}
+      </button>
+      {message && (
+        <div className={`mt-4 text-sm font-semibold ${message.includes("Sukses") ? "text-green-600" : "text-red-600"}`}>
+          {message}
+        </div>
+      )}
+    </form>
+  );
+}
+
+// --- Komponen Status Langganan ---
 type Subscription = {
   id: string;
   plan_name: string;
@@ -25,28 +79,33 @@ export default function SubscriptionStatus() {
   const [user, setUser] = useState<any>(null);
   const [countdown, setCountdown] = useState<string>("");
 
-  useEffect(() => {
-    const fetchUserAndSubscription = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
+  // Fetch user & subscription
+  const refreshSubscription = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    setUser(user);
 
-      if (!user) {
-        setLoading(false);
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from("subscriptions")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("ends_at", { ascending: false })
-        .limit(1)
-        .single();
-
-      setSubscription(data);
+    if (!user) {
       setLoading(false);
-    };
-    fetchUserAndSubscription();
+      setSubscription(null);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("subscriptions")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("ends_at", { ascending: false })
+      .limit(1)
+      .single();
+
+    setSubscription(data);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    setLoading(true);
+    refreshSubscription();
+    // eslint-disable-next-line
   }, []);
 
   // Countdown updater
@@ -86,6 +145,7 @@ export default function SubscriptionStatus() {
         <a href="/franchisor/plans" className="bg-blue-600 text-white px-6 py-2 rounded font-semibold shadow">
           Lihat Paket & Daftar
         </a>
+        <VoucherRedeem onSuccess={refreshSubscription} />
       </div>
     );
   }
@@ -154,6 +214,8 @@ export default function SubscriptionStatus() {
           Kelola Langganan
         </a>
       )}
+      {/* Form redeem voucher/promo, bisa dipakai kapan saja */}
+      <VoucherRedeem onSuccess={refreshSubscription} />
     </div>
   );
 }
