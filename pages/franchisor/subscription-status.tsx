@@ -1,11 +1,20 @@
+// pages/franchisor/subscription-status.tsx
+
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 
-// --- Komponen VoucherRedeem ---
+// --- VoucherRedeem Component ---
 function VoucherRedeem({ onSuccess }: { onSuccess?: () => void }) {
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data?.user?.id) setUserId(data.user.id);
+    });
+  }, []);
 
   async function handleRedeem(e: React.FormEvent) {
     e.preventDefault();
@@ -15,7 +24,7 @@ function VoucherRedeem({ onSuccess }: { onSuccess?: () => void }) {
     const res = await fetch("/api/redeem", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code: code.trim() }),
+      body: JSON.stringify({ code: code.trim(), user_id: userId }),
     });
 
     const data = await res.json();
@@ -40,7 +49,7 @@ function VoucherRedeem({ onSuccess }: { onSuccess?: () => void }) {
       />
       <button
         type="submit"
-        disabled={loading || !code}
+        disabled={loading || !code || !userId}
         className="bg-blue-600 text-white px-6 py-2 rounded font-semibold shadow"
       >
         {loading ? "Memproses..." : "Tukarkan"}
@@ -54,7 +63,7 @@ function VoucherRedeem({ onSuccess }: { onSuccess?: () => void }) {
   );
 }
 
-// --- Komponen Status Langganan ---
+// --- SubscriptionStatus Component ---
 type Subscription = {
   id: string;
   plan_name: string;
@@ -214,7 +223,7 @@ export default function SubscriptionStatus() {
           Kelola Langganan
         </a>
       )}
-      {/* Form redeem voucher/promo, bisa dipakai kapan saja */}
+      {/* Form redeem voucher/promo */}
       <VoucherRedeem onSuccess={refreshSubscription} />
     </div>
   );
