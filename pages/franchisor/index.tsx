@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabaseClient'
-import { v4 as uuidv4 } from 'uuid'
 import { useRouter } from 'next/router'
 import { FiLock, FiLoader } from 'react-icons/fi'
-import imageCompression from 'browser-image-compression' // --- Tambah ini
+import { v4 as uuidv4 } from 'uuid'
+import imageCompression from 'browser-image-compression'
 
 export default function FranchisorForm() {
   const [brand_name, setBrandName] = useState('')
@@ -19,6 +19,10 @@ export default function FranchisorForm() {
   const [loading, setLoading] = useState(false)
   const [session, setSession] = useState<any>(null)
   const [adminMessage, setAdminMessage] = useState<string>('')
+  const [role, setRole] = useState<string>('franchisee')
+  const [redeemLoading, setRedeemLoading] = useState(false)
+  const [redeemCode, setRedeemCode] = useState('')
+  const [redeemMsg, setRedeemMsg] = useState<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -28,6 +32,7 @@ export default function FranchisorForm() {
       if (session?.user) {
         await checkStatus(session.user)
         await fetchAdminMessage(session.user.id)
+        await fetchRole(session.user.id)
       }
     }
     init()
@@ -36,9 +41,11 @@ export default function FranchisorForm() {
       if (session?.user) {
         checkStatus(session.user)
         fetchAdminMessage(session.user.id)
+        fetchRole(session.user.id)
       } else {
         setStatus('idle')
         setAdminMessage('')
+        setRole('franchisee')
       }
     })
     return () => listener?.subscription.unsubscribe()
@@ -80,7 +87,17 @@ export default function FranchisorForm() {
     setAdminMessage(data?.message || '')
   }
 
-  // Submit pengajuan
+  // Cek role user sekarang
+  const fetchRole = async (userId: string) => {
+    const { data } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .single()
+    setRole(data?.role || 'franchisee')
+  }
+
+  // Submit pengajuan franchisor (dengan compress gambar)
   const handleSubmit = async () => {
     if (
       !brand_name || !description || !email || !whatsapp || !website ||
@@ -105,7 +122,6 @@ export default function FranchisorForm() {
     try {
       compressedLogoFile = await imageCompression(logoFile, compressOptions)
     } catch (e) {
-      // Fallback: tetap pakai file asli jika gagal compress
       compressedLogoFile = logoFile
     }
     try {
@@ -161,19 +177,41 @@ export default function FranchisorForm() {
     setLoading(false)
   }
 
-  // Ubah role jadi franchisor setelah payment
-  const handlePaymentComplete = async () => {
+  // Redeem code & update role
+  const handleRedeem = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setRedeemLoading(true)
+    setRedeemMsg(null)
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-    const { error } = await supabase
-      .from('profiles')
-      .update({ role: 'franchisor' })
-      .eq('id', user.id)
-    if (error) {
-      alert(`Gagal mengubah role: ${error.message}`)
-    } else {
-      router.push('/')
+    if (!user || !redeemCode) {
+      setRedeemMsg('Harap isi kode voucher.')
+      setRedeemLoading(false)
+      return
     }
+    // Call API route
+    const res = await fetch('/api/redeem', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: redeemCode.trim(), user_id: user.id })
+    })
+    const result = await res.json()
+    if (result.success) {
+      // Update role ke franchisor
+      const { error } = await supabase
+        .from('profiles')
+        .update({ role: 'franchisor' })
+        .eq('id', user.id)
+      if (!error) {
+        setRole('franchisor')
+        setRedeemMsg('Selamat! Anda sekarang sudah menjadi Franchisor. Mengalihkan ke Dashboard...')
+        setTimeout(() => router.push('/franchisor/dashboard'), 1600)
+      } else {
+        setRedeemMsg('Berhasil redeem, tapi gagal update role: ' + error.message)
+      }
+    } else {
+      setRedeemMsg(result.message || 'Kode tidak valid.')
+    }
+    setRedeemLoading(false)
   }
 
   return (
@@ -192,7 +230,6 @@ export default function FranchisorForm() {
           </div>
         )}
 
-        {/* Belum login */}
         {!session ? (
           <div className="flex flex-col items-center justify-center py-14">
             <FiLock size={56} className="text-blue-400 mb-4" />
@@ -206,18 +243,49 @@ export default function FranchisorForm() {
               <FiLock className="inline mr-1" /> Login untuk Melanjutkan
             </button>
           </div>
-        ) : status === 'approved' ? (
-          <div className="bg-green-50 border border-green-400 p-5 rounded-xl mb-6 shadow">
-            <p className="text-green-700 font-semibold mb-3 text-center">
-              ✅ Pendaftaran anda telah <span className="font-bold">disetujui Administrator</span> FranchiseNusantara.<br />
-              Silahkan lakukan pembayaran paket pilihan anda untuk mendapatkan akses role Franchisor.
-            </p>
+        ) : role === 'franchisor' ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <div className="text-5xl mb-3">🎩</div>
+            <div className="text-2xl font-bold text-cyan-700 mb-2 text-center">Kamu sudah unlock role Franchisor</div>
+            <div className="text-gray-500 mb-4 text-center">Akses seluruh fitur premium Franchisor telah aktif!</div>
             <button
-              onClick={handlePaymentComplete}
-              className="block mx-auto bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white px-7 py-2.5 rounded-full font-bold shadow-lg transition"
+              className="px-7 py-2.5 bg-gradient-to-tr from-cyan-600 to-blue-500 text-white font-bold rounded-full shadow-lg"
+              onClick={() => router.push('/franchisor/dashboard')}
             >
-              Login sebagai Franchisor
+              Masuk Dashboard Franchisor
             </button>
+          </div>
+        ) : status === 'approved' ? (
+          <div className="bg-green-50 border border-green-400 p-5 rounded-xl mb-6 shadow text-center">
+            <p className="text-green-700 font-semibold mb-3">
+              ✅ <span className="font-bold">Pendaftaran Anda telah disetujui Administrator.</span>
+              <br />
+              Silahkan memasukkan <span className="underline underline-offset-4">kode voucher / redeem code</span> untuk unlock fitur Franchisor.<br />
+              Jika tidak punya kode, silahkan hubungi tim Administrator (<a href="https://wa.me/6281238796380" target="_blank" rel="noopener" className="text-blue-600 underline">WhatsApp 081238796380</a>)
+            </p>
+            <form onSubmit={handleRedeem} className="mt-5 flex flex-col items-center gap-3">
+              <input
+                type="text"
+                className="px-5 py-3 rounded-xl border w-full max-w-md text-center font-bold text-lg"
+                placeholder="Masukkan kode voucher/redeem di sini"
+                value={redeemCode}
+                onChange={e => setRedeemCode(e.target.value)}
+                required
+                autoFocus
+                disabled={redeemLoading}
+              />
+              <button
+                type="submit"
+                disabled={redeemLoading || !redeemCode}
+                className={`w-full max-w-md py-3 text-lg font-bold rounded-full transition shadow-lg 
+                  ${redeemLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white'}`}
+              >
+                {redeemLoading ? <span className="flex items-center justify-center"><FiLoader className="animate-spin mr-2" /> Memproses...</span> : 'Tukarkan Kode Voucher'}
+              </button>
+              {redeemMsg && (
+                <div className={`mt-1 text-sm ${redeemMsg.includes('Selamat') ? 'text-green-600' : 'text-red-600'}`}>{redeemMsg}</div>
+              )}
+            </form>
           </div>
         ) : status === 'pending' ? (
           <div className="mb-6 flex flex-col items-center gap-2">
