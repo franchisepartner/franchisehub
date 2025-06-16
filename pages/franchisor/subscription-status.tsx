@@ -9,16 +9,25 @@ type Subscription = {
   status: string;
 };
 
+function formatDuration(ms: number) {
+  if (ms <= 0) return "Expired";
+  const totalSeconds = Math.floor(ms / 1000);
+  const days = Math.floor(totalSeconds / (3600 * 24));
+  const hours = Math.floor((totalSeconds % (3600 * 24)) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  return `${days} hari ${hours} jam ${minutes} menit ${seconds} detik`;
+}
+
 export default function SubscriptionStatus() {
   const [loading, setLoading] = useState(true);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [user, setUser] = useState<any>(null);
+  const [countdown, setCountdown] = useState<string>("");
 
   useEffect(() => {
     const fetchUserAndSubscription = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
 
       if (!user) {
@@ -39,6 +48,18 @@ export default function SubscriptionStatus() {
     };
     fetchUserAndSubscription();
   }, []);
+
+  // Countdown updater
+  useEffect(() => {
+    if (!subscription) return;
+    const interval = setInterval(() => {
+      const now = new Date();
+      const endsAt = new Date(subscription.ends_at);
+      const diff = endsAt.getTime() - now.getTime();
+      setCountdown(formatDuration(diff));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [subscription]);
 
   if (loading) {
     return (
@@ -82,10 +103,26 @@ export default function SubscriptionStatus() {
           <strong>Paket:</strong> {subscription.plan_name}
         </div>
         <div>
-          <span className="font-semibold">Mulai:</span> {startsAt.toLocaleDateString("id-ID")}
+          <span className="font-semibold">Mulai:</span>{" "}
+          {startsAt.toLocaleString("id-ID", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+          })}
         </div>
         <div>
-          <span className="font-semibold">Berakhir:</span> {endsAt.toLocaleDateString("id-ID")}
+          <span className="font-semibold">Berakhir:</span>{" "}
+          {endsAt.toLocaleString("id-ID", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+          })}
         </div>
         <div className="my-2">
           <span className="font-semibold">Status:</span>{" "}
@@ -94,6 +131,12 @@ export default function SubscriptionStatus() {
           ) : (
             <span className="text-green-600 font-bold">Aktif</span>
           )}
+        </div>
+        <div>
+          <span className="font-semibold">Sisa Waktu:</span>{" "}
+          <span className={expired ? "text-red-500 font-bold" : "text-blue-600 font-bold"}>
+            {countdown}
+          </span>
         </div>
       </div>
       {expired ? (
