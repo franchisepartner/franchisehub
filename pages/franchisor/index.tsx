@@ -23,6 +23,7 @@ export default function FranchisorForm() {
   const [redeemLoading, setRedeemLoading] = useState(false)
   const [redeemCode, setRedeemCode] = useState('')
   const [redeemMsg, setRedeemMsg] = useState<string | null>(null)
+  const [unlockedFranchisor, setUnlockedFranchisor] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -203,13 +204,13 @@ export default function FranchisorForm() {
         .eq('id', user.id)
       if (!error) {
         setRole('franchisor')
-        setRedeemMsg('Selamat! Anda sekarang sudah menjadi Franchisor. Mengalihkan ke Dashboard...')
-        setTimeout(() => router.push('/franchisor/dashboard'), 1600)
+        setUnlockedFranchisor(true)
+        setRedeemMsg('Selamat! Anda sudah unlock role Franchisor. Silahkan lanjut ke Dashboard Franchisor 🎩')
       } else {
         setRedeemMsg('Berhasil redeem, tapi gagal update role: ' + error.message)
       }
     } else {
-      setRedeemMsg(result.message || 'Kode tidak valid.')
+      setRedeemMsg(result.detail || result.message || 'Kode tidak valid.')
     }
     setRedeemLoading(false)
   }
@@ -243,6 +244,18 @@ export default function FranchisorForm() {
               <FiLock className="inline mr-1" /> Login untuk Melanjutkan
             </button>
           </div>
+        ) : unlockedFranchisor ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <div className="text-5xl mb-3">🎩</div>
+            <div className="text-2xl font-bold text-cyan-700 mb-2 text-center">Kamu sudah unlock role Franchisor</div>
+            <div className="text-gray-500 mb-4 text-center">Akses seluruh fitur premium Franchisor telah aktif!</div>
+            <button
+              className="px-7 py-2.5 bg-gradient-to-tr from-cyan-600 to-blue-500 text-white font-bold rounded-full shadow-lg"
+              onClick={() => router.push('/franchisor/dashboard')}
+            >
+              Masuk Dashboard Franchisor
+            </button>
+          </div>
         ) : role === 'franchisor' ? (
           <div className="flex flex-col items-center justify-center py-12">
             <div className="text-5xl mb-3">🎩</div>
@@ -257,19 +270,18 @@ export default function FranchisorForm() {
           </div>
         ) : status === 'approved' ? (
           <div className="bg-green-50 border border-green-400 p-5 rounded-xl mb-6 shadow text-center">
-<p className="text-green-700 font-semibold mb-3">
-  ✅ <span className="font-bold">Pendaftaran Anda telah disetujui Administrator.</span>
-  <br />
-  Silahkan memasukkan <span className="underline underline-offset-4">kode voucher / redeem code</span> untuk unlock fitur Franchisor. Atau bisa juga beli langsung via Tim Administrator.
-</p>
-<button
-  className="mt-3 mb-2 px-5 py-2 bg-green-600 hover:bg-green-700 text-white rounded-full font-semibold shadow transition"
-  onClick={() => window.open("https://wa.me/6281238796380", "_blank")}
-  type="button"
->
-  Hubungi Admin via WhatsApp
-</button>
-            
+            <p className="text-green-700 font-semibold mb-3">
+              ✅ <span className="font-bold">Pendaftaran Anda telah disetujui Administrator.</span>
+              <br />
+              Silahkan memasukkan <span className="underline underline-offset-4">kode voucher / redeem code</span> untuk unlock fitur Franchisor. Atau bisa juga beli langsung via Tim Administrator.
+            </p>
+            <button
+              className="mt-3 mb-2 px-5 py-2 bg-green-600 hover:bg-green-700 text-white rounded-full font-semibold shadow transition"
+              onClick={() => window.open("https://wa.me/6281238796380", "_blank")}
+              type="button"
+            >
+              Hubungi Admin via WhatsApp
+            </button>
             <form onSubmit={handleRedeem} className="mt-5 flex flex-col items-center gap-3">
               <input
                 type="text"
