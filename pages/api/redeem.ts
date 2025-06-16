@@ -7,20 +7,6 @@ const supabaseAdmin = createClient(
 );
 
 async function extendSubscription(user_id: string, duration: number) {
-  // CEK user_id ADA DI auth.users (Supabase Auth utama)
-  const { data: userExist, error: userExistError } = await supabaseAdmin
-    .from("auth.users")
-    .select("id, email")
-    .eq("id", user_id)
-    .maybeSingle();
-
-  console.log("DEBUG user_id:", user_id, "found in auth.users:", !!userExist, "userExist:", userExist);
-
-  if (!userExist) {
-    throw new Error("User tidak ditemukan di Supabase Auth. Pastikan login lewat Google menggunakan tombol login Google di aplikasi ini, dan environment key sudah sama.");
-  }
-
-  // Proses extend/update subscription
   const { data: current, error: currError } = await supabaseAdmin
     .from("subscriptions")
     .select("*")
@@ -28,11 +14,6 @@ async function extendSubscription(user_id: string, duration: number) {
     .order("ends_at", { ascending: false })
     .limit(1)
     .single();
-
-  if (currError) {
-    console.error("Gagal mengambil subscription:", currError);
-    throw currError;
-  }
 
   const now = new Date();
   let newEndsAt: Date;
@@ -51,7 +32,6 @@ async function extendSubscription(user_id: string, duration: number) {
       .update({ ends_at: newEndsAt.toISOString(), status: "active" })
       .eq("id", current.id);
     if (updateError) {
-      console.error("Gagal update subscription:", updateError);
       throw updateError;
     }
   } else {
@@ -65,7 +45,6 @@ async function extendSubscription(user_id: string, duration: number) {
       },
     ]);
     if (insertError) {
-      console.error("Gagal insert subscription:", insertError);
       throw insertError;
     }
   }
@@ -78,9 +57,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!code || !user_id)
     return res.status(400).json({ success: false, message: "Kode dan user wajib diisi" });
 
-  // Log awal untuk debug
-  console.log("[REDEEM] user_id:", user_id, "code:", code);
-
   let { data: voucher, error } = await supabaseAdmin
     .from("vouchers")
     .select("*")
@@ -88,8 +64,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     .maybeSingle();
 
   if (error || !voucher) {
-    console.error("Voucher error:", error);
-    return res.status(404).json({ success: false, message: "Kode tidak ditemukan.", detail: error?.message });
+    return res.status(404).json({ success: false, message: "Kode tidak ditemukan." });
   }
 
   if (voucher.type === "voucher") {
@@ -99,14 +74,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       await extendSubscription(user_id, voucher.duration);
     } catch (err: any) {
-      // Error detail
-      let detail = typeof err === "string" ? err : err?.message || JSON.stringify(err);
-      console.error("Gagal update/insert subscription:", detail, err);
       return res.status(500).json({
         success: false,
         message: "Gagal update subscription.",
-        detail,
-        code: err?.code,
+        detail: err.message,
       });
     }
 
@@ -116,8 +87,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .eq("id", voucher.id);
 
     if (voucherErr) {
-      console.error("Gagal update voucher:", voucherErr);
-      return res.status(500).json({ success: false, message: "Gagal update status voucher.", detail: voucherErr.message });
+      return res.status(500).json({ success: false, message: "Gagal update status voucher." });
     }
 
     return res.status(200).json({ success: true, message: `Sukses! Langganan bertambah ${voucher.duration} hari.` });
@@ -140,13 +110,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       await extendSubscription(user_id, voucher.duration);
     } catch (err: any) {
-      let detail = typeof err === "string" ? err : err?.message || JSON.stringify(err);
-      console.error("Gagal update/insert subscription:", detail, err);
       return res.status(500).json({
         success: false,
         message: "Gagal update subscription.",
-        detail,
-        code: err?.code,
+        detail: err.message,
       });
     }
 
@@ -154,8 +121,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       { voucher_code: code, user_id: user_id }
     ]);
     if (redemptionErr) {
-      console.error("Gagal insert voucher_redemptions:", redemptionErr);
-      return res.status(500).json({ success: false, message: "Gagal insert voucher_redemptions.", detail: redemptionErr.message });
+      return res.status(500).json({ success: false, message: "Gagal insert voucher_redemptions." });
     }
 
     const { error: updatePromoErr } = await supabaseAdmin
@@ -164,8 +130,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .eq("id", voucher.id);
 
     if (updatePromoErr) {
-      console.error("Gagal update used_count promo:", updatePromoErr);
-      return res.status(500).json({ success: false, message: "Gagal update kuota promo.", detail: updatePromoErr.message });
+      return res.status(500).json({ success: false, message: "Gagal update kuota promo." });
     }
 
     return res.status(200).json({ success: true, message: `Sukses! Promo ${voucher.duration} hari aktif.` });
