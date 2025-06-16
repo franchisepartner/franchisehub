@@ -1,7 +1,6 @@
-// pages/franchisor/subscription-status.tsx
-
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
+import { FiMessageSquare } from "react-icons/fi";
 
 // --- VoucherRedeem Component ---
 function VoucherRedeem({ onSuccess }: { onSuccess?: () => void }) {
@@ -37,10 +36,10 @@ function VoucherRedeem({ onSuccess }: { onSuccess?: () => void }) {
   }
 
   return (
-    <form onSubmit={handleRedeem} className="max-w-md mx-auto p-6 bg-white rounded-lg shadow text-center mt-6">
-      <h2 className="text-xl font-bold mb-2">Tukarkan Voucher / Kode Promo</h2>
+    <form onSubmit={handleRedeem} className="max-w-md mx-auto p-6 bg-white rounded-2xl shadow-lg border mt-8 flex flex-col items-center gap-3">
+      <h2 className="text-xl font-bold mb-1 text-blue-700">Redeem Voucher / Kode Promo</h2>
       <input
-        className="w-full px-4 py-2 border rounded mb-4"
+        className="w-full px-4 py-3 border rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-200 bg-gray-50 mb-1"
         placeholder="Masukkan kode voucher atau promo di sini"
         value={code}
         onChange={(e) => setCode(e.target.value)}
@@ -50,12 +49,12 @@ function VoucherRedeem({ onSuccess }: { onSuccess?: () => void }) {
       <button
         type="submit"
         disabled={loading || !code || !userId}
-        className="bg-blue-600 text-white px-6 py-2 rounded font-semibold shadow"
+        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl font-semibold shadow w-full mt-1 transition"
       >
         {loading ? "Memproses..." : "Tukarkan"}
       </button>
       {message && (
-        <div className={`mt-4 text-sm font-semibold ${message.includes("Sukses") ? "text-green-600" : "text-red-600"}`}>
+        <div className={`mt-2 text-sm font-semibold ${message.includes("Sukses") ? "text-green-600" : "text-red-600"}`}>
           {message}
         </div>
       )}
@@ -129,102 +128,95 @@ export default function SubscriptionStatus() {
     return () => clearInterval(interval);
   }, [subscription]);
 
-  if (loading) {
-    return (
-      <div className="max-w-lg mx-auto p-8 text-center">
-        <p>Memuat status langganan...</p>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="max-w-lg mx-auto p-8 text-center">
-        <p>Silakan login untuk melihat status langganan.</p>
-        <a href="/login" className="bg-blue-500 text-white px-4 py-2 rounded mt-4 inline-block">Login</a>
-      </div>
-    );
-  }
-
-  if (!subscription) {
-    return (
-      <div className="max-w-lg mx-auto p-8 text-center">
-        <h2 className="text-2xl font-bold mb-2">Belum Berlangganan</h2>
-        <p className="mb-4">Kamu belum memiliki paket langganan aktif.</p>
-        <a href="/franchisor/plans" className="bg-blue-600 text-white px-6 py-2 rounded font-semibold shadow">
-          Lihat Paket & Daftar
-        </a>
-        <VoucherRedeem onSuccess={refreshSubscription} />
-      </div>
-    );
-  }
-
-  const endsAt = new Date(subscription.ends_at);
-  const startsAt = new Date(subscription.starts_at);
-  const now = new Date();
-  const expired = endsAt < now;
-
   return (
-    <div className="max-w-lg mx-auto p-8 text-center">
-      <h1 className="text-3xl font-bold mb-4">Status Langganan</h1>
-      <div className="bg-white rounded-lg shadow p-6 mb-4">
-        <div className="mb-2 text-lg">
-          <strong>Paket:</strong> {subscription.plan_name}
-        </div>
-        <div>
-          <span className="font-semibold">Mulai:</span>{" "}
-          {startsAt.toLocaleString("id-ID", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-          })}
-        </div>
-        <div>
-          <span className="font-semibold">Berakhir:</span>{" "}
-          {endsAt.toLocaleString("id-ID", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-          })}
-        </div>
-        <div className="my-2">
-          <span className="font-semibold">Status:</span>{" "}
-          {expired ? (
-            <span className="text-red-600 font-bold">Expired</span>
-          ) : (
-            <span className="text-green-600 font-bold">Aktif</span>
-          )}
-        </div>
-        <div>
-          <span className="font-semibold">Sisa Waktu:</span>{" "}
-          <span className={expired ? "text-red-500 font-bold" : "text-blue-600 font-bold"}>
-            {countdown}
+    <div className="min-h-screen bg-gradient-to-tr from-blue-50 to-cyan-50 flex items-center justify-center py-10">
+      <div className="w-full max-w-xl mx-auto bg-white/95 backdrop-blur rounded-3xl shadow-2xl px-7 py-10 border border-blue-100">
+        <h1 className="text-3xl font-bold text-blue-700 mb-4 text-center tracking-tight">Status Langganan</h1>
+
+        {/* Tombol WhatsApp selalu muncul */}
+        <div className="flex flex-col items-center mb-7">
+          <a
+            href="https://wa.me/6281238796380"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-7 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-full shadow-lg text-lg transition-all"
+            style={{minWidth:220, justifyContent:"center"}}
+          >
+            <FiMessageSquare className="text-xl" /> Hubungi Tim Administrator
+          </a>
+          <span className="mt-1 text-sm text-gray-500 text-center">
+            Bantuan pendaftaran, info pembayaran, dan paket promo silakan klik tombol di atas.
           </span>
         </div>
+
+        {/* Status dan logic login */}
+        {loading ? (
+          <div className="py-12 text-center text-blue-600 text-lg font-semibold">Memuat status langganan...</div>
+        ) : !user ? (
+          <div className="py-12 text-center">
+            <p className="mb-3 text-lg font-semibold text-gray-700">Silakan login untuk melihat status langganan.</p>
+            <a href="/login" className="bg-blue-500 text-white px-6 py-3 rounded-xl mt-2 inline-block font-bold shadow-lg">Login</a>
+          </div>
+        ) : !subscription ? (
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-2 text-blue-800">Belum Berlangganan</h2>
+            <p className="mb-4 text-gray-500">Kamu belum memiliki paket langganan aktif.</p>
+            {/* <a href="/franchisor/plans" className="bg-blue-600 text-white px-6 py-2 rounded font-semibold shadow mb-3 inline-block">
+              Lihat Paket & Daftar
+            </a> */}
+            <VoucherRedeem onSuccess={refreshSubscription} />
+          </div>
+        ) : (
+          <div>
+            <div className="bg-white rounded-2xl shadow p-6 mb-4 border max-w-md mx-auto">
+              <div className="mb-2 text-lg flex justify-between items-center">
+                <span className="font-bold">Paket:</span> <span>{subscription.plan_name}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="font-semibold">Mulai:</span>
+                <span>
+                  {new Date(subscription.starts_at).toLocaleString("id-ID", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+                  })}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="font-semibold">Berakhir:</span>
+                <span>
+                  {new Date(subscription.ends_at).toLocaleString("id-ID", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+                  })}
+                </span>
+              </div>
+              <div className="flex justify-between items-center my-2">
+                <span className="font-semibold">Status:</span>
+                {new Date(subscription.ends_at) < new Date() ? (
+                  <span className="text-red-600 font-bold">Expired</span>
+                ) : (
+                  <span className="text-green-600 font-bold">Aktif</span>
+                )}
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="font-semibold">Sisa Waktu:</span>
+                <span className={new Date(subscription.ends_at) < new Date() ? "text-red-500 font-bold" : "text-blue-600 font-bold"}>
+                  {countdown}
+                </span>
+              </div>
+            </div>
+            <VoucherRedeem onSuccess={refreshSubscription} />
+          </div>
+        )}
       </div>
-      {expired ? (
-        <a
-          href="/franchisor/plans?renew=true"
-          className="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded font-semibold shadow"
-        >
-          Perpanjang Sekarang
-        </a>
-      ) : (
-        <a
-          href="/franchisor/account/billing"
-          className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded font-semibold shadow"
-        >
-          Kelola Langganan
-        </a>
-      )}
-      {/* Form redeem voucher/promo */}
-      <VoucherRedeem onSuccess={refreshSubscription} />
     </div>
   );
 }
