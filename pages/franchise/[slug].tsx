@@ -71,9 +71,12 @@ export default function FranchiseDetail() {
     return () => { listener?.subscription.unsubscribe(); };
   }, []);
 
+  // PATCH POLLING OTOMATIS
   useEffect(() => {
     if (!slug || typeof slug !== 'string') return;
     setLoading(true);
+
+    let interval: NodeJS.Timeout;
 
     const fetchAll = async () => {
       const { data, error } = await supabase
@@ -158,7 +161,13 @@ export default function FranchiseDetail() {
 
       setLoading(false);
     };
-    fetchAll();
+
+    fetchAll(); // initial fetch
+    interval = setInterval(fetchAll, 20000); // refresh tiap 20 detik
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
   }, [slug, router]);
 
   useEffect(() => {
